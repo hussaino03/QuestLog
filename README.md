@@ -39,7 +39,7 @@ Check out the live demo of QuestLog [here](https://smart-listapp.vercel.app/).
    ```
 2. Navigate to the project directory:
    ```
-   cd SmartList
+   cd QuestLog
    ```
 3. Install dependencies for both frontend and backend:
    ```
