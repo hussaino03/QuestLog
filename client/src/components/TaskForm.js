@@ -13,7 +13,7 @@ const TaskForm = ({ addTask }) => {
       desc: description,
       difficulty,
       importance,
-      experience: ((parseInt(difficulty) + parseInt(importance) + 20) * 5),
+      experience: ((parseInt(difficulty) + parseInt(importance) + 20) * 5 + parseInt(parseInt(difficulty) * parseInt(importance) / 20)),
       completion: false
     };
     addTask(newTask);
