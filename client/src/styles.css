@@ -78,6 +78,7 @@ button {
   box-shadow: 4px 4px #77dd77;
   cursor: pointer;
   transition: 0.2s ease;
+  font-weight: bold; /* Add consistent bold weight */
 }
 
 button:hover {
@@ -356,65 +357,52 @@ img {
   margin: 0;
 }
 
-
-/* Updated Media Queries for Improved Mobile Responsiveness */
-@media screen and (max-width: 768px) {
-  body {
-    margin: 10px;
-    padding: 0;
-  }
-
-  h2 {
-    padding-left: 0;
-    font-size: 1.3em;
-    text-align: center;
-  }
-
-  button {
-    font-size: 1rem;
-    padding: 0.3rem 0.6rem;
-    margin: 5px;
-  }
-
-  ul {
-    width: 100%;
-    padding: 0;
-  }
-
-  ul li {
-    font-size: 1em;
-    padding: 8px;
-  }
-
-  .modal-content {
-    width: 95%;
-    padding: 15px;
-  }
-
-  .modal-content input, #descinput {
-    width: 90%;
-  }
-
-  .streak-tracker {
-    position: static;
-    width: 100%;
-    margin-bottom: 15px;
-    transform: none;
-    left: auto;
-  }
-
-  .streak-content {
-    flex-direction: row;
-    justify-content: space-around;
-    flex-wrap: wrap;
-  }
-
-  .progress-bar {
-    max-width: 100%;
-  }
-
+/* leaderboard */
+.leaderboard {
+  transition: opacity 0.3s ease-in-out;
 }
 
+.bottom-buttons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.leaderboard-toggle {
+  margin-right: 10px;
+  color: green;
+  font-weight: bold;
+  font-size: 1.4em;
+  background-color: white;
+}
+
+#clear-button {
+  float: none;
+  margin: 0;
+}
+
+.leaderboard-toggle,
+#clear-button {
+  padding: 0.4rem 0.75rem;
+  font-size: 1.4rem;
+  background: white;
+  border: 3px solid #333;
+  box-shadow: 4px 4px #77dd77;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.leaderboard-toggle:hover,
+#clear-button:hover {
+  position: relative;
+  left: 4px;
+  top: 4px;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+/* Media Queries */
 @media screen and (max-width: 480px) {
   body {
     margin: 5px;
@@ -464,8 +452,32 @@ img {
   }
 }
 
-@media screen and (max-width: 430px) {
+@media screen and (max-width: 768px) {
+  body {
+    margin: 10px;
+    padding: 0;
+  }
+
+  h2 {
+    font-size: 1.3em;
+    text-align: center;
+    padding-left: 0;
+  }
+
+  button {
+    font-size: 1rem;
+    padding: 0.3rem 0.6rem;
+    margin: 5px;
+    border: 3px solid #333;
+    box-shadow: 4px 4px #77dd77;
+  }
+
   .streak-tracker {
+    position: static;
+    width: 100%;
+    margin-bottom: 15px;
+    transform: none;
+    left: auto;
     background-color: transparent;
     box-shadow: none;
   }
@@ -474,75 +486,52 @@ img {
     background-color: rgba(209, 255, 251, 0.8);
     border-radius: 8px;
     padding: 10px;
+    display: flex;
+    justify-content: space-around;
   }
 
-  #clear-button {
-    position: fixed;
+  .bottom-buttons {
     bottom: 10px;
     right: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .leaderboard-toggle,
+  #clear-button {
+    position: static; /* Remove fixed positioning */
     font-size: 1rem;
     padding: 0.3rem 0.6rem;
+    border: 3px solid #333;
+    box-shadow: 4px 4px #77dd77;
+    background: white;
+    margin: 0; /* Remove margins */
+    color: green;
+    font-weight: bold;
   }
 
-  button {
-    font-size: 0.8rem;
-    padding: 0.2rem 0.3rem;
-    margin: 2px;
+  /* Progress bar adjustments */
+  .progress-bar {
+    max-width: 100%;
   }
-  
 }
-/* leaderboard */
-.leaderboard {
-  transition: opacity 0.3s ease-in-out;
-}
-
-.bottom-buttons {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.leaderboard-toggle {
-  margin-right: 10px;
-  color: green;
-  font-weight: bold;
-  font-size: 1.4em;
-  background-color: white;
-}
-
-#clear-button {
-  float: none;
-  margin: 0;
-}
-
-.leaderboard-toggle,
-#clear-button {
-  padding: 0.4rem 0.75rem;
-  font-size: 1.4rem;
-  background: white;
-  border: 3px solid #333;
-  box-shadow: 4px 4px #77dd77;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.leaderboard-toggle:hover,
-#clear-button:hover {
-  position: relative;
-  left: 4px;
-  top: 4px;
-  box-shadow: none;
-  text-shadow: none;
-}
-
-/* Media Queries */
-@media screen and (max-width: 768px) {
+@media screen and (min-width: 769px) and (max-width: 1405px) {
+  .streak-tracker {
+    left: auto;
+    right: 20px;
+    top: 100px;
+    transform: none;
+    width: 300px;
+  }
+  .progress-bar {
+    max-width: 500px;
+  }
   .bottom-buttons {
     flex-direction: column;
     align-items: flex-end;
   }
-
   .leaderboard-toggle {
     margin-right: 0;
     margin-bottom: 10px;
@@ -553,6 +542,10 @@ img {
     font-size: 1rem;
     padding: 0.3rem 0.6rem;
   }
+  button {
+    font-size: 1.1rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
 }
 
 @media screen and (max-width: 480px) {
@@ -561,23 +554,85 @@ img {
     font-size: 0.9rem;
     padding: 0.2rem 0.4rem;
   }
+  button {
+    font-size: 1rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
 }
 
 @media screen and (max-width: 430px) {
-  .bottom-buttons {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    flex-direction: column;
+  button {
+    font-size: 1rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
+  .modal-content {
+    width: 85%;
+    margin: 10% auto;
+    padding: 15px;
+    border-width: 5px;
+    border-radius: 20px;
+    background-color: rgb(225, 255, 240);
   }
 
-  .leaderboard-toggle {
-    margin-bottom: 5px;
+  .modal-content input {
+    width: 85%;
+    height: 25px;
+    margin: 8px auto;
+    padding: 5px;
+    font-size: 14px;
   }
 
-  .leaderboard-toggle,
-  #clear-button {
-    font-size: 1rem;
-    padding: 0.3rem 0.6rem;
+  #descinput {
+    width: 85%;
+    margin: 8px auto;
+    padding: 5px;
+    font-size: 14px;
+  }
+
+  /* Slider container adjustments */
+  .imgcontainer .slider {
+    width: 85%;
+    margin: 10px auto;
+    display: block;
+  }
+
+  .imgcontainer .slider input {
+    width: 100%;
+    margin: 5px 0;
+  }
+
+  /* Submit button styling */
+  .modal-content button {
+    width: 85%;
+    margin: 10px auto;
+    padding: 8px;
+    display: block;
+    font-size: 14px;
+    border-radius: 5px;
+  }
+
+  /* Close button adjustment */
+  .close {
+    right: 15px;
+    top: 5px;
+    font-size: 24px;
+  }
+
+  /* Adjust modal padding and spacing */
+  .modal {
+    padding-top: 30px;
+  }
+
+  /* Labels and text adjustments */
+  .slider-labels {
+    font-size: 14px;
+    margin: 5px 0;
+    text-align: center;
+  }
+
+  /* Image size adjustment */
+  .imgcontainer img {
+    width: 15%;
+    margin: 10px auto;
   }
 }
