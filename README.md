@@ -17,6 +17,13 @@ QuestLog is a gamified productivity web application built with React and backed 
 
 Check out the live demo of QuestLog [here](https://smart-listapp.vercel.app/).
 
+| ![Image 1](https://github.com/user-attachments/assets/9f6d85ef-6a0d-4409-85f7-f0b0c29e6261) | ![Image 2](https://github.com/user-attachments/assets/9d0a5af9-e016-41bd-abcc-cdcba2bd39e5) |
+| --- | --- |
+
+| ![image](https://github.com/user-attachments/assets/ed0c0029-9bd5-4fbe-a82a-88374a854289) | ![Image 2](https://github.com/user-attachments/assets/86a2c415-de61-4b36-bfed-49e26bd4dd47) |
+| --- | --- |
+
+
 ## Architecture
 
 - Frontend: React application hosted on Vercel
