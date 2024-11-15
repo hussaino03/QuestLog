@@ -138,29 +138,52 @@ app.post('/api/sync', async (req, res) => {
   const { googleId, localData } = req.body;
   
   if (!googleId || !localData) {
-    return res.status(400).json({ error: 'Missing required data' });
+    return res.status(400).json({ 
+      error: 'Missing required data',
+      details: `GoogleId: ${!!googleId}, LocalData: ${!!localData}`
+    });
   }
 
   try {
     const db = await connectToDatabase();
+    if (!db) {
+      throw new Error('Failed to connect to database');
+    }
+
     const usersCollection = db.collection('users');
     
     // Find existing user data
     let userData = await usersCollection.findOne({ googleId });
     
+    // Validate the data structure before processing
+    const validatedLocalData = {
+      tasks: Array.isArray(localData.tasks) ? localData.tasks : [],
+      completedTasks: Array.isArray(localData.completedTasks) ? localData.completedTasks : [],
+      xp: Number(localData.xp) || 0,
+      level: Number(localData.level) || 1
+    };
+    
     if (!userData) {
-      // First time sync - save local data as is
+      // First time sync - save validated local data
       userData = {
         googleId,
-        ...localData,
-        lastSync: new Date()
+        ...validatedLocalData,
+        lastSync: new Date(),
+        cleared: false
       };
-      await usersCollection.insertOne(userData);
-      return res.json(localData);
+      
+      const insertResult = await usersCollection.insertOne(userData);
+      if (!insertResult.acknowledged) {
+        throw new Error('Failed to insert new user data');
+      }
+      
+      return res.json(validatedLocalData);
     }
 
-    // If the data was previously cleared, don't merge and return empty data
-    if (userData.cleared) {
+    // If the data was previously cleared and local storage is empty,
+    // return empty data to maintain cleared state
+    if (userData.cleared && 
+        (!validatedLocalData.tasks.length && !validatedLocalData.completedTasks.length)) {
       const emptyData = {
         tasks: [],
         completedTasks: [],
@@ -171,25 +194,52 @@ app.post('/api/sync', async (req, res) => {
       return res.json(emptyData);
     }
 
-    // Merge logic - prefer the most recent data
+    // If we have new local data and it's not empty, treat it as fresh data
+    if (validatedLocalData.tasks.length || validatedLocalData.completedTasks.length) {
+      const newData = {
+        ...validatedLocalData,
+        cleared: false,
+        lastSync: new Date()
+      };
+
+      const updateResult = await usersCollection.updateOne(
+        { googleId },
+        { $set: newData }
+      );
+
+      if (!updateResult.acknowledged) {
+        throw new Error('Failed to update user data');
+      }
+
+      return res.json(newData);
+    }
+
+    // Normal merge logic for non-cleared data
     const mergedData = {
-      tasks: [...new Set([...userData.tasks || [], ...localData.tasks || []])],
-      completedTasks: [...new Set([...userData.completedTasks || [], ...localData.completedTasks || []])],
-      xp: Math.max(userData.xp || 0, localData.xp || 0),
-      level: Math.max(userData.level || 1, localData.level || 1),
-      lastSync: new Date()
+      tasks: [...new Set([...userData.tasks || [], ...validatedLocalData.tasks])],
+      completedTasks: [...new Set([...userData.completedTasks || [], ...validatedLocalData.completedTasks])],
+      xp: Math.max(userData.xp || 0, validatedLocalData.xp),
+      level: Math.max(userData.level || 1, validatedLocalData.level),
+      lastSync: new Date(),
+      cleared: false
     };
 
-    // Update server data
-    await usersCollection.updateOne(
+    const updateResult = await usersCollection.updateOne(
       { googleId },
       { $set: mergedData }
     );
 
+    if (!updateResult.acknowledged) {
+      throw new Error('Failed to update user data');
+    }
+
     res.json(mergedData);
   } catch (error) {
-    console.error('Error syncing data:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error in sync endpoint:', error);
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message 
+    });
   }
 });
 

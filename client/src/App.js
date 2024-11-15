@@ -273,21 +273,24 @@ const App = () => {
 
   const syncData = async (googleId) => {
     try {
+      // Ensure we have both googleId and token
+      if (!googleId || !authToken) {
+        console.log('Missing googleId or authToken, skipping sync');
+        return;
+      }
+  
       const localData = {
         tasks,
         completedTasks,
         xp: getTotalXP(),
         level
       };
-  
+    
       const headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
       };
-      
-      if (authToken) {
-        headers.Authorization = `Bearer ${authToken}`;
-      }
-
+  
       const response = await fetch(`${API_BASE_URL}/sync`, {
         method: 'POST',
         headers,
@@ -296,27 +299,40 @@ const App = () => {
           localData
         })
       });
-  
+    
       if (!response.ok) {
-        throw new Error(`Sync failed: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Sync failed: ${response.status}`);
       }
-  
+    
       const mergedData = await response.json();
       
-      // Only update local data if there's data to merge
-      if (!mergedData.cleared) { // Don't restore data if it was previously cleared
-        setTasks(mergedData.tasks || []);
-        setCompletedTasks(mergedData.completedTasks || []);
+      // Only update local data if there's data to merge and it wasn't cleared
+      if (mergedData && !mergedData.cleared) {
+        // Ensure we're working with arrays even if server returns null/undefined
+        const newTasks = mergedData.tasks || [];
+        const newCompletedTasks = mergedData.completedTasks || [];
+        
+        // Update state
+        setTasks(newTasks);
+        setCompletedTasks(newCompletedTasks);
         
         // Save to localStorage
-        localStorage.setItem('tasks', JSON.stringify(mergedData.tasks || []));
-        localStorage.setItem('completedtasks', JSON.stringify(mergedData.completedTasks || []));
+        localStorage.setItem('tasks', JSON.stringify(newTasks));
+        localStorage.setItem('completedtasks', JSON.stringify(newCompletedTasks));
+  
+        // Update XP and level if they're different
+        if (mergedData.xp !== getTotalXP() || mergedData.level !== level) {
+          // You'll need to implement a way to set XP and level directly
+          // This might require adding methods to your XPManager
+          updateXPAndLevel(mergedData.xp, mergedData.level);
+        }
       }
       
       console.log('Data synced successfully');
     } catch (error) {
       console.error('Error syncing data:', error);
-      setError('Failed to sync data');
+      setError(`Failed to sync data: ${error.message}`);
     }
   };
 

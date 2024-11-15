@@ -55,6 +55,12 @@ const useXPManager = () => {
     return totalXP;
   };
 
+  const updateXPAndLevel = (newXP, newLevel) => {
+    localStorage.setItem('experience', newXP.toString());
+    localStorage.setItem('level', newLevel.toString());
+    // Update your state management accordingly
+  };
+
   const resetXP = () => {
     setLevel(1);
     setExperience(0);
