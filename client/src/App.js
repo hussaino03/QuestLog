@@ -308,7 +308,7 @@ const App = () => {
                      border-3 border-gray-800 dark:border-gray-600 shadow-[4px_4px_#77dd77] dark:shadow-[4px_4px_#4a9e4a] 
                      hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
           >
-            Clear all data
+            Clear All Data
           </button>
         </div>
         
