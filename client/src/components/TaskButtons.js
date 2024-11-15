@@ -17,7 +17,7 @@ const TaskButtons = ({ showCompleted, setShowCompleted, setShowTodo }) => {
                  text-gray-800 dark:text-gray-200 shadow-[4px_4px_#2563EB] hover:shadow-none hover:translate-x-1 
                  hover:translate-y-1 transition-all duration-200 rounded-none"
       >
-        Show completed
+        Show Completed
       </button>
       <button
         onClick={setShowTodo}
@@ -25,7 +25,7 @@ const TaskButtons = ({ showCompleted, setShowCompleted, setShowTodo }) => {
                  text-gray-800 dark:text-gray-200 shadow-[4px_4px_#2563EB] hover:shadow-none hover:translate-x-1 
                  hover:translate-y-1 transition-all duration-200 rounded-none"
       >
-        Show to-do
+        Show To-Do
       </button>
     </div>
   );
