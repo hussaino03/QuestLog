@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-oauth/google": "^0.12.1",
     "@testing-library/user-event": "^13.5.0",
     "ajv": "^8.17.1",
     "dotenv": "^16.4.5",
+    "google-auth-library": "^9.15.0",
     "lucide-react": "^0.456.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
