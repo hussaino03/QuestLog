@@ -296,17 +296,17 @@ const App = () => {
         <div className="flex justify-between gap-4">
           <button 
             onClick={toggleLeaderboard}
-            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold text-lg 
-                     border-3 border-gray-800 dark:border-gray-600 shadow-[4px_4px_#77dd77] dark:shadow-[4px_4px_#4a9e4a] 
-                     hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
+            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
+                     text-gray-800 dark:text-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 
+                     hover:translate-y-1 transition-all duration-200 rounded-none"
           >
             {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
           </button>
           <button 
             onClick={clearAllData}
-            className="px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold text-lg 
-                     border-3 border-gray-800 dark:border-gray-600 shadow-[4px_4px_#77dd77] dark:shadow-[4px_4px_#4a9e4a] 
-                     hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
+            className="px-3 py-2 bg-white dark:bg-gray-800 font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
+                     text-gray-800 dark:text-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 
+                     hover:translate-y-1 transition-all duration-200 rounded-none"
           >
             Clear All Data
           </button>
