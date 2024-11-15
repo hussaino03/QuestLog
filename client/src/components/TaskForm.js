@@ -21,32 +21,119 @@ const TaskForm = ({ addTask }) => {
     setDescription('');
     setDifficulty(50);
     setImportance(50);
-    document.getElementById('newtask-form').style.display = 'none';
+    handleClose();
+  };
+
+  const handleClose = () => {
+    const modal = document.getElementById('newtask-form');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  };
+
+  const handleOutsideClick = (e) => {
+    if (e.target.id === 'newtask-form') {
+      handleClose();
+    }
   };
 
   return (
-    <div id='newtask-form' className='modal'>
-      <form onSubmit={handleSubmit} className='modal-content animate'>
-        <div className="imgcontainer">
-          <span onClick={() => document.getElementById('newtask-form').style.display='none'} className="close" title="Close Modal">&times;</span>
-          <h3 style={{ marginBottom: '8px' }}>Create a new task!</h3>
-          <img src="/main.png" alt="Task icon" />
-          <input type="text" placeholder="Add new task" value={name} onChange={(e) => setName(e.target.value)} required />
-          <input placeholder="Task description" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <hr />
-          <div>
-            <span className='slider' style={{ bottom: '10px' }}>Very easy</span>
-            <input type="range" min="1" max="100" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className='slider' />
-            <span className='slider' style={{ bottom: '10px' }}>Very hard</span>
+    <div 
+      id="newtask-form" 
+      className="hidden fixed inset-0 overflow-y-auto overflow-x-hidden"
+      style={{ 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'none',
+        zIndex: 9999
+      }}
+      onClick={handleOutsideClick}
+    >
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <form 
+          onSubmit={handleSubmit} 
+          className="relative w-full max-w-md bg-white rounded-lg shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-gray-900">Create New Task</h3>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClose();
+                }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+              >
+                <span className="text-red-600 text-lg">×</span>
+              </button>
+            </div>
+            
+            <div className="flex justify-center">
+              <img src="/main.png" alt="Task icon" className="w-24 h-24" />
+            </div>
+            
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Add new task"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              
+              <textarea
+                placeholder="Task description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+              />
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Very easy</span>
+                  <span>Very hard</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Not important</span>
+                  <span>Very important</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={importance}
+                  onChange={(e) => setImportance(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            
+            <button
+              type="submit"
+              className="w-full px-3 py-2 bg-white text-gray-800 font-bold text-lg border-3 border-gray-800 
+                       shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 hover:translate-y-1 
+                       transition-all duration-200 rounded-none"
+            >
+              Press Enter or click to submit
+            </button>
           </div>
-          <div>
-            <span className='slider' style={{ bottom: '10px' }}>Not important</span>
-            <input type="range" min="1" max="100" value={importance} onChange={(e) => setImportance(e.target.value)} className='slider' />
-            <span className='slider' style={{ bottom: '10px' }}>Very important</span>
-          </div>
-          <button type="submit">Press Enter or click to submit</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

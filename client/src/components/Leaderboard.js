@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 
-
-// Lists for generating usernames
+// Keeping the username generation logic unchanged
 const adjectives = [
   'Happy', 'Clever', 'Brave', 'Wise', 'Swift', 'Calm', 'Bright', 'Noble',
   'Lucky', 'Witty', 'Bold', 'Quick', 'Kind', 'Cool', 'Keen', 'Pure'
@@ -14,7 +13,6 @@ const nouns = [
   'Deer', 'Seal', 'Owl', 'Duck', 'Cat', 'Dog', 'Bat', 'Elk'
 ];
 
-// Function to generate a consistent random number from a string
 const hashCode = (str) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -25,35 +23,44 @@ const hashCode = (str) => {
   return Math.abs(hash);
 };
 
-// Function to generate a consistent username from a user ID
 const generateUsername = (userId) => {
   const hash = hashCode(userId);
   const adjIndex = hash % adjectives.length;
   const nounIndex = Math.floor(hash / adjectives.length) % nouns.length;
-  const number = hash % 1000; // Add a number at the end for more uniqueness
+  const number = hash % 1000;
   
   return `${adjectives[adjIndex]}${nouns[nounIndex]}${number}`;
 };
+
 const LeaderboardEntry = ({ user, index }) => {
   const [showDetails, setShowDetails] = useState(false);
-  
   const username = useMemo(() => generateUsername(user?._id), [user?._id]);
 
   return (
-    <li>
-      <div className={`name ${showDetails ? 'active' : ''}`}>
-        <button className="more" onClick={() => setShowDetails(!showDetails)}>
-          {showDetails ? '↑' : '↓'}
-        </button>
-        <span>{index + 1}. {username}</span>
+    <li className="border-b border-gray-200 last:border-b-0">
+      <div className={`flex items-center justify-between p-4 ${showDetails ? 'bg-gray-50' : ''}`}>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => setShowDetails(!showDetails)}
+            className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            {showDetails ? '↑' : '↓'}
+          </button>
+          <span className="font-medium">
+            {index + 1}. {username}
+          </span>
+        </div>
       </div>
       <div
-        className="description"
-        style={{ maxHeight: showDetails ? '200px' : '0', overflow: 'hidden' }}
+        className={`overflow-hidden transition-all duration-300 ${
+          showDetails ? 'max-h-48' : 'max-h-0'
+        }`}
       >
-        <p>XP: {user?.xp || 0}</p>
-        <p>Tasks Completed: {user?.tasksCompleted || 0}</p>
-        <p>Level: {user?.level || 1}</p>
+        <div className="p-4 bg-gray-50 space-y-2">
+          <p className="text-gray-700">XP: {user?.xp || 0}</p>
+          <p className="text-gray-700">Tasks Completed: {user?.tasksCompleted || 0}</p>
+          <p className="text-gray-700">Level: {user?.level || 1}</p>
+        </div>
       </div>
     </li>
   );
@@ -71,18 +78,20 @@ const Leaderboard = () => {
         return response.json();
       })
       .then(data => {
-        console.log('Leaderboard data:', data);  // This will only show in browser console
+        console.log('Leaderboard data:', data);
         setLeaderboard(data);
       })
       .catch(error => {
-        console.error('Error:', error);  // This will only show in browser console
+        console.error('Error:', error);
       });
   }, []);
 
   return (
-    <div className="leaderboard">
-      <h2>Leaderboard</h2>
-      <ul>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <h2 className="text-xl font-bold p-4 bg-gray-50 border-b border-gray-200">
+        Leaderboard
+      </h2>
+      <ul className="divide-y divide-gray-200">
         {leaderboard.map((user, index) => (
           <LeaderboardEntry key={user._id} user={user} index={index} />
         ))}

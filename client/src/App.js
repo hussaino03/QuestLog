@@ -1,3 +1,4 @@
+import './styles/globals.css';
 import React, { useState, useEffect } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { v4 as uuidv4 } from 'uuid';
@@ -242,66 +243,98 @@ const App = () => {
   };
 
   return (
-    <div>
+    <div className="relative min-h-screen bg-gray-50">
       <Header />
       {error && (
-        <div className="error-message" style={{ color: 'red', padding: '10px', margin: '10px' }}>
+        <div className="mx-4 my-2 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           Error: {error}
         </div>
       )}
-      <ProgressBar level={level} experience={experience} />
-      <StreakTracker tasks={tasks} completedTasks={completedTasks} />
-      <TaskButtons 
-        showCompleted={showCompleted} 
-        setShowCompleted={handleShowCompleted}
-        setShowTodo={handleShowTodo}
-      />
-      <TaskForm addTask={addTask} />
-      <div className="bottom-buttons">
-        <button onClick={toggleLeaderboard} className="leaderboard-toggle">
-          {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
-        </button>
-        <button id="clear-button" onClick={clearAllData}>Clear all data</button>
-      </div>
-      
-      {/* Main content section */}
-      <div className="main-content">
-        <SwitchTransition mode="out-in">
-          <CSSTransition
-            key={currentView}
-            classNames="fade"
-            timeout={300}
-            unmountOnExit
+      <div className="relative max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <ProgressBar level={level} experience={experience} />
+        <StreakTracker tasks={tasks} completedTasks={completedTasks} />
+        
+        {/* Task Form Transition */}
+        <CSSTransition
+          in={!showLeaderboard}
+          timeout={300}
+          classNames="fade"
+          unmountOnExit
+        >
+          <div>
+            <TaskButtons 
+              showCompleted={showCompleted} 
+              setShowCompleted={handleShowCompleted}
+              setShowTodo={handleShowTodo}
+            />
+            <TaskForm addTask={addTask} />
+          </div>
+        </CSSTransition>
+
+        <div className="flex justify-between gap-4">
+          <button 
+            onClick={toggleLeaderboard}
+            className="flex-1 px-3 py-2 bg-white text-gray-800 font-bold text-lg border-3 border-gray-800 
+                     shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 hover:translate-y-1 
+                     transition-all duration-200 rounded-none"
           >
-            <div className="view-container">
-              {currentView === 'leaderboard' && <Leaderboard />}
-              {currentView === 'todo' && (
-                <TaskList 
-                  tasks={tasks} 
-                  removeTask={removeTask}
-                  completeTask={completeTask}
-                  isCompleted={false}
-                />
-              )}
-              {currentView === 'completed' && (
-                <TaskList 
-                  tasks={completedTasks} 
-                  removeTask={removeTask}
-                  completeTask={completeTask}
-                  isCompleted={true}
-                />
-              )}
-            </div>
-          </CSSTransition>
-        </SwitchTransition>
+            {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
+          </button>
+          <button 
+            onClick={clearAllData}
+            className="px-3 py-2 bg-white text-gray-800 font-bold text-lg border-3 border-gray-800 
+                     shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 hover:translate-y-1 
+                     transition-all duration-200 rounded-none"
+          >
+            Clear all data
+          </button>
+        </div>
+        
+        {/* Main Content Transition */}
+        <div className="relative z-0 overflow-hidden">
+          <SwitchTransition mode="out-in">
+            <CSSTransition
+              key={currentView}
+              classNames="slide"
+              timeout={300}
+              unmountOnExit
+            >
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                {currentView === 'leaderboard' && <Leaderboard />}
+                {currentView === 'todo' && (
+                  <TaskList 
+                    tasks={tasks} 
+                    removeTask={removeTask}
+                    completeTask={completeTask}
+                    isCompleted={false}
+                  />
+                )}
+                {currentView === 'completed' && (
+                  <TaskList 
+                    tasks={completedTasks} 
+                    removeTask={removeTask}
+                    completeTask={completeTask}
+                    isCompleted={true}
+                  />
+                )}
+              </div>
+            </CSSTransition>
+          </SwitchTransition>
+        </div>
       </div>
 
-      {/* Level up modal */}
-      <LevelUpModal 
-        show={showLevelUp} 
-        onClose={() => setShowLevelUp(false)} 
-        level={newLevel}
-      />
+      {/* Modal Transition */}
+      <CSSTransition 
+        in={showLevelUp}
+        timeout={300}
+        classNames="modal"
+        unmountOnExit
+      >
+        <LevelUpModal 
+          onClose={() => setShowLevelUp(false)} 
+          level={newLevel}
+        />
+      </CSSTransition>
     </div>
   );
 };
