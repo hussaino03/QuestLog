@@ -11,10 +11,12 @@ import LevelUpModal from './components/LevelUpModal';
 import StreakTracker from './components/StreakTracker';
 import Leaderboard from './components/Leaderboard';
 import useXPManager from './components/XPManager';
+import ThemeToggle from './components/ThemeToggle';
 
 const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 
 const App = () => {
+  const [isDark, setIsDark] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -33,6 +35,26 @@ const App = () => {
     setShowLevelUp,
     getTotalXP
   } = useXPManager();
+
+  useEffect(() => {
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (!isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -243,10 +265,11 @@ const App = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50">
+    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
       <Header />
       {error && (
-        <div className="mx-4 my-2 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
           Error: {error}
         </div>
       )}
@@ -254,7 +277,6 @@ const App = () => {
         <ProgressBar level={level} experience={experience} />
         <StreakTracker tasks={tasks} completedTasks={completedTasks} />
         
-        {/* Task Form Transition */}
         <CSSTransition
           in={!showLeaderboard}
           timeout={300}
@@ -274,23 +296,22 @@ const App = () => {
         <div className="flex justify-between gap-4">
           <button 
             onClick={toggleLeaderboard}
-            className="flex-1 px-3 py-2 bg-white text-gray-800 font-bold text-lg border-3 border-gray-800 
-                     shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 hover:translate-y-1 
-                     transition-all duration-200 rounded-none"
+            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold text-lg 
+                     border-3 border-gray-800 dark:border-gray-600 shadow-[4px_4px_#77dd77] dark:shadow-[4px_4px_#4a9e4a] 
+                     hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
           >
             {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
           </button>
           <button 
             onClick={clearAllData}
-            className="px-3 py-2 bg-white text-gray-800 font-bold text-lg border-3 border-gray-800 
-                     shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 hover:translate-y-1 
-                     transition-all duration-200 rounded-none"
+            className="px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold text-lg 
+                     border-3 border-gray-800 dark:border-gray-600 shadow-[4px_4px_#77dd77] dark:shadow-[4px_4px_#4a9e4a] 
+                     hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
           >
             Clear all data
           </button>
         </div>
         
-        {/* Main Content Transition */}
         <div className="relative z-0 overflow-hidden">
           <SwitchTransition mode="out-in">
             <CSSTransition
@@ -299,7 +320,7 @@ const App = () => {
               timeout={300}
               unmountOnExit
             >
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200">
                 {currentView === 'leaderboard' && <Leaderboard />}
                 {currentView === 'todo' && (
                   <TaskList 
@@ -323,18 +344,12 @@ const App = () => {
         </div>
       </div>
 
-      {/* Modal Transition */}
-      <CSSTransition 
-        in={showLevelUp}
-        timeout={300}
-        classNames="modal"
-        unmountOnExit
-      >
-        <LevelUpModal 
-          onClose={() => setShowLevelUp(false)} 
-          level={newLevel}
-        />
-      </CSSTransition>
+      {}
+      <LevelUpModal 
+        show={showLevelUp}
+        onClose={() => setShowLevelUp(false)} 
+        level={newLevel}
+      />
     </div>
   );
 };
