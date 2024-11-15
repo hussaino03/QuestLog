@@ -26,19 +26,37 @@ async function connectToDatabase() {
 }
 
 app.post('/api/users', async (req, res) => {
-  const { sessionId, xp, level } = req.body;
+  const { sessionId, xp, level, googleId } = req.body;
   
-  if (!sessionId) {
-    return res.status(400).json({ error: 'Session ID is required' });
+  if (!sessionId && !googleId) {
+    return res.status(400).json({ error: 'Either Session ID or Google ID is required' });
   }
 
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    let user = await usersCollection.findOne({ deviceFingerprint: sessionId });
+    let user;
+    
+    // If googleId is provided, try to find user by googleId first
+    if (googleId) {
+      user = await usersCollection.findOne({ googleId });
+    }
+    
+    // If no authenticated user found, try finding by sessionId
+    if (!user && sessionId) {
+      user = await usersCollection.findOne({ deviceFingerprint: sessionId });
+    }
     
     if (user) {
+      // If user exists and we have a googleId, update the user with googleId
+      if (googleId && !user.googleId) {
+        await usersCollection.updateOne(
+          { _id: user._id },
+          { $set: { googleId } }
+        );
+      }
+      
       return res.json({
         userId: user._id,
         exists: true,
@@ -48,9 +66,11 @@ app.post('/api/users', async (req, res) => {
       });
     }
 
+    // Create new user
     user = {
       _id: new ObjectId(),
       deviceFingerprint: sessionId,
+      googleId: googleId || null,
       xp: xp || 0,
       level: level || 1,
       tasksCompleted: 0
@@ -72,7 +92,7 @@ app.post('/api/users', async (req, res) => {
 });
 
 app.put('/api/users/:id', async (req, res) => {
-  const { xp, tasksCompleted, level, tasks, completedTasks, cleared } = req.body;
+  const { xp, tasksCompleted, level } = req.body;
   
   if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
     return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
@@ -81,23 +101,9 @@ app.put('/api/users/:id', async (req, res) => {
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
-    
-    const updateData = {
-      xp,
-      tasksCompleted,
-      level
-    };
-
-    // If this is a clear operation, include tasks and completedTasks arrays
-    if (cleared) {
-      updateData.tasks = [];
-      updateData.completedTasks = [];
-      updateData.cleared = true;
-    }
-
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(req.params.id) },
-      { $set: updateData }
+      { $set: { xp, tasksCompleted, level } }
     );
 
     if (result.matchedCount === 0) {
@@ -110,6 +116,30 @@ app.put('/api/users/:id', async (req, res) => {
     res.json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Add endpoint to fetch user data by googleId
+app.get('/api/users/sync/:googleId', async (req, res) => {
+  try {
+    const db = await connectToDatabase();
+    const usersCollection = db.collection('users');
+    
+    const user = await usersCollection.findOne({ googleId: req.params.googleId });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({
+      userId: user._id,
+      xp: user.xp,
+      level: user.level,
+      tasksCompleted: user.tasksCompleted
+    });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -131,115 +161,6 @@ app.get('/api/leaderboard', async (req, res) => {
   } catch (error) {
     console.error('Error fetching leaderboard:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/sync', async (req, res) => {
-  const { googleId, localData } = req.body;
-  
-  if (!googleId || !localData) {
-    return res.status(400).json({ 
-      error: 'Missing required data',
-      details: `GoogleId: ${!!googleId}, LocalData: ${!!localData}`
-    });
-  }
-
-  try {
-    const db = await connectToDatabase();
-    if (!db) {
-      throw new Error('Failed to connect to database');
-    }
-
-    const usersCollection = db.collection('users');
-    
-    // Find existing user data
-    let userData = await usersCollection.findOne({ googleId });
-    
-    // Validate the data structure before processing
-    const validatedLocalData = {
-      tasks: Array.isArray(localData.tasks) ? localData.tasks : [],
-      completedTasks: Array.isArray(localData.completedTasks) ? localData.completedTasks : [],
-      xp: Number(localData.xp) || 0,
-      level: Number(localData.level) || 1
-    };
-    
-    if (!userData) {
-      // First time sync - save validated local data
-      userData = {
-        googleId,
-        ...validatedLocalData,
-        lastSync: new Date(),
-        cleared: false
-      };
-      
-      const insertResult = await usersCollection.insertOne(userData);
-      if (!insertResult.acknowledged) {
-        throw new Error('Failed to insert new user data');
-      }
-      
-      return res.json(validatedLocalData);
-    }
-
-    // If the data was previously cleared and local storage is empty,
-    // return empty data to maintain cleared state
-    if (userData.cleared && 
-        (!validatedLocalData.tasks.length && !validatedLocalData.completedTasks.length)) {
-      const emptyData = {
-        tasks: [],
-        completedTasks: [],
-        xp: 0,
-        level: 1,
-        cleared: true
-      };
-      return res.json(emptyData);
-    }
-
-    // If we have new local data and it's not empty, treat it as fresh data
-    if (validatedLocalData.tasks.length || validatedLocalData.completedTasks.length) {
-      const newData = {
-        ...validatedLocalData,
-        cleared: false,
-        lastSync: new Date()
-      };
-
-      const updateResult = await usersCollection.updateOne(
-        { googleId },
-        { $set: newData }
-      );
-
-      if (!updateResult.acknowledged) {
-        throw new Error('Failed to update user data');
-      }
-
-      return res.json(newData);
-    }
-
-    // Normal merge logic for non-cleared data
-    const mergedData = {
-      tasks: [...new Set([...userData.tasks || [], ...validatedLocalData.tasks])],
-      completedTasks: [...new Set([...userData.completedTasks || [], ...validatedLocalData.completedTasks])],
-      xp: Math.max(userData.xp || 0, validatedLocalData.xp),
-      level: Math.max(userData.level || 1, validatedLocalData.level),
-      lastSync: new Date(),
-      cleared: false
-    };
-
-    const updateResult = await usersCollection.updateOne(
-      { googleId },
-      { $set: mergedData }
-    );
-
-    if (!updateResult.acknowledged) {
-      throw new Error('Failed to update user data');
-    }
-
-    res.json(mergedData);
-  } catch (error) {
-    console.error('Error in sync endpoint:', error);
-    res.status(500).json({ 
-      error: 'Internal server error', 
-      details: error.message 
-    });
   }
 });
 

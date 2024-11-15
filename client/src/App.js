@@ -21,6 +21,7 @@ const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 const App = () => {
   const [isDark, setIsDark] = useState(false);
   const [authToken, setAuthToken] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -37,7 +38,9 @@ const App = () => {
     calculateXP,
     resetXP,
     setShowLevelUp,
-    getTotalXP
+    getTotalXP,
+    setExperience,
+    setLevel
   } = useXPManager();
 
   useEffect(() => {
@@ -59,6 +62,45 @@ const App = () => {
     }
   };
 
+  const handleAuthChange = async (token, userInfo) => {
+    setAuthToken(token);
+    setIsAuthenticated(!!token);
+    
+    if (token && userInfo) {
+      // Sync data with server when user logs in
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/users/sync/${userInfo.sub}`);
+        if (response.ok) {
+          const userData = await response.json();
+          
+          // Update local state with server data
+          const storedTasks = localStorage.getItem('tasks');
+          const storedCompletedTasks = localStorage.getItem('completedtasks');
+          
+          // If user has existing data, use it
+          if (userData.xp > getTotalXP() || userData.level > level) {
+            resetXP();
+            setExperience(userData.xp % (userData.level * 200));
+            setLevel(userData.level);
+          }
+          
+          if (storedTasks) {
+            setTasks(JSON.parse(storedTasks));
+          }
+          
+          if (storedCompletedTasks) {
+            setCompletedTasks(JSON.parse(storedCompletedTasks));
+          }
+          
+          setUserId(userData.userId);
+        }
+      } catch (error) {
+        console.error('Error syncing user data:', error);
+        setError('Failed to sync user data');
+      }
+    }
+  };
+
   useEffect(() => {
     const initializeUser = async () => {
       try {
@@ -69,22 +111,28 @@ const App = () => {
           localStorage.setItem('sessionId', sessionId);
         }
     
-        const headers = {
-          'Content-Type': 'application/json'
+        const userData = {
+          sessionId,
+          xp: getTotalXP(),
+          level: level
         };
-    
-        if (authToken) {
-          headers.Authorization = `Bearer ${authToken}`;
+        
+        // If authenticated, add googleId
+        if (isAuthenticated && authToken) {
+          const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${authToken}` },
+          }).then(res => res.json());
+          
+          userData.googleId = userInfo.sub;
         }
     
         const response = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
-          headers,
-          body: JSON.stringify({ 
-            sessionId,
-            xp: getTotalXP(),
-            level: level
-          })
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          },
+          body: JSON.stringify(userData)
         });
     
         if (!response.ok) {
@@ -99,9 +147,8 @@ const App = () => {
       }
     };
 
-
-  initializeUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    initializeUser();
+  }, [isAuthenticated, authToken]); // Add these dependencies
 
   useEffect(() => {
     const updateUserData = async () => {
@@ -227,37 +274,25 @@ const App = () => {
 
   const clearAllData = async () => {
     try {      
-      // Clear local storage
       localStorage.removeItem('tasks');
       localStorage.removeItem('completedtasks');
       localStorage.removeItem('experience');
       localStorage.removeItem('level');
       
-      // Reset local state
       setTasks([]);
       setCompletedTasks([]);
       const { level: resetLevel, experience: resetExp } = resetXP();
   
-      // If user is logged in, clear their server data
       if (userId) {
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authToken) {
-          headers.Authorization = `Bearer ${authToken}`;
-        }
-
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
           method: 'PUT',
-          headers,
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
-            xp: 0,
-            level: 1,
+            xp: resetExp,
+            level: resetLevel, 
             tasksCompleted: 0,
-            tasks: [],
-            completedTasks: [],
-            cleared: true // Flag to indicate this was a clear operation
           }),
         });
   
@@ -268,71 +303,6 @@ const App = () => {
     } catch (error) {
       console.error('Error clearing data:', error);
       setError(error.message);
-    }
-  };
-
-  const syncData = async (googleId) => {
-    try {
-      // Ensure we have both googleId and token
-      if (!googleId || !authToken) {
-        console.log('Missing googleId or authToken, skipping sync');
-        return;
-      }
-  
-      const localData = {
-        tasks,
-        completedTasks,
-        xp: getTotalXP(),
-        level
-      };
-    
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      };
-  
-      const response = await fetch(`${API_BASE_URL}/sync`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          googleId,
-          localData
-        })
-      });
-    
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Sync failed: ${response.status}`);
-      }
-    
-      const mergedData = await response.json();
-      
-      // Only update local data if there's data to merge and it wasn't cleared
-      if (mergedData && !mergedData.cleared) {
-        // Ensure we're working with arrays even if server returns null/undefined
-        const newTasks = mergedData.tasks || [];
-        const newCompletedTasks = mergedData.completedTasks || [];
-        
-        // Update state
-        setTasks(newTasks);
-        setCompletedTasks(newCompletedTasks);
-        
-        // Save to localStorage
-        localStorage.setItem('tasks', JSON.stringify(newTasks));
-        localStorage.setItem('completedtasks', JSON.stringify(newCompletedTasks));
-  
-        // Update XP and level if they're different
-        if (mergedData.xp !== getTotalXP() || mergedData.level !== level) {
-          // You'll need to implement a way to set XP and level directly
-          // This might require adding methods to your XPManager
-          updateXPAndLevel(mergedData.xp, mergedData.level);
-        }
-      }
-      
-      console.log('Data synced successfully');
-    } catch (error) {
-      console.error('Error syncing data:', error);
-      setError(`Failed to sync data: ${error.message}`);
     }
   };
 
@@ -355,17 +325,9 @@ const App = () => {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        {/* Split the top controls into left and right sections */}
         <div className="fixed top-4 w-full flex justify-between px-4">
           <div className="flex items-center">
-          <Auth 
-            onAuthChange={(token, googleId) => {
-              setAuthToken(token);
-              if (token && googleId) {
-                syncData(googleId);
-              }
-            }} 
-          />
+            <Auth onAuthChange={handleAuthChange} />
           </div>
           <div>
             <ThemeToggle isDark={isDark} onToggle={toggleTheme} />

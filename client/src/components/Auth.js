@@ -12,7 +12,7 @@ const Auth = ({ onAuthChange }) => {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
         setUser(userInfo);
-        onAuthChange(response.access_token, userInfo.sub);
+        onAuthChange(response.access_token, userInfo);
       } catch (error) {
         console.error('Error getting user info:', error);
       }
@@ -23,7 +23,7 @@ const Auth = ({ onAuthChange }) => {
   const logout = () => {
     localStorage.removeItem('googleToken');
     setUser(null);
-    onAuthChange(null);
+    onAuthChange(null, null);
   };
 
   useEffect(() => {
