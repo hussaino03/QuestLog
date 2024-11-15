@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ClipboardList } from 'lucide-react';
 
 const TaskForm = ({ addTask }) => {
   const [name, setName] = useState('');
@@ -66,7 +67,7 @@ const TaskForm = ({ addTask }) => {
             </div>
             
             <div className="flex justify-center">
-              <img src="/main.png" alt="Task icon" className="w-24 h-24" />
+              <ClipboardList className="w-24 h-24 text-gray-600 dark:text-gray-300" />
             </div>
             
             <div className="space-y-4">
