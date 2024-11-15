@@ -70,9 +70,12 @@ const App = () => {
         }
     
         const headers = {
-          'Content-Type': 'application/json',
-          ...(authToken && { Authorization: `Bearer ${authToken}` })
+          'Content-Type': 'application/json'
         };
+    
+        if (authToken) {
+          headers.Authorization = `Bearer ${authToken}`;
+        }
     
         const response = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
@@ -90,19 +93,15 @@ const App = () => {
     
         const data = await response.json();
         setUserId(data.userId);
-        
-        // Update XP and level from server data if user exists
-        if (data.exists) {
-          resetXP(data.xp, data.level);
-        }
       } catch (error) {
         console.error('Error during initialization:', error);
         setError(error.message);
       }
     };
-  
-    initializeUser();
-  }, [authToken]); // Add authToken to dependencies
+
+
+  initializeUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const updateUserData = async () => {

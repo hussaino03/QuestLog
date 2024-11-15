@@ -39,13 +39,12 @@ app.post('/api/users', async (req, res) => {
     let user = await usersCollection.findOne({ deviceFingerprint: sessionId });
     
     if (user) {
-      // Return all user data including xp and level
       return res.json({
         userId: user._id,
         exists: true,
-        xp: user.xp || 0,
-        level: user.level || 1,
-        tasksCompleted: user.tasksCompleted || 0
+        xp: user.xp,
+        level: user.level,
+        tasksCompleted: user.tasksCompleted
       });
     }
 
@@ -75,20 +74,16 @@ app.post('/api/users', async (req, res) => {
 app.put('/api/users/:id', async (req, res) => {
   const { xp, tasksCompleted, level } = req.body;
   
-  try {
-    // Allow null/undefined values for reset functionality
-    const updateData = {};
-    if (xp !== undefined) updateData.xp = xp;
-    if (tasksCompleted !== undefined) updateData.tasksCompleted = tasksCompleted;
-    if (level !== undefined) updateData.level = level;
+  if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
+    return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
+  }
 
+  try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
-    
-    // Use $set to only update provided fields
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(req.params.id) },
-      { $set: updateData }
+      { $set: { xp, tasksCompleted, level } }
     );
 
     if (result.matchedCount === 0) {
@@ -98,43 +93,76 @@ app.put('/api/users/:id', async (req, res) => {
       });
     }
 
-    res.json({ 
-      message: 'User updated successfully',
-      updated: updateData
-    });
+    res.json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Add a new endpoint for resetting user data
-app.post('/api/users/:id/reset', async (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = parseInt(req.query.offset) || 0;
+  
+  try {
+    const db = await connectToDatabase();
+    const usersCollection = db.collection('users');
+    const leaderboard = await usersCollection.find()
+      .sort({ xp: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray();
+
+    res.json(leaderboard);
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/sync', async (req, res) => {
+  const { googleId, localData } = req.body;
+  
+  if (!googleId || !localData) {
+    return res.status(400).json({ error: 'Missing required data' });
+  }
+
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    const result = await usersCollection.updateOne(
-      { _id: new ObjectId(req.params.id) },
-      { 
-        $set: {
-          xp: 0,
-          level: 1,
-          tasksCompleted: 0
-        }
-      }
-    );
-
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ 
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
-      });
+    // Find existing user data
+    let userData = await usersCollection.findOne({ googleId });
+    
+    if (!userData) {
+      // First time sync - save local data as is
+      userData = {
+        googleId,
+        ...localData,
+        lastSync: new Date()
+      };
+      await usersCollection.insertOne(userData);
+      return res.json(localData);
     }
 
-    res.json({ message: 'User data reset successfully' });
+    // Merge logic - prefer the most recent data
+    const mergedData = {
+      tasks: [...new Set([...userData.tasks, ...localData.tasks])],
+      completedTasks: [...new Set([...userData.completedTasks, ...localData.completedTasks])],
+      xp: Math.max(userData.xp, localData.xp),
+      level: Math.max(userData.level, localData.level),
+      lastSync: new Date()
+    };
+
+    // Update server data
+    await usersCollection.updateOne(
+      { googleId },
+      { $set: mergedData }
+    );
+
+    res.json(mergedData);
   } catch (error) {
-    console.error('Error resetting user data:', error);
+    console.error('Error syncing data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
