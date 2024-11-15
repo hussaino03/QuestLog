@@ -72,7 +72,7 @@ app.post('/api/users', async (req, res) => {
 });
 
 app.put('/api/users/:id', async (req, res) => {
-  const { xp, tasksCompleted, level } = req.body;
+  const { xp, tasksCompleted, level, tasks, completedTasks, cleared } = req.body;
   
   if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
     return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
@@ -81,9 +81,23 @@ app.put('/api/users/:id', async (req, res) => {
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
+    
+    const updateData = {
+      xp,
+      tasksCompleted,
+      level
+    };
+
+    // If this is a clear operation, include tasks and completedTasks arrays
+    if (cleared) {
+      updateData.tasks = [];
+      updateData.completedTasks = [];
+      updateData.cleared = true;
+    }
+
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(req.params.id) },
-      { $set: { xp, tasksCompleted, level } }
+      { $set: updateData }
     );
 
     if (result.matchedCount === 0) {
@@ -145,12 +159,24 @@ app.post('/api/sync', async (req, res) => {
       return res.json(localData);
     }
 
+    // If the data was previously cleared, don't merge and return empty data
+    if (userData.cleared) {
+      const emptyData = {
+        tasks: [],
+        completedTasks: [],
+        xp: 0,
+        level: 1,
+        cleared: true
+      };
+      return res.json(emptyData);
+    }
+
     // Merge logic - prefer the most recent data
     const mergedData = {
-      tasks: [...new Set([...userData.tasks, ...localData.tasks])],
-      completedTasks: [...new Set([...userData.completedTasks, ...localData.completedTasks])],
-      xp: Math.max(userData.xp, localData.xp),
-      level: Math.max(userData.level, localData.level),
+      tasks: [...new Set([...userData.tasks || [], ...localData.tasks || []])],
+      completedTasks: [...new Set([...userData.completedTasks || [], ...localData.completedTasks || []])],
+      xp: Math.max(userData.xp || 0, localData.xp || 0),
+      level: Math.max(userData.level || 1, localData.level || 1),
       lastSync: new Date()
     };
 

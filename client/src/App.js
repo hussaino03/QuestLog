@@ -224,9 +224,10 @@ const App = () => {
     }
   };
 
+
   const clearAllData = async () => {
     try {      
-      // Clear local storage first
+      // Clear local storage
       localStorage.removeItem('tasks');
       localStorage.removeItem('completedtasks');
       localStorage.removeItem('experience');
@@ -236,18 +237,30 @@ const App = () => {
       setTasks([]);
       setCompletedTasks([]);
       const { level: resetLevel, experience: resetExp } = resetXP();
-    
-      // Reset server data if we have a userId
+  
+      // If user is logged in, clear their server data
       if (userId) {
-        // Use the new reset endpoint
-        const response = await fetch(`${API_BASE_URL}/api/users/${userId}/reset`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(authToken && { Authorization: `Bearer ${authToken}` })
-          }
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authToken) {
+          headers.Authorization = `Bearer ${authToken}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            xp: 0,
+            level: 1,
+            tasksCompleted: 0,
+            tasks: [],
+            completedTasks: [],
+            cleared: true // Flag to indicate this was a clear operation
+          }),
         });
-    
+  
         if (!response.ok) {
           throw new Error(`Failed to reset user data: ${response.status}`);
         }
@@ -267,11 +280,17 @@ const App = () => {
         level
       };
   
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+
       const response = await fetch(`${API_BASE_URL}/sync`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           googleId,
           localData
@@ -284,13 +303,15 @@ const App = () => {
   
       const mergedData = await response.json();
       
-      // Update local state with merged data
-      setTasks(mergedData.tasks);
-      setCompletedTasks(mergedData.completedTasks);
-      
-      // Save to localStorage
-      localStorage.setItem('tasks', JSON.stringify(mergedData.tasks));
-      localStorage.setItem('completedtasks', JSON.stringify(mergedData.completedTasks));
+      // Only update local data if there's data to merge
+      if (!mergedData.cleared) { // Don't restore data if it was previously cleared
+        setTasks(mergedData.tasks || []);
+        setCompletedTasks(mergedData.completedTasks || []);
+        
+        // Save to localStorage
+        localStorage.setItem('tasks', JSON.stringify(mergedData.tasks || []));
+        localStorage.setItem('completedtasks', JSON.stringify(mergedData.completedTasks || []));
+      }
       
       console.log('Data synced successfully');
     } catch (error) {
