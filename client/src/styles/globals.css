@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fade transition */
+.fade-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  
+  .fade-enter-active {
+    opacity: 1;
+    transform: translateY(0px);
+    transition: opacity 200ms ease-in-out, transform 200ms ease-in-out;
+  }
+  
+  .fade-exit {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  
+  .fade-exit-active {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 200ms ease-in-out, transform 200ms ease-in-out;
+  }
+  
+  /* Slide transition */
+  .slide-enter {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  
+  .slide-enter-active {
+    transform: translateX(0%);
+    opacity: 1;
+    transition: transform 200ms ease-in-out, opacity 200ms ease-in-out;
+  }
+  
+  .slide-exit {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  
+  .slide-exit-active {
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 200ms ease-in-out, opacity 200ms ease-in-out;
+  }
+  
+  /* Modal transition */
+  .modal-enter {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  
+  .modal-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+  
+  .modal-exit {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+  .modal-exit-active {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 200ms ease-in, transform 200ms ease-in;
+  }
+
+  

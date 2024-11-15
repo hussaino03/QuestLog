@@ -5,7 +5,7 @@ const LevelUpModal = ({ show, onClose, level }) => {
     if (show) {
       const timer = setTimeout(() => {
         onClose();
-      }, 5000);
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [show, onClose]);
@@ -13,10 +13,12 @@ const LevelUpModal = ({ show, onClose, level }) => {
   if (!show) return null;
 
   return (
-    <div className='modal-content elementToFadeInAndOut' id='level-up' style={{ display: 'block' }}>
-      <p style={{ fontSize: '20px', color: 'black', margin: 'auto', textAlign: 'center', padding: '10px', fontWeight: 'bold' }}>
-        Level up! You are now level {level}!
-      </p>
+    <div className="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
+      <div className="bg-white rounded-lg shadow-xl p-6 mx-4 max-w-sm w-full transform transition-all animate-slideIn">
+        <p className="text-2xl font-bold text-center text-gray-800">
+          Level up! You are now level {level}!
+        </p>
+      </div>
     </div>
   );
 };
