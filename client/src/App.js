@@ -1,6 +1,7 @@
 import './styles/globals.css';
 import React, { useState, useEffect } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { v4 as uuidv4 } from 'uuid';
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
@@ -12,11 +13,14 @@ import StreakTracker from './components/StreakTracker';
 import Leaderboard from './components/Leaderboard';
 import useXPManager from './components/XPManager';
 import ThemeToggle from './components/ThemeToggle';
+import Auth from './components/Auth';
+
 
 const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 
 const App = () => {
   const [isDark, setIsDark] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -37,7 +41,6 @@ const App = () => {
   } = useXPManager();
 
   useEffect(() => {
-    // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setIsDark(true);
@@ -65,27 +68,31 @@ const App = () => {
           sessionId = uuidv4();
           localStorage.setItem('sessionId', sessionId);
         }
-
+    
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+    
+        if (authToken) {
+          headers.Authorization = `Bearer ${authToken}`;
+        }
+    
         const response = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers,
           body: JSON.stringify({ 
             sessionId,
             xp: getTotalXP(),
             level: level
           })
         });
-
+    
         if (!response.ok) {
           throw new Error(`Failed to initialize user: ${response.status}`);
         }
-
+    
         const data = await response.json();
         setUserId(data.userId);
-
-        // ... rest of the initialization logic
       } catch (error) {
         console.error('Error during initialization:', error);
         setError(error.message);
@@ -102,18 +109,22 @@ const App = () => {
         console.log('No userId available, skipping update');
         return;
       }
-
+    
       try {
         const totalXP = getTotalXP();
         const url = `${API_BASE_URL}/users/${userId}`;
         
-        console.log('Updating user data:', { url, userId, xp: totalXP, level, tasksCompleted: completedTasks.length });
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+    
+        if (authToken) {
+          headers.Authorization = `Bearer ${authToken}`;
+        }
         
         const response = await fetch(url, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({
             xp: totalXP,
             level: level,
@@ -134,7 +145,7 @@ const App = () => {
     };
 
     updateUserData();
-  }, [userId, experience, level, completedTasks, getTotalXP]);
+  }, [userId, experience, level, completedTasks, authToken, getTotalXP]);
 
 
   useEffect(() => {
@@ -248,6 +259,47 @@ const App = () => {
     }
   };
 
+  const syncData = async (googleId) => {
+    try {
+      const localData = {
+        tasks,
+        completedTasks,
+        xp: getTotalXP(),
+        level
+      };
+  
+      const response = await fetch(`${API_BASE_URL}/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          googleId,
+          localData
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Sync failed: ${response.status}`);
+      }
+  
+      const mergedData = await response.json();
+      
+      // Update local state with merged data
+      setTasks(mergedData.tasks);
+      setCompletedTasks(mergedData.completedTasks);
+      
+      // Save to localStorage
+      localStorage.setItem('tasks', JSON.stringify(mergedData.tasks));
+      localStorage.setItem('completedtasks', JSON.stringify(mergedData.completedTasks));
+      
+      console.log('Data synced successfully');
+    } catch (error) {
+      console.error('Error syncing data:', error);
+      setError('Failed to sync data');
+    }
+  };
+
   const toggleLeaderboard = () => {
     setShowLeaderboard(!showLeaderboard);
     setCurrentView(showLeaderboard ? 'todo' : 'leaderboard');
@@ -265,13 +317,30 @@ const App = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-      <Header />
-      {error && (
-        <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
-          Error: {error}
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        {/* Split the top controls into left and right sections */}
+        <div className="fixed top-4 w-full flex justify-between px-4">
+          <div className="flex items-center">
+          <Auth 
+            onAuthChange={(token, googleId) => {
+              setAuthToken(token);
+              if (token && googleId) {
+                syncData(googleId);
+              }
+            }} 
+          />
+          </div>
+          <div>
+            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          </div>
         </div>
+        
+        <Header />
+        {error && (
+          <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
+            Error: {error}
+          </div>
       )}
       <div className="relative max-w-4xl mx-auto px-4 py-6 space-y-6">
         <ProgressBar level={level} experience={experience} />
@@ -351,6 +420,7 @@ const App = () => {
         level={newLevel}
       />
     </div>
+    </GoogleOAuthProvider>
   );
 };
 
