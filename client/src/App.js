@@ -70,12 +70,9 @@ const App = () => {
         }
     
         const headers = {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
         };
-    
-        if (authToken) {
-          headers.Authorization = `Bearer ${authToken}`;
-        }
     
         const response = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
@@ -93,15 +90,19 @@ const App = () => {
     
         const data = await response.json();
         setUserId(data.userId);
+        
+        // Update XP and level from server data if user exists
+        if (data.exists) {
+          resetXP(data.xp, data.level);
+        }
       } catch (error) {
         console.error('Error during initialization:', error);
         setError(error.message);
       }
     };
-
-
-  initializeUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  
+    initializeUser();
+  }, [authToken]); // Add authToken to dependencies
 
   useEffect(() => {
     const updateUserData = async () => {
@@ -224,31 +225,30 @@ const App = () => {
     }
   };
 
-
   const clearAllData = async () => {
     try {      
+      // Clear local storage first
       localStorage.removeItem('tasks');
       localStorage.removeItem('completedtasks');
       localStorage.removeItem('experience');
       localStorage.removeItem('level');
       
+      // Reset local state
       setTasks([]);
       setCompletedTasks([]);
       const { level: resetLevel, experience: resetExp } = resetXP();
-  
+    
+      // Reset server data if we have a userId
       if (userId) {
-        const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-          method: 'PUT',
+        // Use the new reset endpoint
+        const response = await fetch(`${API_BASE_URL}/api/users/${userId}/reset`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            xp: resetExp,
-            level: resetLevel, 
-            tasksCompleted: 0,
-          }),
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          }
         });
-  
+    
         if (!response.ok) {
           throw new Error(`Failed to reset user data: ${response.status}`);
         }
