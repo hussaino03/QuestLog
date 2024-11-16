@@ -33,11 +33,9 @@ const Auth = ({ onAuthChange }) => {
   const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
-        // Clear any existing auth state before processing new login
-        clearAuthState();
-        
         console.log('Access token received:', response.access_token);
   
+        // Get user info before clearing state
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
@@ -51,6 +49,7 @@ const Auth = ({ onAuthChange }) => {
           tasksCompleted: 0
         };
 
+        // Make API call with the new token
         const dbResponse = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
           headers: {
@@ -77,6 +76,9 @@ const Auth = ({ onAuthChange }) => {
           throw new Error('No userId received from server');
         }
   
+        // Only clear previous state after successful API calls
+        clearAuthState();
+        
         // Set the new user's state
         localStorage.setItem('user', JSON.stringify(userInfo));
         localStorage.setItem('authToken', response.access_token);
@@ -96,18 +98,14 @@ const Auth = ({ onAuthChange }) => {
         
       } catch (error) {
         console.error('Error in authentication:', error);
-        clearAuthState();
+        // Don't clear auth state on error to preserve existing session
       }
     },
     onError: error => {
       console.error('Login Failed:', error);
-      clearAuthState();
+      // Don't clear auth state on error to preserve existing session
     }
   });
-
-  const logout = () => {
-    clearAuthState();
-  };
 
   return (
     <div className="flex items-center space-x-4">
@@ -122,7 +120,7 @@ const Auth = ({ onAuthChange }) => {
             {user.name}
           </span>
           <button
-            onClick={logout}
+            onClick={clearAuthState}
             className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 
                      text-gray-700 dark:text-gray-300 rounded-md transition-colors"
           >
