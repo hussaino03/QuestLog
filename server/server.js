@@ -17,36 +17,15 @@ app.use((req, res, next) => {
   next();
 });
 
+
 app.use(express.json());
 
 let cachedDb = null;
 
-async function connectToDatabase() {
-  if (cachedDb) {
-    return cachedDb;
-  }
-  const client = await MongoClient.connect(process.env.MONGODB_URI);
-  const db = client.db("usersDB");
-
-  // Create index here, during initial connection
-  const usersCollection = db.collection('users');
-  try {
-    await usersCollection.createIndex({ googleId: 1 }, { unique: true });
-  } catch (indexError) {
-    if (indexError.codeName !== 'IndexOptionsConflict') {
-      console.error('Error creating index:', indexError);
-      // Handle or rethrow error as needed
-    }
-  }
-
-  cachedDb = db;
-  return db;
-}
-
-// Define the authenticateToken middleware
+// Add the authentication middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-
+  
   if (!authHeader) {
     return res.status(401).json({ error: 'Authentication required' });
   }
@@ -61,21 +40,30 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  // You may want to verify the token with Google's OAuth2 server here
-
   // Add the token to the request object for use in routes
   req.token = token;
   next();
 };
+
+async function connectToDatabase() {
+  if (cachedDb) {
+    return cachedDb;
+  }
+  const client = await MongoClient.connect(process.env.MONGODB_URI);
+  const db = client.db("usersDB");
+  cachedDb = db;
+  return db;
+}
 
 app.post('/api/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
   const authHeader = req.headers.authorization;
 
   console.log('--- Request Received ---');
-  console.log('Auth header:', authHeader);
+  console.log('Auth header:', authHeader); // Add this log
   console.log('Received data:', { googleId, email, name, picture, xp, level });
 
+  // Extract token properly
   const token = authHeader?.split(' ')[1];
 
   if (!token || !googleId) {
@@ -83,17 +71,19 @@ app.post('/api/users', async (req, res) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  let db;
   try {
     console.log('Connecting to database...');
-    db = await connectToDatabase();
+    const db = await connectToDatabase();
     console.log('Connected to database.');
 
     const usersCollection = db.collection('users');
     console.log('Looking for user with googleId:', googleId);
 
-    let user = await usersCollection.findOne({ googleId });
+    // Add index to ensure uniqueness of googleId
+    await usersCollection.createIndex({ googleId: 1 }, { unique: true });
 
+    let user = await usersCollection.findOne({ googleId });
+    
     if (user) {
       console.log('User found:', user);
       console.log('Returning existing user data...');
@@ -152,9 +142,10 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
+
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
   const { xp, tasksCompleted, level } = req.body;
-
+  
   if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
     return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
   }
@@ -181,7 +172,7 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
 app.get('/api/leaderboard', authenticateToken, async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const offset = parseInt(req.query.offset) || 0;
-
+  
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
