@@ -36,23 +36,24 @@ const Auth = ({ onAuthChange }) => {
         // First clear the existing auth state
         clearAuthState();
         
-        // Add a small delay to ensure state is cleared
+        // Wait a moment to ensure state is cleared
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        console.log('Access token received:', response.access_token);
+  
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
-        }).then(res => {
-          if (!res.ok) {
-            throw new Error(`Failed to fetch user info: ${res.status}`);
-          }
-          return res.json();
-        });
+        }).then(res => res.json());
   
-        // Validate required fields
-        if (!userInfo.sub || !userInfo.email) {
-          throw new Error('Invalid user info received');
-        }
+        console.log('User info received:', userInfo);
         
+        // Initialize new user state
+        const initialState = {
+          xp: 0,
+          level: 1,
+          tasksCompleted: 0
+        };
+  
         // Add retry logic for the database call
         let retryCount = 0;
         let dbUser;
@@ -70,27 +71,28 @@ const Auth = ({ onAuthChange }) => {
                 email: userInfo.email,
                 name: userInfo.name,
                 picture: userInfo.picture,
-                xp: 0,
-                level: 1
+                ...initialState
               })
             });
   
             if (!dbResponse.ok) {
-              const errorData = await dbResponse.json();
-              throw new Error(errorData.error || `Server responded with ${dbResponse.status}`);
+              throw new Error(`Server responded with ${dbResponse.status}`);
             }
   
             dbUser = await dbResponse.json();
             break;
           } catch (error) {
             retryCount++;
-            console.error(`Attempt ${retryCount} failed:`, error);
-            if (retryCount === 3) throw error;
+            if (retryCount === 3) {
+              throw error;
+            }
             await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           }
         }
   
-        if (!dbUser?.userId) {
+        console.log('Database response:', dbUser);
+  
+        if (!dbUser.userId) {
           throw new Error('No userId received from server');
         }
   
@@ -99,13 +101,21 @@ const Auth = ({ onAuthChange }) => {
         localStorage.setItem('authToken', response.access_token);
         localStorage.setItem('userId', dbUser.userId);
         
+        // Update experience and level from server response if user exists
+        if (dbUser.exists) {
+          localStorage.setItem('experience', dbUser.xp.toString());
+          localStorage.setItem('level', dbUser.level.toString());
+        } else {
+          localStorage.setItem('experience', '0');
+          localStorage.setItem('level', '1');
+        }
+        
         setUser(userInfo);
         onAuthChange(response.access_token, dbUser.userId);
         
       } catch (error) {
         console.error('Error in authentication:', error);
         clearAuthState();
-        // You might want to show an error message to the user here
       }
     },
     onError: error => {
