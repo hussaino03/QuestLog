@@ -4,6 +4,17 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
 
+// Middleware to verify authentication
+const requireAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  next();
+};
+
 app.use(cors({
   origin: 'https://smart-listapp.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -25,48 +36,49 @@ async function connectToDatabase() {
   return db;
 }
 
-// Modified to only handle authenticated users
-app.post('/api/users', async (req, res) => {
-  const { googleId, email, xp, level, tasks, completedTasks } = req.body;
-  const authHeader = req.headers.authorization;
+app.post('/api/users', requireAuth, async (req, res) => {
+  const { xp, level } = req.body;
   
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    let user = await usersCollection.findOne({ googleId });
+    // Extract token and get user info
+    const token = req.headers.authorization.split(' ')[1];
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    
+    if (!userInfoResponse.ok) {
+      return res.status(401).json({ error: 'Invalid authentication token' });
+    }
+    
+    const userInfo = await userInfoResponse.json();
+    
+    // Check if user exists
+    let user = await usersCollection.findOne({ googleId: userInfo.sub });
     
     if (user) {
       return res.json({
         userId: user._id,
-        exists: true,
-        xp: user.xp,
-        level: user.level,
-        tasks: user.tasks,
-        completedTasks: user.completedTasks
+        exists: true
       });
     }
 
+    // Create new user
     user = {
-      googleId,
-      email,
+      googleId: userInfo.sub,
+      email: userInfo.email,
       xp: xp || 0,
       level: level || 1,
-      tasks: tasks || [],
-      completedTasks: completedTasks || [],
+      tasksCompleted: 0,
       createdAt: new Date()
     };
 
-    await usersCollection.insertOne(user);
-
+    const result = await usersCollection.insertOne(user);
     res.json({
-      userId: user._id,
-      exists: false,
-      ...user
+      userId: result.insertedId,
+      exists: false
     });
   } catch (error) {
     console.error('Error in user creation/lookup:', error);
@@ -74,26 +86,37 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.put('/api/users/:id', async (req, res) => {
+app.put('/api/users/:id', requireAuth, async (req, res) => {
   const { xp, tasksCompleted, level } = req.body;
   
+  // Validate required fields
+  if (xp === undefined || tasksCompleted === undefined || level === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Validate numeric values
   if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
-    return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
+    return res.status(400).json({ error: 'Invalid field types - xp, tasksCompleted, and level must be numbers' });
   }
 
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
+    
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(req.params.id) },
-      { $set: { xp, tasksCompleted, level } }
+      { 
+        $set: { 
+          xp, 
+          tasksCompleted, 
+          level,
+          updatedAt: new Date()
+        } 
+      }
     );
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ 
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
-      });
+      return res.status(404).json({ error: 'User not found' });
     }
 
     res.json({ message: 'User updated successfully' });

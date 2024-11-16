@@ -104,36 +104,28 @@ const App = () => {
 
   useEffect(() => {
     const initializeUser = async () => {
+      // Only initialize if user is authenticated
+      if (!authToken) {
+        return; // Exit early if no auth token
+      }
+  
       try {
-        let sessionId = localStorage.getItem('sessionId');
-        
-        if (!sessionId) {
-          sessionId = uuidv4();
-          localStorage.setItem('sessionId', sessionId);
-        }
-    
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-    
-        if (authToken) {
-          headers.Authorization = `Bearer ${authToken}`;
-        }
-    
         const response = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
-          headers,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
           body: JSON.stringify({ 
-            sessionId,
             xp: getTotalXP(),
             level: level
           })
         });
-    
+  
         if (!response.ok) {
           throw new Error(`Failed to initialize user: ${response.status}`);
         }
-    
+  
         const data = await response.json();
         setUserId(data.userId);
       } catch (error) {
@@ -141,46 +133,49 @@ const App = () => {
         setError(error.message);
       }
     };
-
-
-  initializeUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  
+    initializeUser();
+  }, [authToken]); // Only run when authToken changes
 
   useEffect(() => {
     const updateUserData = async () => {
+      // Only update if we have both userId and authToken
       if (!userId || !authToken) {
-        // Only save to localStorage if user is not authenticated
+        // Save to localStorage for anonymous users
         localStorage.setItem('tasks', JSON.stringify(tasks));
         localStorage.setItem('completedtasks', JSON.stringify(completedTasks));
         localStorage.setItem('level', level.toString());
         localStorage.setItem('experience', experience.toString());
         return;
       }
-    
+      
       try {
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        const totalXP = getTotalXP();
+        const url = `${API_BASE_URL}/users/${userId}`;
+        
+        const response = await fetch(url, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
           },
           body: JSON.stringify({
-            xp: getTotalXP(),
+            xp: totalXP,
             level: level,
-            tasks: tasks,
-            completedTasks: completedTasks,
+            tasksCompleted: completedTasks.length,
           }),
         });
-
+  
         if (!response.ok) {
-          throw new Error(`Failed to update user data: ${response.status}`);
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update user data');
         }
       } catch (error) {
         console.error('Error updating user data:', error);
-        setError(`Failed to update user data: ${error.message}`);
+        setError(error.message);
       }
     };
-
+  
     updateUserData();
   }, [userId, authToken, tasks, completedTasks, experience, level]);
 
