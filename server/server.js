@@ -40,8 +40,9 @@ app.post('/api/users', async (req, res) => {
     let user = await usersCollection.findOne({ googleId });
     
     if (user) {
+      // For existing user
       return res.json({
-        userId: user._id.toString(),
+        userId: user._id.toString(), // Convert ObjectId to string
         exists: true,
         xp: user.xp,
         level: user.level,
@@ -49,7 +50,8 @@ app.post('/api/users', async (req, res) => {
       });
     }
 
-    user = {
+    // For new user
+    const newUser = {
       googleId,
       email,
       name,
@@ -60,14 +62,16 @@ app.post('/api/users', async (req, res) => {
       createdAt: new Date()
     };
 
-    const result = await usersCollection.insertOne(user);
+    const result = await usersCollection.insertOne(newUser);
+    
+    console.log('New user created with ID:', result.insertedId.toString()); // Add logging
 
     res.json({
       userId: result.insertedId.toString(), // Convert ObjectId to string
       exists: false,
-      xp: user.xp,
-      level: user.level,
-      tasksCompleted: user.tasksCompleted
+      xp: newUser.xp,
+      level: newUser.level,
+      tasksCompleted: newUser.tasksCompleted
     });
   } catch (error) {
     console.error('Error in user creation/lookup:', error);

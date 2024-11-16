@@ -118,39 +118,42 @@ useEffect(() => {
 
 // Remove the separate useEffect for loading tasks since it's now handled in initializeUser
 
-  useEffect(() => {
-    const updateUserData = async () => {
-      if (!userId || !authToken) {
-        return; // Skip update if user is not authenticated
+useEffect(() => {
+  const updateUserData = async () => {
+    if (!userId || !authToken) {
+      console.log('Skipping update - no userId or authToken', { userId, authToken });
+      return;
+    }
+
+    try {
+      const totalXP = getTotalXP();
+      console.log('Updating user data for ID:', userId); // Add logging
+
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          xp: totalXP,
+          level: level,
+          tasksCompleted: completedTasks.length,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update user data: ${response.status}`);
       }
 
-      try {
-        const totalXP = getTotalXP();
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            xp: totalXP,
-            level: level,
-            tasksCompleted: completedTasks.length,
-          }),
-        });
+    } catch (error) {
+      console.error('Error updating user data:', error);
+      setError(`Failed to update user data: ${error.message}`);
+    }
+  };
 
-        if (!response.ok) {
-          throw new Error(`Failed to update user data: ${response.status}`);
-        }
-
-      } catch (error) {
-        console.error('Error updating user data:', error);
-        setError(`Failed to update user data: ${error.message}`);
-      }
-    };
-
-    updateUserData();
-  }, [userId, authToken, experience, level, completedTasks]);
+  updateUserData();
+}, [userId, authToken, experience, level, completedTasks]);
 
   const addTask = (taskData) => {
     try {

@@ -26,32 +26,13 @@ const Auth = ({ onAuthChange }) => {
     onSuccess: async (response) => {
       try {
         console.log('Access token received:', response.access_token);
-
+  
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
-
+  
         console.log('User info received:', userInfo);
-
-        // Get the current XP and level from localStorage
-        const currentXP = parseInt(localStorage.getItem('experience')) || 0;
-        const currentLevel = parseInt(localStorage.getItem('level')) || 1;
-        const completedTasksCount = JSON.parse(localStorage.getItem('completedtasks'))?.length || 0;
-
-        const requestBody = {
-            googleId: userInfo.sub,
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture,
-            xp: currentXP,
-            level: currentLevel,
-            tasksCompleted: completedTasksCount
-          };
-
-        console.log('Sending request with body:', requestBody);
-
-
-        // Send authenticated user to database
+  
         const dbResponse = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
           headers: {
@@ -68,10 +49,18 @@ const Auth = ({ onAuthChange }) => {
             tasksCompleted: completedTasksCount
           })
         });
-
+  
+        if (!dbResponse.ok) {
+          throw new Error(`Server responded with ${dbResponse.status}`);
+        }
+  
         const dbUser = await dbResponse.json();
-        
-        // Save auth state to localStorage
+        console.log('Database response:', dbUser); // Add logging
+  
+        if (!dbUser.userId) {
+          throw new Error('No userId received from server');
+        }
+  
         localStorage.setItem('user', JSON.stringify(userInfo));
         localStorage.setItem('authToken', response.access_token);
         localStorage.setItem('userId', dbUser.userId);
@@ -81,14 +70,10 @@ const Auth = ({ onAuthChange }) => {
         
       } catch (error) {
         console.error('Error in authentication:', error);
+        // Maybe add some user feedback here
       }
     },
-    onError: error => console.error('Login Failed:', error),
-    flow: 'implicit', // Add this
-    // Add these configurations
-    ux_mode: 'popup',
-    scope: 'email profile',
-    access_type: 'online'
+    onError: error => console.error('Login Failed:', error)
   });
 
   const logout = () => {
