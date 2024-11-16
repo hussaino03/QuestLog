@@ -67,7 +67,11 @@ app.post('/api/users', async (req, res) => {
     const usersCollection = db.collection('users');
     console.log('Looking for user with googleId:', googleId);
 
+    // Add index to ensure uniqueness of googleId
+    await usersCollection.createIndex({ googleId: 1 }, { unique: true });
+
     let user = await usersCollection.findOne({ googleId });
+    
     if (user) {
       console.log('User found:', user);
       console.log('Returning existing user data...');
@@ -93,11 +97,18 @@ app.post('/api/users', async (req, res) => {
     };
     console.log('New user data:', newUser);
 
-    const result = await usersCollection.insertOne(newUser);
-    console.log('New user created with ID:', result.insertedId.toString());
+    // Use updateOne with upsert to handle race conditions
+    const result = await usersCollection.updateOne(
+      { googleId },
+      { $setOnInsert: newUser },
+      { upsert: true }
+    );
+
+    const insertedUser = await usersCollection.findOne({ googleId });
+    console.log('New user created with ID:', insertedUser._id.toString());
 
     res.json({
-      userId: result.insertedId.toString(),
+      userId: insertedUser._id.toString(),
       exists: false,
       xp: newUser.xp,
       level: newUser.level,
@@ -105,6 +116,16 @@ app.post('/api/users', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in user creation/lookup:', error);
+    if (error.code === 11000) { // Duplicate key error
+      const user = await db.collection('users').findOne({ googleId });
+      return res.json({
+        userId: user._id.toString(),
+        exists: true,
+        xp: user.xp,
+        level: user.level,
+        tasksCompleted: user.tasksCompleted
+      });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });

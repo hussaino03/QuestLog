@@ -33,9 +33,14 @@ const Auth = ({ onAuthChange }) => {
   const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
+        // First clear the existing auth state
+        clearAuthState();
+        
+        // Wait a moment to ensure state is cleared
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         console.log('Access token received:', response.access_token);
   
-        // Get user info before clearing state
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
@@ -48,37 +53,49 @@ const Auth = ({ onAuthChange }) => {
           level: 1,
           tasksCompleted: 0
         };
-
-        // Make API call with the new token
-        const dbResponse = await fetch(`${API_BASE_URL}/users`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${response.access_token}`
-          },
-          body: JSON.stringify({
-            googleId: userInfo.sub,
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture,
-            ...initialState
-          })
-        });
   
-        if (!dbResponse.ok) {
-          throw new Error(`Server responded with ${dbResponse.status}`);
+        // Add retry logic for the database call
+        let retryCount = 0;
+        let dbUser;
+        
+        while (retryCount < 3) {
+          try {
+            const dbResponse = await fetch(`${API_BASE_URL}/users`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${response.access_token}`
+              },
+              body: JSON.stringify({
+                googleId: userInfo.sub,
+                email: userInfo.email,
+                name: userInfo.name,
+                picture: userInfo.picture,
+                ...initialState
+              })
+            });
+  
+            if (!dbResponse.ok) {
+              throw new Error(`Server responded with ${dbResponse.status}`);
+            }
+  
+            dbUser = await dbResponse.json();
+            break;
+          } catch (error) {
+            retryCount++;
+            if (retryCount === 3) {
+              throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          }
         }
   
-        const dbUser = await dbResponse.json();
         console.log('Database response:', dbUser);
   
         if (!dbUser.userId) {
           throw new Error('No userId received from server');
         }
   
-        // Only clear previous state after successful API calls
-        clearAuthState();
-        
         // Set the new user's state
         localStorage.setItem('user', JSON.stringify(userInfo));
         localStorage.setItem('authToken', response.access_token);
@@ -98,14 +115,18 @@ const Auth = ({ onAuthChange }) => {
         
       } catch (error) {
         console.error('Error in authentication:', error);
-        // Don't clear auth state on error to preserve existing session
+        clearAuthState();
       }
     },
     onError: error => {
       console.error('Login Failed:', error);
-      // Don't clear auth state on error to preserve existing session
+      clearAuthState();
     }
   });
+
+  const logout = () => {
+    clearAuthState();
+  };
 
   return (
     <div className="flex items-center space-x-4">
@@ -120,7 +141,7 @@ const Auth = ({ onAuthChange }) => {
             {user.name}
           </span>
           <button
-            onClick={clearAuthState}
+            onClick={logout}
             className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 
                      text-gray-700 dark:text-gray-300 rounded-md transition-colors"
           >
