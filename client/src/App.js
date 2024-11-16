@@ -63,9 +63,22 @@ const App = () => {
     }
   };
 
+// In App.js, update the initializeUser function and its useEffect:
+
 const initializeUser = async () => {
+  // If no auth token, just initialize local state without API call
   if (!authToken) {
-    return; // Skip initialization if user is not authenticated
+    const savedTasks = localStorage.getItem('tasks');
+    const savedCompletedTasks = localStorage.getItem('completedtasks');
+    
+    if (savedTasks) {
+      setTasks(JSON.parse(savedTasks));
+    }
+    
+    if (savedCompletedTasks) {
+      setCompletedTasks(JSON.parse(savedCompletedTasks));
+    }
+    return;
   }
 
   try {
@@ -82,24 +95,28 @@ const initializeUser = async () => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to initialize user: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Failed to initialize user: ${response.status}`);
     }
 
     const data = await response.json();
     setUserId(data.userId);
 
   } catch (error) {
-    console.error('Error during initialization:', error);
-    setError(error.message);
+    // Only set error if it's not a "no auth" situation
+    if (error.message !== 'Authentication required') {
+      console.error('Error during initialization:', error);
+      setError(error.message);
+    }
   }
 };
 
-// Update the useEffect to depend on authToken
+// Update the useEffect to handle both authenticated and non-authenticated cases
 useEffect(() => {
-  if (authToken) {
-    initializeUser();
-  }
+  initializeUser();
 }, [authToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+// Remove the separate useEffect for loading tasks since it's now handled in initializeUser
 
   useEffect(() => {
     const updateUserData = async () => {
@@ -134,24 +151,6 @@ useEffect(() => {
 
     updateUserData();
   }, [userId, authToken, experience, level, completedTasks]);
-
-
-  useEffect(() => {
-    const loadTasks = () => {
-      const storedTasks = localStorage.getItem('tasks');
-      const storedCompletedTasks = localStorage.getItem('completedtasks');
-      
-      if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
-      }
-      
-      if (storedCompletedTasks) {
-        setCompletedTasks(JSON.parse(storedCompletedTasks));
-      }
-    };
-
-    loadTasks();
-  }, []);
 
   const addTask = (taskData) => {
     try {
