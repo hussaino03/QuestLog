@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const useXPManager = () => {
   const [level, setLevel] = useState(() => {
@@ -19,7 +19,16 @@ const useXPManager = () => {
     localStorage.setItem('experience', experience.toString());
   }, [level, experience]);
 
-  const calculateXP = (taskExperience) => {
+  const getTotalXP = useCallback(() => {
+    let totalXP = 0;
+    for (let i = 1; i < level; i++) {
+      totalXP += i * 200;
+    }
+    totalXP += experience;
+    return totalXP;
+  }, [level, experience]);
+
+  const calculateXP = useCallback((taskExperience) => {
     let newExperience = experience + taskExperience;
     let currentLevel = level;
     let didLevelUp = false;
@@ -44,18 +53,9 @@ const useXPManager = () => {
       didLevelUp,
       totalExperience: getTotalXP() + taskExperience
     };
-  };
+  }, [experience, level, getTotalXP]);
 
-  const getTotalXP = () => {
-    let totalXP = 0;
-    for (let i = 1; i < level; i++) {
-      totalXP += i * 200;
-    }
-    totalXP += experience;
-    return totalXP;
-  };
-
-  const resetXP = () => {
+  const resetXP = useCallback(() => {
     setLevel(1);
     setExperience(0);
     setNewLevel(1);
@@ -65,7 +65,7 @@ const useXPManager = () => {
       experience: 0,
       totalExperience: 0
     };
-  };
+  }, []);
 
   return {
     level,
