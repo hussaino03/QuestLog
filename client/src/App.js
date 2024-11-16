@@ -12,6 +12,8 @@ import StreakTracker from './components/StreakTracker';
 import Leaderboard from './components/Leaderboard';
 import useXPManager from './components/XPManager';
 import ThemeToggle from './components/ThemeToggle';
+import Auth from './components/Auth';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 
@@ -25,6 +27,11 @@ const App = () => {
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('todo');
 
+  const [authToken, setAuthToken] = useState(null);
+  const handleAuthChange = (token, id) => {
+    setAuthToken(token);
+    setUserId(id);
+  };
   const {
     level,
     experience,
@@ -98,21 +105,17 @@ const App = () => {
 
   useEffect(() => {
     const updateUserData = async () => {
-      if (!userId) {
-        console.log('No userId available, skipping update');
-        return;
+      if (!userId || !authToken) {
+        return; // Skip update if user is not authenticated
       }
 
       try {
         const totalXP = getTotalXP();
-        const url = `${API_BASE_URL}/users/${userId}`;
-        
-        console.log('Updating user data:', { url, userId, xp: totalXP, level, tasksCompleted: completedTasks.length });
-        
-        const response = await fetch(url, {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
           },
           body: JSON.stringify({
             xp: totalXP,
@@ -122,11 +125,9 @@ const App = () => {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update user data: ${response.status} ${response.statusText}`);
+          throw new Error(`Failed to update user data: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('User data updated successfully:', data);
       } catch (error) {
         console.error('Error updating user data:', error);
         setError(`Failed to update user data: ${error.message}`);
@@ -134,7 +135,7 @@ const App = () => {
     };
 
     updateUserData();
-  }, [userId, experience, level, completedTasks, getTotalXP]);
+  }, [userId, authToken, experience, level, completedTasks]);
 
 
   useEffect(() => {
@@ -265,8 +266,17 @@ const App = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        {/* Split the top controls into left and right sections */}
+        <div className="fixed top-4 w-full flex justify-between px-4">
+          <div className="flex items-center">
+          <Auth onAuthChange={handleAuthChange} />
+          </div>
+          <div>
+            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          </div>
+        </div>
       <Header />
       {error && (
         <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
@@ -351,6 +361,7 @@ const App = () => {
         level={newLevel}
       />
     </div>
+    </GoogleOAuthProvider>
   );
 };
 
