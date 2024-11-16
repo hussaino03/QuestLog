@@ -42,19 +42,28 @@ async function connectToDatabase() {
 app.post('/api/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
   const authToken = req.headers.authorization;
-  
+
+  console.log('--- Request Received ---');
+  console.log('Received data:', { googleId, email, name, picture, xp, level });
+  console.log('Received authorization header:', authToken ? 'Present' : 'Missing');
+
   if (!authToken || !googleId) {
+    console.error('Missing authToken or googleId:', { authToken, googleId });
     return res.status(400).json({ error: 'Authentication required' });
   }
 
   try {
+    console.log('Connecting to database...');
     const db = await connectToDatabase();
+    console.log('Connected to database.');
+
     const usersCollection = db.collection('users');
-    
+    console.log('Looking for user with googleId:', googleId);
+
     let user = await usersCollection.findOne({ googleId });
-    
     if (user) {
-      // For existing user
+      console.log('User found:', user);
+      console.log('Returning existing user data...');
       return res.json({
         userId: user._id.toString(),
         exists: true,
@@ -64,7 +73,7 @@ app.post('/api/users', async (req, res) => {
       });
     }
 
-    // For new user
+    console.log('User not found, creating a new user...');
     const newUser = {
       googleId,
       email,
@@ -75,9 +84,9 @@ app.post('/api/users', async (req, res) => {
       tasksCompleted: 0,
       createdAt: new Date()
     };
+    console.log('New user data:', newUser);
 
     const result = await usersCollection.insertOne(newUser);
-    
     console.log('New user created with ID:', result.insertedId.toString());
 
     res.json({
@@ -92,6 +101,7 @@ app.post('/api/users', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
   const { xp, tasksCompleted, level } = req.body;
