@@ -32,6 +32,10 @@ const Auth = ({ onAuthChange }) => {
         }).then(res => res.json());
   
         console.log('User info received:', userInfo);
+        // Get the current XP and level from localStorage
+        const currentXP = parseInt(localStorage.getItem('experience')) || 0;
+        const currentLevel = parseInt(localStorage.getItem('level')) || 1;
+        const completedTasksCount = JSON.parse(localStorage.getItem('completedtasks'))?.length || 0;
   
         const dbResponse = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
