@@ -38,6 +38,19 @@ const Auth = ({ onAuthChange }) => {
         const currentLevel = parseInt(localStorage.getItem('level')) || 1;
         const completedTasksCount = JSON.parse(localStorage.getItem('completedtasks'))?.length || 0;
 
+        const requestBody = {
+            googleId: userInfo.sub,
+            email: userInfo.email,
+            name: userInfo.name,
+            picture: userInfo.picture,
+            xp: currentXP,
+            level: currentLevel,
+            tasksCompleted: completedTasksCount
+          };
+
+        console.log('Sending request with body:', requestBody);
+
+
         // Send authenticated user to database
         const dbResponse = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
@@ -55,8 +68,6 @@ const Auth = ({ onAuthChange }) => {
             tasksCompleted: completedTasksCount
           })
         });
-
-        console.log('Sending request with body:', requestBody);
 
         const dbUser = await dbResponse.json();
         
