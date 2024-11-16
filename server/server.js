@@ -41,7 +41,7 @@ app.post('/api/users', async (req, res) => {
     
     if (user) {
       return res.json({
-        userId: user._id,
+        userId: user._id.toString(),
         exists: true,
         xp: user.xp,
         level: user.level,
@@ -63,7 +63,7 @@ app.post('/api/users', async (req, res) => {
     const result = await usersCollection.insertOne(user);
 
     res.json({
-      userId: result.insertedId,
+      userId: result.insertedId.toString(), // Convert ObjectId to string
       exists: false,
       xp: user.xp,
       level: user.level,
