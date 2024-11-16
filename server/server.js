@@ -57,18 +57,15 @@ async function connectToDatabase() {
 
 app.post('/api/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
-  const authHeader = req.headers.authorization;
+  const authToken = req.headers.authorization;
 
   console.log('--- Request Received ---');
-  console.log('Auth header:', authHeader); // Add this log
   console.log('Received data:', { googleId, email, name, picture, xp, level });
+  console.log('Received authorization header:', authToken ? 'Present' : 'Missing');
 
-  // Extract token properly
-  const token = authHeader?.split(' ')[1];
-
-  if (!token || !googleId) {
-    console.error('Missing token or googleId:', { token, googleId });
-    return res.status(401).json({ error: 'Authentication required' });
+  if (!authToken || !googleId) {
+    console.error('Missing authToken or googleId:', { authToken, googleId });
+    return res.status(400).json({ error: 'Authentication required' });
   }
 
   try {
