@@ -63,53 +63,58 @@ const App = () => {
     }
   };
 
-// In App.js, update the initializeUser function and its useEffect:
 
-const initializeUser = async () => {
-  // If no auth token, just initialize local state without API call
-  if (!authToken) {
-    const savedTasks = localStorage.getItem('tasks');
-    const savedCompletedTasks = localStorage.getItem('completedtasks');
-    
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
+  const initializeUser = async () => {
+    if (!authToken) {
+      console.log('No auth token, skipping API call');
+      const savedTasks = localStorage.getItem('tasks');
+      const savedCompletedTasks = localStorage.getItem('completedtasks');
+  
+      if (savedTasks) {
+        setTasks(JSON.parse(savedTasks));
+      }
+  
+      if (savedCompletedTasks) {
+        setCompletedTasks(JSON.parse(savedCompletedTasks));
+      }
+      return;
     }
-    
-    if (savedCompletedTasks) {
-      setCompletedTasks(JSON.parse(savedCompletedTasks));
-    }
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      },
-      body: JSON.stringify({ 
+  
+    try {
+      const requestBody = {
         xp: getTotalXP(),
-        level: level
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to initialize user: ${response.status}`);
+        level: level,
+      };
+  
+      // Log the data before making the request
+      console.log('Initializing user with data:', requestBody);
+  
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response data:', errorData);
+        throw new Error(errorData.error || `Failed to initialize user: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('User initialized successfully:', data);
+      setUserId(data.userId);
+    } catch (error) {
+      if (error.message !== 'Authentication required') {
+        console.error('Error during initialization:', error);
+        setError(error.message);
+      }
     }
-
-    const data = await response.json();
-    setUserId(data.userId);
-
-  } catch (error) {
-    // Only set error if it's not a "no auth" situation
-    if (error.message !== 'Authentication required') {
-      console.error('Error during initialization:', error);
-      setError(error.message);
-    }
-  }
-};
+  };
+  
 
 // Update the useEffect to handle both authenticated and non-authenticated cases
 useEffect(() => {
