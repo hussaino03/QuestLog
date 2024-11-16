@@ -25,14 +25,23 @@ let cachedDb = null;
 // Add the authentication middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Authentication token required' });
+  
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
 
-  // Since we're using Google OAuth, we'll just verify that the token exists
-  // The actual token verification is handled by Google's OAuth endpoints
+  // Check if it starts with 'Bearer '
+  if (!authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Invalid token format' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  // Add the token to the request object for use in routes
+  req.token = token;
   next();
 };
 
@@ -48,15 +57,18 @@ async function connectToDatabase() {
 
 app.post('/api/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
-  const authToken = req.headers.authorization;
+  const authHeader = req.headers.authorization;
 
   console.log('--- Request Received ---');
+  console.log('Auth header:', authHeader); // Add this log
   console.log('Received data:', { googleId, email, name, picture, xp, level });
-  console.log('Received authorization header:', authToken ? 'Present' : 'Missing');
 
-  if (!authToken || !googleId) {
-    console.error('Missing authToken or googleId:', { authToken, googleId });
-    return res.status(400).json({ error: 'Authentication required' });
+  // Extract token properly
+  const token = authHeader?.split(' ')[1];
+
+  if (!token || !googleId) {
+    console.error('Missing token or googleId:', { token, googleId });
+    return res.status(401).json({ error: 'Authentication required' });
   }
 
   try {
