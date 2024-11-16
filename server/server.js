@@ -17,7 +17,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 app.use(express.json());
 
 let cachedDb = null;
@@ -44,6 +43,31 @@ async function connectToDatabase() {
   return db;
 }
 
+// Define the authenticateToken middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  // Check if it starts with 'Bearer '
+  if (!authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Invalid token format' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  // You may want to verify the token with Google's OAuth2 server here
+
+  // Add the token to the request object for use in routes
+  req.token = token;
+  next();
+};
+
 app.post('/api/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
   const authHeader = req.headers.authorization;
@@ -69,7 +93,7 @@ app.post('/api/users', async (req, res) => {
     console.log('Looking for user with googleId:', googleId);
 
     let user = await usersCollection.findOne({ googleId });
-    
+
     if (user) {
       console.log('User found:', user);
       console.log('Returning existing user data...');
@@ -128,10 +152,9 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
   const { xp, tasksCompleted, level } = req.body;
-  
+
   if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
     return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
   }
@@ -158,7 +181,7 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
 app.get('/api/leaderboard', authenticateToken, async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const offset = parseInt(req.query.offset) || 0;
-  
+
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
