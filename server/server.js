@@ -22,35 +22,24 @@ app.use(express.json());
 
 let cachedDb = null;
 
-// Add the authentication middleware
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
-  // Check if it starts with 'Bearer '
-  if (!authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Invalid token format' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
-  // Add the token to the request object for use in routes
-  req.token = token;
-  next();
-};
-
 async function connectToDatabase() {
   if (cachedDb) {
     return cachedDb;
   }
   const client = await MongoClient.connect(process.env.MONGODB_URI);
   const db = client.db("usersDB");
+
+  // Create index here, during initial connection
+  const usersCollection = db.collection('users');
+  try {
+    await usersCollection.createIndex({ googleId: 1 }, { unique: true });
+  } catch (indexError) {
+    if (indexError.codeName !== 'IndexOptionsConflict') {
+      console.error('Error creating index:', indexError);
+      // Handle or rethrow error as needed
+    }
+  }
+
   cachedDb = db;
   return db;
 }
@@ -60,10 +49,9 @@ app.post('/api/users', async (req, res) => {
   const authHeader = req.headers.authorization;
 
   console.log('--- Request Received ---');
-  console.log('Auth header:', authHeader); // Add this log
+  console.log('Auth header:', authHeader);
   console.log('Received data:', { googleId, email, name, picture, xp, level });
 
-  // Extract token properly
   const token = authHeader?.split(' ')[1];
 
   if (!token || !googleId) {
@@ -71,16 +59,14 @@ app.post('/api/users', async (req, res) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
+  let db;
   try {
     console.log('Connecting to database...');
-    const db = await connectToDatabase();
+    db = await connectToDatabase();
     console.log('Connected to database.');
 
     const usersCollection = db.collection('users');
     console.log('Looking for user with googleId:', googleId);
-
-    // Add index to ensure uniqueness of googleId
-    await usersCollection.createIndex({ googleId: 1 }, { unique: true });
 
     let user = await usersCollection.findOne({ googleId });
     
