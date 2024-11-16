@@ -1,5 +1,5 @@
 import './styles/globals.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { v4 as uuidv4 } from 'uuid';
@@ -60,124 +60,133 @@ const App = () => {
   };
 
   const handleLogin = async (userInfo) => {
-    // Migrate local data to database upon login
     try {
+      // Get local data
       const localData = {
         tasks: tasks,
         completedTasks: completedTasks,
         xp: getTotalXP(),
         level: level
       };
-
+  
+      // Send local data to server
       const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
-        body: JSON.stringify({
-          googleId: userInfo.sub,
-          email: userInfo.email,
-          ...localData
-        })
+        body: JSON.stringify(localData)
       });
-
+  
       if (!response.ok) {
-        throw new Error(`Failed to migrate user data: ${response.status}`);
+        throw new Error(`Failed to sync user data: ${response.status}`);
       }
-
+  
       const data = await response.json();
       setUserId(data.userId);
       
-      // Clear local storage after successful migration
-      if (!data.exists) {
+      // If user exists, load their data from server
+      if (data.exists) {
+        const { userData } = data;
+        setTasks(userData.tasks);
+        setCompletedTasks(userData.completedTasks);
+        // Update XP manager with server data
+        resetXP();
+        for (let i = 0; i < userData.xp; i++) {
+          calculateXP(1); // Increment XP one by one to trigger proper level ups
+        }
+      } else {
+        // Clear local storage after successful migration for new users
         localStorage.removeItem('tasks');
         localStorage.removeItem('completedtasks');
         localStorage.removeItem('experience');
         localStorage.removeItem('level');
       }
     } catch (error) {
-      console.error('Error migrating user data:', error);
+      console.error('Error syncing user data:', error);
       setError(error.message);
     }
   };
 
-  useEffect(() => {
-    const initializeUser = async () => {
-      // Only initialize if user is authenticated
-      if (!authToken) {
-        return; // Exit early if no auth token
-      }
-  
-      try {
-        const response = await fetch(`${API_BASE_URL}/users`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({ 
-            xp: getTotalXP(),
-            level: level
-          })
-        });
-  
-        if (!response.ok) {
-          throw new Error(`Failed to initialize user: ${response.status}`);
-        }
-  
-        const data = await response.json();
-        setUserId(data.userId);
-      } catch (error) {
-        console.error('Error during initialization:', error);
-        setError(error.message);
-      }
-    };
-  
-    initializeUser();
-  }, [authToken]); // Only run when authToken changes
+  const initializeUser = useCallback(async () => {
+    if (!authToken) {
+      return;
+    }
 
+    try {
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ 
+          xp: getTotalXP(),
+          level: level
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to initialize user: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUserId(data.userId);
+    } catch (error) {
+      console.error('Error during initialization:', error);
+      setError(error.message);
+    }
+  }, [authToken, getTotalXP, level]);
+
+  // Update the first useEffect
   useEffect(() => {
-    const updateUserData = async () => {
-      // Only update if we have both userId and authToken
-      if (!userId || !authToken) {
-        // Save to localStorage for anonymous users
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        localStorage.setItem('completedtasks', JSON.stringify(completedTasks));
-        localStorage.setItem('level', level.toString());
-        localStorage.setItem('experience', experience.toString());
-        return;
-      }
+    initializeUser();
+  }, [initializeUser]);
+
+  // Memoize the updateUserData function
+  const updateUserData = useCallback(async () => {
+    if (!userId || !authToken) {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      localStorage.setItem('completedtasks', JSON.stringify(completedTasks));
+      localStorage.setItem('level', level.toString());
+      localStorage.setItem('experience', experience.toString());
+      return;
+    }
+    
+    try {
+      const totalXP = getTotalXP();
+      const url = `${API_BASE_URL}/users/${userId}`;
       
-      try {
-        const totalXP = getTotalXP();
-        const url = `${API_BASE_URL}/users/${userId}`;
-        
-        const response = await fetch(url, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            xp: totalXP,
-            level: level,
-            tasksCompleted: completedTasks.length,
-          }),
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to update user data');
-        }
-      } catch (error) {
-        console.error('Error updating user data:', error);
-        setError(error.message);
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          xp: totalXP,
+          level: level,
+          tasks: tasks,
+          completedTasks: completedTasks,
+          tasksCompleted: completedTasks.length,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update user data');
       }
-    };
-  
+    } catch (error) {
+      console.error('Error updating user data:', error);
+      setError(error.message);
+    }
+  }, [userId, authToken, tasks, completedTasks, experience, level, getTotalXP]);
+
+  // Update the second useEffect
+  useEffect(() => {
     updateUserData();
-  }, [userId, authToken, tasks, completedTasks, experience, level]);
+  }, [updateUserData]);
 
   useEffect(() => {
     const loadTasks = () => {

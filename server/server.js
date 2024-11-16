@@ -36,14 +36,14 @@ async function connectToDatabase() {
   return db;
 }
 
+// Update the existing POST /api/users endpoint
 app.post('/api/users', requireAuth, async (req, res) => {
-  const { xp, level } = req.body;
+  const { xp, level, tasks, completedTasks } = req.body;
   
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    // Extract token and get user info
     const token = req.headers.authorization.split(' ')[1];
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${token}` },
@@ -61,24 +61,34 @@ app.post('/api/users', requireAuth, async (req, res) => {
     if (user) {
       return res.json({
         userId: user._id,
-        exists: true
+        exists: true,
+        userData: {
+          xp: user.xp,
+          level: user.level,
+          tasks: user.tasks || [],
+          completedTasks: user.completedTasks || [],
+          tasksCompleted: user.tasksCompleted
+        }
       });
     }
 
-    // Create new user
+    // Create new user with tasks
     user = {
       googleId: userInfo.sub,
       email: userInfo.email,
       xp: xp || 0,
       level: level || 1,
-      tasksCompleted: 0,
+      tasks: tasks || [],
+      completedTasks: completedTasks || [],
+      tasksCompleted: completedTasks?.length || 0,
       createdAt: new Date()
     };
 
     const result = await usersCollection.insertOne(user);
     res.json({
       userId: result.insertedId,
-      exists: false
+      exists: false,
+      userData: user
     });
   } catch (error) {
     console.error('Error in user creation/lookup:', error);
@@ -86,19 +96,10 @@ app.post('/api/users', requireAuth, async (req, res) => {
   }
 });
 
+// Update the existing PUT /api/users/:id endpoint
 app.put('/api/users/:id', requireAuth, async (req, res) => {
-  const { xp, tasksCompleted, level } = req.body;
+  const { xp, level, tasks, completedTasks, tasksCompleted } = req.body;
   
-  // Validate required fields
-  if (xp === undefined || tasksCompleted === undefined || level === undefined) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  // Validate numeric values
-  if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
-    return res.status(400).json({ error: 'Invalid field types - xp, tasksCompleted, and level must be numbers' });
-  }
-
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
@@ -107,9 +108,11 @@ app.put('/api/users/:id', requireAuth, async (req, res) => {
       { _id: new ObjectId(req.params.id) },
       { 
         $set: { 
-          xp, 
-          tasksCompleted, 
+          xp,
           level,
+          tasks,
+          completedTasks,
+          tasksCompleted,
           updatedAt: new Date()
         } 
       }
@@ -121,7 +124,34 @@ app.put('/api/users/:id', requireAuth, async (req, res) => {
 
     res.json({ message: 'User updated successfully' });
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('Error updating user data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user data endpoint
+app.get('/api/users/:id', requireAuth, async (req, res) => {
+  try {
+    const db = await connectToDatabase();
+    const usersCollection = db.collection('users');
+    
+    const user = await usersCollection.findOne(
+      { _id: new ObjectId(req.params.id) }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      xp: user.xp,
+      level: user.level,
+      tasks: user.tasks || [],
+      completedTasks: user.completedTasks || [],
+      tasksCompleted: user.tasksCompleted
+    });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
