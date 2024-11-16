@@ -11,6 +11,13 @@ app.use(cors({
   credentials: true
 }));
 
+// Set the COOP header for all responses
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  next();
+});
+
+
 app.use(express.json());
 
 let cachedDb = null;
