@@ -83,7 +83,12 @@ const Auth = ({ onAuthChange }) => {
         console.error('Error in authentication:', error);
       }
     },
-    onError: error => console.error('Login Failed:', error)
+    onError: error => console.error('Login Failed:', error),
+    flow: 'implicit', // Add this
+    // Add these configurations
+    ux_mode: 'popup',
+    scope: 'email profile',
+    access_type: 'online'
   });
 
   const logout = () => {
