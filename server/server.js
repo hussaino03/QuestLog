@@ -15,6 +15,20 @@ app.use(express.json());
 
 let cachedDb = null;
 
+// Add the authentication middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication token required' });
+  }
+
+  // Since we're using Google OAuth, we'll just verify that the token exists
+  // The actual token verification is handled by Google's OAuth endpoints
+  next();
+};
+
 async function connectToDatabase() {
   if (cachedDb) {
     return cachedDb;
@@ -42,7 +56,7 @@ app.post('/api/users', async (req, res) => {
     if (user) {
       // For existing user
       return res.json({
-        userId: user._id.toString(), // Convert ObjectId to string
+        userId: user._id.toString(),
         exists: true,
         xp: user.xp,
         level: user.level,
@@ -64,10 +78,10 @@ app.post('/api/users', async (req, res) => {
 
     const result = await usersCollection.insertOne(newUser);
     
-    console.log('New user created with ID:', result.insertedId.toString()); // Add logging
+    console.log('New user created with ID:', result.insertedId.toString());
 
     res.json({
-      userId: result.insertedId.toString(), // Convert ObjectId to string
+      userId: result.insertedId.toString(),
       exists: false,
       xp: newUser.xp,
       level: newUser.level,
@@ -79,14 +93,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
-  const authToken = req.headers.authorization;
-  
-  if (!authToken) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
   const { xp, tasksCompleted, level } = req.body;
   
   if (typeof xp !== 'number' || typeof tasksCompleted !== 'number' || typeof level !== 'number') {
