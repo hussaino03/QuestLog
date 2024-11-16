@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 const adjectives = [
   'Happy', 'Clever', 'Brave', 'Wise', 'Swift', 'Calm', 'Bright', 'Noble',

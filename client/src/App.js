@@ -15,7 +15,7 @@ import ThemeToggle from './components/ThemeToggle';
 import Auth from './components/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 const App = () => {
   const [isDark, setIsDark] = useState(false);
@@ -65,50 +65,38 @@ const App = () => {
 
 
   const initializeUser = async () => {
-    if (!authToken) {
-      console.log('No auth token, skipping API call');
-      const savedTasks = localStorage.getItem('tasks');
-      const savedCompletedTasks = localStorage.getItem('completedtasks');
+    // Load local storage data for all users
+    const savedTasks = localStorage.getItem('tasks');
+    const savedCompletedTasks = localStorage.getItem('completedtasks');
   
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks));
-      }
-  
-      if (savedCompletedTasks) {
-        setCompletedTasks(JSON.parse(savedCompletedTasks));
-      }
-      return;
+    if (savedTasks) {
+      setTasks(JSON.parse(savedTasks));
     }
   
-    try {
-      const requestBody = {
-        xp: getTotalXP(),
-        level: level,
-      };
+    if (savedCompletedTasks) {
+      setCompletedTasks(JSON.parse(savedCompletedTasks));
+    }
   
-      // Log the data before making the request
-      console.log('Initializing user with data:', requestBody);
+    // Only make API call if authenticated
+    if (authToken && userId) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            xp: getTotalXP(),
+            level: level,
+            tasksCompleted: completedTasks?.length || 0
+          }),
+        });
   
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response data:', errorData);
-        throw new Error(errorData.error || `Failed to initialize user: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      console.log('User initialized successfully:', data);
-      setUserId(data.userId);
-    } catch (error) {
-      if (error.message !== 'Authentication required') {
+        if (!response.ok) {
+          throw new Error(`Failed to update user: ${response.status}`);
+        }
+      } catch (error) {
         console.error('Error during initialization:', error);
         setError(error.message);
       }
@@ -121,19 +109,15 @@ useEffect(() => {
   initializeUser();
 }, [authToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
-// Remove the separate useEffect for loading tasks since it's now handled in initializeUser
 
 useEffect(() => {
+  // Skip update if user is not authenticated
+  if (!userId || !authToken) {
+    return;
+  }
+
   const updateUserData = async () => {
-    if (!userId || !authToken) {
-      console.log('Skipping update - no userId or authToken', { userId, authToken });
-      return;
-    }
-
     try {
-      const totalXP = getTotalXP();
-      console.log('Updating user data for ID:', userId); // Add logging
-
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
@@ -141,7 +125,7 @@ useEffect(() => {
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          xp: totalXP,
+          xp: getTotalXP(),
           level: level,
           tasksCompleted: completedTasks.length,
         }),
@@ -150,7 +134,6 @@ useEffect(() => {
       if (!response.ok) {
         throw new Error(`Failed to update user data: ${response.status}`);
       }
-
     } catch (error) {
       console.error('Error updating user data:', error);
       setError(`Failed to update user data: ${error.message}`);
@@ -158,25 +141,40 @@ useEffect(() => {
   };
 
   updateUserData();
-}, [userId, authToken, experience, level, completedTasks]);
+}, [userId, authToken, experience, level, completedTasks]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addTask = (taskData) => {
-    try {
-      const newTask = {
-        ...taskData,
-        id: uuidv4(),
-        createdAt: new Date().toISOString()
-      };
-      
-      const updatedTasks = [...tasks, newTask];
-      setTasks(updatedTasks);
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-      console.log('Task added successfully:', newTask);
-    } catch (error) {
-      console.error('Error adding task:', error);
-      setError(error.message);
+const addTask = async (taskData) => {
+  try {
+    const newTask = {
+      ...taskData,
+      id: uuidv4(),
+      createdAt: new Date().toISOString()
+    };
+    
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+
+    // Only update server if authenticated
+    if (userId && authToken) {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          xp: getTotalXP(),
+          level: level,
+          tasksCompleted: completedTasks.length
+        }),
+      });
     }
-  };
+  } catch (error) {
+    console.error('Error adding task:', error);
+    setError(error.message);
+  }
+};
 
   const completeTask = async (task) => {
     try {
@@ -221,18 +219,38 @@ useEffect(() => {
     }
   };
 
-  const removeTask = (taskId, isCompleted) => {
+  const removeTask = async (taskId, isCompleted) => {
     try {
+      let updatedTasks = tasks;
+      let updatedCompletedTasks = completedTasks;
+  
       if (isCompleted) {
-        const updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
+        updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
         setCompletedTasks(updatedCompletedTasks);
         localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
       } else {
-        const updatedTasks = tasks.filter(t => t.id !== taskId);
+        updatedTasks = tasks.filter(t => t.id !== taskId);
         setTasks(updatedTasks);
         localStorage.setItem('tasks', JSON.stringify(updatedTasks));
       }
-      console.log('Task removed successfully:', { taskId, isCompleted });
+  
+      // Update server if user is authenticated
+      if (userId && authToken) {
+        await fetch(`${API_BASE_URL}/users/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({
+            xp: getTotalXP(),
+            level: level,
+            tasksCompleted: updatedCompletedTasks.length,
+            tasks: updatedTasks,
+            completedTasks: updatedCompletedTasks
+          }),
+        });
+      }
     } catch (error) {
       console.error('Error removing task:', error);
       setError(error.message);
@@ -241,21 +259,24 @@ useEffect(() => {
 
 
   const clearAllData = async () => {
-    try {      
-      localStorage.removeItem('tasks');
-      localStorage.removeItem('completedtasks');
-      localStorage.removeItem('experience');
-      localStorage.removeItem('level');
-      
-      setTasks([]);
-      setCompletedTasks([]);
-      const { level: resetLevel, experience: resetExp } = resetXP();
+    // Clear local storage for all users
+    localStorage.removeItem('tasks');
+    localStorage.removeItem('completedtasks');
+    localStorage.removeItem('experience');
+    localStorage.removeItem('level');
+    
+    setTasks([]);
+    setCompletedTasks([]);
+    const { level: resetLevel, experience: resetExp } = resetXP();
   
-      if (userId) {
-        const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+    // Only update database if authenticated
+    if (userId && authToken) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
           },
           body: JSON.stringify({
             xp: resetExp,
@@ -267,10 +288,10 @@ useEffect(() => {
         if (!response.ok) {
           throw new Error(`Failed to reset user data: ${response.status}`);
         }
+      } catch (error) {
+        console.error('Error clearing data:', error);
+        setError(error.message);
       }
-    } catch (error) {
-      console.error('Error clearing data:', error);
-      setError(error.message);
     }
   };
 

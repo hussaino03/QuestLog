@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 
-const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 const Auth = ({ onAuthChange }) => {
   const [user, setUser] = useState(() => {
@@ -21,11 +21,10 @@ const Auth = ({ onAuthChange }) => {
   }, [onAuthChange]);
 
   const clearAuthState = () => {
+    // Only clear authentication-related data
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
-    localStorage.removeItem('experience');
-    localStorage.removeItem('level');
     setUser(null);
     onAuthChange(null, null);
   };
@@ -33,82 +32,39 @@ const Auth = ({ onAuthChange }) => {
   const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
-        // First clear the existing auth state
+        // Clear auth state
         clearAuthState();
         
-        // Wait a moment to ensure state is cleared
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        console.log('Access token received:', response.access_token);
-  
+        // Get user info from Google
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
-  
-        console.log('User info received:', userInfo);
         
-        // Initialize new user state
-        const initialState = {
-          xp: 0,
-          level: 1,
-          tasksCompleted: 0
-        };
+        // Make API call to create/get user
+        const dbResponse = await fetch(`${API_BASE_URL}/users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${response.access_token}`
+          },
+          body: JSON.stringify({
+            googleId: userInfo.sub,
+            email: userInfo.email,
+            name: userInfo.name,
+            picture: userInfo.picture
+          })
+        });
   
-        // Add retry logic for the database call
-        let retryCount = 0;
-        let dbUser;
-        
-        while (retryCount < 3) {
-          try {
-            const dbResponse = await fetch(`${API_BASE_URL}/users`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${response.access_token}`
-              },
-              body: JSON.stringify({
-                googleId: userInfo.sub,
-                email: userInfo.email,
-                name: userInfo.name,
-                picture: userInfo.picture,
-                ...initialState
-              })
-            });
-  
-            if (!dbResponse.ok) {
-              throw new Error(`Server responded with ${dbResponse.status}`);
-            }
-  
-            dbUser = await dbResponse.json();
-            break;
-          } catch (error) {
-            retryCount++;
-            if (retryCount === 3) {
-              throw error;
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-          }
+        if (!dbResponse.ok) {
+          throw new Error(`Server responded with ${dbResponse.status}`);
         }
   
-        console.log('Database response:', dbUser);
+        const dbUser = await dbResponse.json();
   
-        if (!dbUser.userId) {
-          throw new Error('No userId received from server');
-        }
-  
-        // Set the new user's state
+        // Set auth state
         localStorage.setItem('user', JSON.stringify(userInfo));
         localStorage.setItem('authToken', response.access_token);
         localStorage.setItem('userId', dbUser.userId);
-        
-        // Update experience and level from server response if user exists
-        if (dbUser.exists) {
-          localStorage.setItem('experience', dbUser.xp.toString());
-          localStorage.setItem('level', dbUser.level.toString());
-        } else {
-          localStorage.setItem('experience', '0');
-          localStorage.setItem('level', '1');
-        }
         
         setUser(userInfo);
         onAuthChange(response.access_token, dbUser.userId);
