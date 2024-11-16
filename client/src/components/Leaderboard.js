@@ -31,7 +31,7 @@ const generateUsername = (userId) => {
   return `${adjectives[adjIndex]}${nouns[nounIndex]}${number}`;
 };
 
-const LeaderboardEntry = ({ user }) => {
+const LeaderboardEntry = ({ user, index }) => {
   const [showDetails, setShowDetails] = useState(false);
   const username = useMemo(() => generateUsername(user?._id), [user?._id]);
 
@@ -50,11 +50,8 @@ const LeaderboardEntry = ({ user }) => {
             {showDetails ? '↑' : '↓'}
           </button>
           <span className="font-medium text-gray-900 dark:text-gray-100">
-            {username}
+            {index + 1}. {username}
           </span>
-        </div>
-        <div className="text-gray-600 dark:text-gray-400">
-          {user?.xp || 0} XP
         </div>
       </div>
       <div
@@ -63,6 +60,7 @@ const LeaderboardEntry = ({ user }) => {
         }`}
       >
         <div className="p-4 bg-gray-50 dark:bg-gray-700 space-y-2 transition-colors duration-200">
+          <p className="text-gray-700 dark:text-gray-300">XP: {user?.xp || 0}</p>
           <p className="text-gray-700 dark:text-gray-300">Tasks Completed: {user?.tasksCompleted || 0}</p>
           <p className="text-gray-700 dark:text-gray-300">Level: {user?.level || 1}</p>
         </div>
@@ -97,8 +95,8 @@ const Leaderboard = () => {
         Leaderboard
       </h2>
       <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-        {leaderboard.map((user) => (
-          <LeaderboardEntry key={user._id} user={user} />
+        {leaderboard.map((user, index) => (
+          <LeaderboardEntry key={user._id} user={user} index={index} />
         ))}
       </ul>
     </div>
