@@ -5,12 +5,10 @@ const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 
 const Auth = ({ onAuthChange }) => {
   const [user, setUser] = useState(() => {
-    // Initialize from localStorage if available
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // On mount, check localStorage for saved auth token and restore auth state
   useEffect(() => {
     const savedToken = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('user');
@@ -22,9 +20,22 @@ const Auth = ({ onAuthChange }) => {
     }
   }, [onAuthChange]);
 
+  const clearAuthState = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('experience');
+    localStorage.removeItem('level');
+    setUser(null);
+    onAuthChange(null, null);
+  };
+
   const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
+        // Clear any existing auth state before processing new login
+        clearAuthState();
+        
         console.log('Access token received:', response.access_token);
   
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -32,11 +43,14 @@ const Auth = ({ onAuthChange }) => {
         }).then(res => res.json());
   
         console.log('User info received:', userInfo);
-        // Get the current XP and level from localStorage
-        const currentXP = parseInt(localStorage.getItem('experience')) || 0;
-        const currentLevel = parseInt(localStorage.getItem('level')) || 1;
-        const completedTasksCount = JSON.parse(localStorage.getItem('completedtasks'))?.length || 0;
-  
+        
+        // Initialize new user state
+        const initialState = {
+          xp: 0,
+          level: 1,
+          tasksCompleted: 0
+        };
+
         const dbResponse = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
           headers: {
@@ -48,9 +62,7 @@ const Auth = ({ onAuthChange }) => {
             email: userInfo.email,
             name: userInfo.name,
             picture: userInfo.picture,
-            xp: currentXP,
-            level: currentLevel,
-            tasksCompleted: completedTasksCount
+            ...initialState
           })
         });
   
@@ -59,35 +71,42 @@ const Auth = ({ onAuthChange }) => {
         }
   
         const dbUser = await dbResponse.json();
-        console.log('Database response:', dbUser); // Add logging
+        console.log('Database response:', dbUser);
   
         if (!dbUser.userId) {
           throw new Error('No userId received from server');
         }
   
+        // Set the new user's state
         localStorage.setItem('user', JSON.stringify(userInfo));
         localStorage.setItem('authToken', response.access_token);
         localStorage.setItem('userId', dbUser.userId);
+        
+        // Update experience and level from server response if user exists
+        if (dbUser.exists) {
+          localStorage.setItem('experience', dbUser.xp.toString());
+          localStorage.setItem('level', dbUser.level.toString());
+        } else {
+          localStorage.setItem('experience', '0');
+          localStorage.setItem('level', '1');
+        }
         
         setUser(userInfo);
         onAuthChange(response.access_token, dbUser.userId);
         
       } catch (error) {
         console.error('Error in authentication:', error);
-        // Maybe add some user feedback here
+        clearAuthState();
       }
     },
-    onError: error => console.error('Login Failed:', error)
+    onError: error => {
+      console.error('Login Failed:', error);
+      clearAuthState();
+    }
   });
 
   const logout = () => {
-    // Clear auth state from localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId');
-    
-    setUser(null);
-    onAuthChange(null, null);
+    clearAuthState();
   };
 
   return (
