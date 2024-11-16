@@ -26,37 +26,19 @@ async function connectToDatabase() {
 }
 
 app.post('/api/users', async (req, res) => {
-  const { sessionId, xp, level, googleId } = req.body;
+  const { sessionId, xp, level } = req.body;
   
-  if (!sessionId && !googleId) {
-    return res.status(400).json({ error: 'Either Session ID or Google ID is required' });
+  if (!sessionId) {
+    return res.status(400).json({ error: 'Session ID is required' });
   }
 
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    let user;
-    
-    // If googleId is provided, try to find user by googleId first
-    if (googleId) {
-      user = await usersCollection.findOne({ googleId });
-    }
-    
-    // If no authenticated user found, try finding by sessionId
-    if (!user && sessionId) {
-      user = await usersCollection.findOne({ deviceFingerprint: sessionId });
-    }
+    let user = await usersCollection.findOne({ deviceFingerprint: sessionId });
     
     if (user) {
-      // If user exists and we have a googleId, update the user with googleId
-      if (googleId && !user.googleId) {
-        await usersCollection.updateOne(
-          { _id: user._id },
-          { $set: { googleId } }
-        );
-      }
-      
       return res.json({
         userId: user._id,
         exists: true,
@@ -66,11 +48,9 @@ app.post('/api/users', async (req, res) => {
       });
     }
 
-    // Create new user
     user = {
       _id: new ObjectId(),
       deviceFingerprint: sessionId,
-      googleId: googleId || null,
       xp: xp || 0,
       level: level || 1,
       tasksCompleted: 0
@@ -120,26 +100,72 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
-// Add endpoint to fetch user data by googleId
-app.get('/api/users/sync/:googleId', async (req, res) => {
+app.post('/api/users/sync', async (req, res) => {
+  const { sessionId, xp, level, tasks, completedTasks, authToken } = req.body;
+  
+  if (!authToken) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    const user = await usersCollection.findOne({ googleId: req.params.googleId });
+    // Verify Google token and get user info
+    const googleResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!googleResponse.ok) {
+      return res.status(401).json({ error: 'Invalid authentication token' });
     }
     
+    const googleUser = await googleResponse.json();
+    
+    // Find existing user by Google ID
+    let user = await usersCollection.findOne({ googleId: googleUser.sub });
+    
+    if (user) {
+      // Update existing user with local data if XP is higher
+      if (xp > user.xp) {
+        await usersCollection.updateOne(
+          { googleId: googleUser.sub },
+          { 
+            $set: { 
+              xp,
+              level,
+              tasks,
+              completedTasks,
+              lastSynced: new Date()
+            }
+          }
+        );
+      }
+    } else {
+      // Create new user with Google info and local data
+      user = {
+        googleId: googleUser.sub,
+        email: googleUser.email,
+        name: googleUser.name,
+        xp,
+        level,
+        tasks,
+        completedTasks,
+        lastSynced: new Date()
+      };
+      await usersCollection.insertOne(user);
+    }
+
     res.json({
       userId: user._id,
-      xp: user.xp,
-      level: user.level,
-      tasksCompleted: user.tasksCompleted
+      googleId: user.googleId,
+      xp: Math.max(user.xp, xp),
+      level: Math.max(user.level, level),
+      tasks: user.tasks || tasks,
+      completedTasks: user.completedTasks || completedTasks
     });
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Error in user sync:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

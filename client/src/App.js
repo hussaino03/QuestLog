@@ -21,7 +21,6 @@ const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 const App = () => {
   const [isDark, setIsDark] = useState(false);
   const [authToken, setAuthToken] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -38,9 +37,7 @@ const App = () => {
     calculateXP,
     resetXP,
     setShowLevelUp,
-    getTotalXP,
-    setExperience,
-    setLevel
+    getTotalXP
   } = useXPManager();
 
   useEffect(() => {
@@ -62,45 +59,6 @@ const App = () => {
     }
   };
 
-  const handleAuthChange = async (token, userInfo) => {
-    setAuthToken(token);
-    setIsAuthenticated(!!token);
-    
-    if (token && userInfo) {
-      // Sync data with server when user logs in
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/users/sync/${userInfo.sub}`);
-        if (response.ok) {
-          const userData = await response.json();
-          
-          // Update local state with server data
-          const storedTasks = localStorage.getItem('tasks');
-          const storedCompletedTasks = localStorage.getItem('completedtasks');
-          
-          // If user has existing data, use it
-          if (userData.xp > getTotalXP() || userData.level > level) {
-            resetXP();
-            setExperience(userData.xp % (userData.level * 200));
-            setLevel(userData.level);
-          }
-          
-          if (storedTasks) {
-            setTasks(JSON.parse(storedTasks));
-          }
-          
-          if (storedCompletedTasks) {
-            setCompletedTasks(JSON.parse(storedCompletedTasks));
-          }
-          
-          setUserId(userData.userId);
-        }
-      } catch (error) {
-        console.error('Error syncing user data:', error);
-        setError('Failed to sync user data');
-      }
-    }
-  };
-
   useEffect(() => {
     const initializeUser = async () => {
       try {
@@ -111,28 +69,22 @@ const App = () => {
           localStorage.setItem('sessionId', sessionId);
         }
     
-        const userData = {
-          sessionId,
-          xp: getTotalXP(),
-          level: level
+        const headers = {
+          'Content-Type': 'application/json'
         };
-        
-        // If authenticated, add googleId
-        if (isAuthenticated && authToken) {
-          const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${authToken}` },
-          }).then(res => res.json());
-          
-          userData.googleId = userInfo.sub;
+    
+        if (authToken) {
+          headers.Authorization = `Bearer ${authToken}`;
         }
     
         const response = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(authToken && { Authorization: `Bearer ${authToken}` })
-          },
-          body: JSON.stringify(userData)
+          headers,
+          body: JSON.stringify({ 
+            sessionId,
+            xp: getTotalXP(),
+            level: level
+          })
         });
     
         if (!response.ok) {
@@ -147,8 +99,9 @@ const App = () => {
       }
     };
 
-    initializeUser();
-  }, [isAuthenticated, authToken]); // Add these dependencies
+
+  initializeUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const updateUserData = async () => {
@@ -325,9 +278,10 @@ const App = () => {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        {/* Split the top controls into left and right sections */}
         <div className="fixed top-4 w-full flex justify-between px-4">
           <div className="flex items-center">
-            <Auth onAuthChange={handleAuthChange} />
+            <Auth onAuthChange={setAuthToken} />
           </div>
           <div>
             <ThemeToggle isDark={isDark} onToggle={toggleTheme} />

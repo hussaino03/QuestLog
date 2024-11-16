@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
+
 const useXPManager = () => {
   const [level, setLevel] = useState(() => {
     const savedLevel = localStorage.getItem('level');
@@ -45,6 +47,34 @@ const useXPManager = () => {
       totalExperience: getTotalXP() + taskExperience
     };
   };
+  const syncWithServer = async (authToken) => {
+    if (!authToken) return null;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: localStorage.getItem('sessionId'),
+          xp: getTotalXP(),
+          level,
+          tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
+          completedTasks: JSON.parse(localStorage.getItem('completedtasks') || '[]'),
+          authToken
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to sync with server');
+      
+      const serverData = await response.json();
+      return serverData;
+    } catch (error) {
+      console.error('Sync error:', error);
+      return null;
+    }
+  };
 
   const getTotalXP = () => {
     let totalXP = 0;
@@ -68,6 +98,7 @@ const useXPManager = () => {
   };
 
   return {
+    syncWithServer,
     level,
     experience,
     showLevelUp,
@@ -75,9 +106,7 @@ const useXPManager = () => {
     calculateXP,
     resetXP,
     setShowLevelUp,
-    getTotalXP,
-    setExperience,
-    setLevel
+    getTotalXP
   };
 };
 

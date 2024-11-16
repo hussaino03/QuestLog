@@ -1,8 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
+import useXPManager from './XPManager';
 
 const Auth = ({ onAuthChange }) => {
   const [user, setUser] = useState(null);
+  const { syncWithServer } = useXPManager();
+
+  const handleLogin = async (token) => {
+    try {
+      // Sync local data with server upon successful login
+      const syncedData = await syncWithServer(token);
+      
+      if (syncedData) {
+        // Update local storage with synced data
+        localStorage.setItem('tasks', JSON.stringify(syncedData.tasks));
+        localStorage.setItem('completedtasks', JSON.stringify(syncedData.completedTasks));
+        localStorage.setItem('level', syncedData.level.toString());
+        localStorage.setItem('experience', syncedData.xp.toString());
+      }
+      
+      onAuthChange(token);
+    } catch (error) {
+      console.error('Login sync failed:', error);
+    }
+  };
 
   const login = useGoogleLogin({
     onSuccess: async (response) => {
@@ -11,10 +32,11 @@ const Auth = ({ onAuthChange }) => {
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
+        
         setUser(userInfo);
-        onAuthChange(response.access_token, userInfo);
+        await handleLogin(response.access_token);
       } catch (error) {
-        console.error('Error getting user info:', error);
+        console.error('Error during login:', error);
       }
     },
     onError: error => console.error('Login Failed:', error)
@@ -23,7 +45,7 @@ const Auth = ({ onAuthChange }) => {
   const logout = () => {
     localStorage.removeItem('googleToken');
     setUser(null);
-    onAuthChange(null, null);
+    onAuthChange(null);
   };
 
   useEffect(() => {
