@@ -1,8 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 
 const app = express();
 
@@ -27,146 +25,56 @@ async function connectToDatabase() {
   return db;
 }
 
-// Middleware to verify JWT token
-const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
-  try {
-    const user = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = user;
-    next();
-  } catch (error) {
-    return res.status(403).json({ error: 'Invalid token' });
-  }
-};
-
-// Register endpoint
-app.post('/api/register', async (req, res) => {
-  const { email, password, name } = req.body;
-
-  try {
-    const db = await connectToDatabase();
-    const usersCollection = db.collection('users');
-
-    // Check if user already exists
-    const existingUser = await usersCollection.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const result = await usersCollection.insertOne({
-      email,
-      password: hashedPassword,
-      name: name || email.split('@')[0],
-      createdAt: new Date()
-    });
-
-    // Generate token
-    const token = jwt.sign(
-      { userId: result.insertedId, email },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.status(201).json({
-      token,
-      userId: result.insertedId,
-      message: 'User registered successfully'
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Error registering user' });
-  }
-});
-
-// Login endpoint
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const db = await connectToDatabase();
-    const usersCollection = db.collection('users');
-
-    // Find user
-    const user = await usersCollection.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Check password
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Generate token
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({
-      token,
-      userId: user._id,
-      exists: true
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Error logging in' });
-  }
-});
-
-// Protect user data endpoints with authentication middleware
-app.post('/api/users', authenticateToken, async (req, res) => {
-  const { email, name, xp, level, tasksCompleted } = req.body;
+app.post('/api/users', async (req, res) => {
+  const { googleId, email, name, picture, xp, level } = req.body;
+  const authToken = req.headers.authorization;
   
+  if (!authToken || !googleId) {
+    return res.status(400).json({ error: 'Authentication required' });
+  }
+
   try {
     const db = await connectToDatabase();
-    const usersCollection = db.collection('userData');
+    const usersCollection = db.collection('users');
     
-    let userData = await usersCollection.findOne({ userId: req.user.userId });
+    let user = await usersCollection.findOne({ googleId });
     
-    if (userData) {
+    if (user) {
+      // For existing user
       return res.json({
-        userId: userData._id.toString(),
+        userId: user._id.toString(), // Convert ObjectId to string
         exists: true,
-        xp: userData.xp,
-        level: userData.level,
-        tasksCompleted: userData.tasksCompleted
+        xp: user.xp,
+        level: user.level,
+        tasksCompleted: user.tasksCompleted
       });
     }
 
-    const newUserData = {
-      userId: req.user.userId,
+    // For new user
+    const newUser = {
+      googleId,
       email,
       name,
+      picture,
       xp: xp || 0,
       level: level || 1,
-      tasksCompleted: tasksCompleted || 0,
+      tasksCompleted: 0,
       createdAt: new Date()
     };
 
-    const result = await usersCollection.insertOne(newUserData);
+    const result = await usersCollection.insertOne(newUser);
     
+    console.log('New user created with ID:', result.insertedId.toString()); // Add logging
+
     res.json({
-      userId: result.insertedId.toString(),
+      userId: result.insertedId.toString(), // Convert ObjectId to string
       exists: false,
-      xp: newUserData.xp,
-      level: newUserData.level,
-      tasksCompleted: newUserData.tasksCompleted
+      xp: newUser.xp,
+      level: newUser.level,
+      tasksCompleted: newUser.tasksCompleted
     });
   } catch (error) {
-    console.error('Error in user data creation/lookup:', error);
+    console.error('Error in user creation/lookup:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
