@@ -59,6 +59,49 @@ const App = () => {
     }
   };
 
+  const handleLogin = async (userInfo) => {
+    // Migrate local data to database upon login
+    try {
+      const localData = {
+        tasks: tasks,
+        completedTasks: completedTasks,
+        xp: getTotalXP(),
+        level: level
+      };
+
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          ...localData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to migrate user data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUserId(data.userId);
+      
+      // Clear local storage after successful migration
+      if (!data.exists) {
+        localStorage.removeItem('tasks');
+        localStorage.removeItem('completedtasks');
+        localStorage.removeItem('experience');
+        localStorage.removeItem('level');
+      }
+    } catch (error) {
+      console.error('Error migrating user data:', error);
+      setError(error.message);
+    }
+  };
+
   useEffect(() => {
     const initializeUser = async () => {
       try {
@@ -105,39 +148,33 @@ const App = () => {
 
   useEffect(() => {
     const updateUserData = async () => {
-      if (!userId) {
-        console.log('No userId available, skipping update');
+      if (!userId || !authToken) {
+        // Only save to localStorage if user is not authenticated
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        localStorage.setItem('completedtasks', JSON.stringify(completedTasks));
+        localStorage.setItem('level', level.toString());
+        localStorage.setItem('experience', experience.toString());
         return;
       }
     
       try {
-        const totalXP = getTotalXP();
-        const url = `${API_BASE_URL}/users/${userId}`;
-        
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-    
-        if (authToken) {
-          headers.Authorization = `Bearer ${authToken}`;
-        }
-        
-        const response = await fetch(url, {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: 'PUT',
-          headers,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
           body: JSON.stringify({
-            xp: totalXP,
+            xp: getTotalXP(),
             level: level,
-            tasksCompleted: completedTasks.length,
+            tasks: tasks,
+            completedTasks: completedTasks,
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update user data: ${response.status} ${response.statusText}`);
+          throw new Error(`Failed to update user data: ${response.status}`);
         }
-
-        const data = await response.json();
-        console.log('User data updated successfully:', data);
       } catch (error) {
         console.error('Error updating user data:', error);
         setError(`Failed to update user data: ${error.message}`);
@@ -145,8 +182,7 @@ const App = () => {
     };
 
     updateUserData();
-  }, [userId, experience, level, completedTasks, authToken, getTotalXP]);
-
+  }, [userId, authToken, tasks, completedTasks, experience, level]);
 
   useEffect(() => {
     const loadTasks = () => {
@@ -281,7 +317,7 @@ const App = () => {
         {/* Split the top controls into left and right sections */}
         <div className="fixed top-4 w-full flex justify-between px-4">
           <div className="flex items-center">
-            <Auth onAuthChange={setAuthToken} />
+            <Auth onAuthChange={setAuthToken} onLogin={handleLogin} />
           </div>
           <div>
             <ThemeToggle isDark={isDark} onToggle={toggleTheme} />

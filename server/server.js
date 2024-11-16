@@ -25,18 +25,20 @@ async function connectToDatabase() {
   return db;
 }
 
+// Modified to only handle authenticated users
 app.post('/api/users', async (req, res) => {
-  const { sessionId, xp, level } = req.body;
+  const { googleId, email, xp, level, tasks, completedTasks } = req.body;
+  const authHeader = req.headers.authorization;
   
-  if (!sessionId) {
-    return res.status(400).json({ error: 'Session ID is required' });
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
 
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    let user = await usersCollection.findOne({ deviceFingerprint: sessionId });
+    let user = await usersCollection.findOne({ googleId });
     
     if (user) {
       return res.json({
@@ -44,16 +46,19 @@ app.post('/api/users', async (req, res) => {
         exists: true,
         xp: user.xp,
         level: user.level,
-        tasksCompleted: user.tasksCompleted
+        tasks: user.tasks,
+        completedTasks: user.completedTasks
       });
     }
 
     user = {
-      _id: new ObjectId(),
-      deviceFingerprint: sessionId,
+      googleId,
+      email,
       xp: xp || 0,
       level: level || 1,
-      tasksCompleted: 0
+      tasks: tasks || [],
+      completedTasks: completedTasks || [],
+      createdAt: new Date()
     };
 
     await usersCollection.insertOne(user);
@@ -61,9 +66,7 @@ app.post('/api/users', async (req, res) => {
     res.json({
       userId: user._id,
       exists: false,
-      xp: user.xp,
-      level: user.level,
-      tasksCompleted: user.tasksCompleted
+      ...user
     });
   } catch (error) {
     console.error('Error in user creation/lookup:', error);
@@ -96,76 +99,6 @@ app.put('/api/users/:id', async (req, res) => {
     res.json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Error updating user:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/users/sync', async (req, res) => {
-  const { sessionId, xp, level, tasks, completedTasks, authToken } = req.body;
-  
-  if (!authToken) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
-  try {
-    const db = await connectToDatabase();
-    const usersCollection = db.collection('users');
-    
-    // Verify Google token and get user info
-    const googleResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    
-    if (!googleResponse.ok) {
-      return res.status(401).json({ error: 'Invalid authentication token' });
-    }
-    
-    const googleUser = await googleResponse.json();
-    
-    // Find existing user by Google ID
-    let user = await usersCollection.findOne({ googleId: googleUser.sub });
-    
-    if (user) {
-      // Update existing user with local data if XP is higher
-      if (xp > user.xp) {
-        await usersCollection.updateOne(
-          { googleId: googleUser.sub },
-          { 
-            $set: { 
-              xp,
-              level,
-              tasks,
-              completedTasks,
-              lastSynced: new Date()
-            }
-          }
-        );
-      }
-    } else {
-      // Create new user with Google info and local data
-      user = {
-        googleId: googleUser.sub,
-        email: googleUser.email,
-        name: googleUser.name,
-        xp,
-        level,
-        tasks,
-        completedTasks,
-        lastSynced: new Date()
-      };
-      await usersCollection.insertOne(user);
-    }
-
-    res.json({
-      userId: user._id,
-      googleId: user.googleId,
-      xp: Math.max(user.xp, xp),
-      level: Math.max(user.level, level),
-      tasks: user.tasks || tasks,
-      completedTasks: user.completedTasks || completedTasks
-    });
-  } catch (error) {
-    console.error('Error in user sync:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

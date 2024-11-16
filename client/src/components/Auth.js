@@ -1,29 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
-import useXPManager from './XPManager';
 
-const Auth = ({ onAuthChange }) => {
+const Auth = ({ onAuthChange, onLogin }) => {
   const [user, setUser] = useState(null);
-  const { syncWithServer } = useXPManager();
-
-  const handleLogin = async (token) => {
-    try {
-      // Sync local data with server upon successful login
-      const syncedData = await syncWithServer(token);
-      
-      if (syncedData) {
-        // Update local storage with synced data
-        localStorage.setItem('tasks', JSON.stringify(syncedData.tasks));
-        localStorage.setItem('completedtasks', JSON.stringify(syncedData.completedTasks));
-        localStorage.setItem('level', syncedData.level.toString());
-        localStorage.setItem('experience', syncedData.xp.toString());
-      }
-      
-      onAuthChange(token);
-    } catch (error) {
-      console.error('Login sync failed:', error);
-    }
-  };
 
   const login = useGoogleLogin({
     onSuccess: async (response) => {
@@ -32,11 +11,12 @@ const Auth = ({ onAuthChange }) => {
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
-        
         setUser(userInfo);
-        await handleLogin(response.access_token);
+        onAuthChange(response.access_token);
+        // Trigger data migration when user logs in
+        onLogin(userInfo);
       } catch (error) {
-        console.error('Error during login:', error);
+        console.error('Error getting user info:', error);
       }
     },
     onError: error => console.error('Login Failed:', error)
@@ -96,8 +76,7 @@ const Auth = ({ onAuthChange }) => {
           <svg 
             className="w-5 h-5" 
             viewBox="0 0 24 24" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
+            xmlns="http://www.w3.org/2000/svg">
             <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
               <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
               <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
