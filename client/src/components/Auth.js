@@ -25,9 +25,13 @@ const Auth = ({ onAuthChange }) => {
   const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
+        console.log('Access token received:', response.access_token);
+
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
+
+        console.log('User info received:', userInfo);
 
         // Get the current XP and level from localStorage
         const currentXP = parseInt(localStorage.getItem('experience')) || 0;
@@ -51,6 +55,8 @@ const Auth = ({ onAuthChange }) => {
             tasksCompleted: completedTasksCount
           })
         });
+
+        console.log('Sending request with body:', requestBody);
 
         const dbUser = await dbResponse.json();
         
