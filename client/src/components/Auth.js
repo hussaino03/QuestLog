@@ -5,12 +5,10 @@ const API_BASE_URL = 'https://smart-list-hjea.vercel.app/api';
 
 const Auth = ({ onAuthChange }) => {
   const [user, setUser] = useState(() => {
-    // Initialize from localStorage if available
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // On mount, check localStorage for saved auth token and restore auth state
   useEffect(() => {
     const savedToken = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('user');
@@ -25,16 +23,24 @@ const Auth = ({ onAuthChange }) => {
   const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
+        // Clear any existing auth state first
+        localStorage.removeItem('user');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userId');
+        setUser(null);
+        onAuthChange(null, null);
+
+        // Get user info from Google
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
 
-        // Get the current XP and level from localStorage
+        // Get current app state
         const currentXP = parseInt(localStorage.getItem('experience')) || 0;
         const currentLevel = parseInt(localStorage.getItem('level')) || 1;
         const completedTasksCount = JSON.parse(localStorage.getItem('completedtasks'))?.length || 0;
 
-        // Send authenticated user to database
+        // Create/update user in database
         const dbResponse = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
           headers: {
@@ -52,9 +58,13 @@ const Auth = ({ onAuthChange }) => {
           })
         });
 
+        if (!dbResponse.ok) {
+          throw new Error(`Database operation failed: ${dbResponse.status}`);
+        }
+
         const dbUser = await dbResponse.json();
         
-        // Save auth state to localStorage
+        // Only save new auth state after successful database operation
         localStorage.setItem('user', JSON.stringify(userInfo));
         localStorage.setItem('authToken', response.access_token);
         localStorage.setItem('userId', dbUser.userId);
@@ -64,9 +74,23 @@ const Auth = ({ onAuthChange }) => {
         
       } catch (error) {
         console.error('Error in authentication:', error);
+        // Clear any partial auth state on error
+        localStorage.removeItem('user');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userId');
+        setUser(null);
+        onAuthChange(null, null);
       }
     },
-    onError: error => console.error('Login Failed:', error)
+    onError: error => {
+      console.error('Login Failed:', error);
+      // Clear any auth state on error
+      localStorage.removeItem('user');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userId');
+      setUser(null);
+      onAuthChange(null, null);
+    }
   });
 
   const logout = () => {
@@ -75,6 +99,7 @@ const Auth = ({ onAuthChange }) => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
     
+    // Reset state
     setUser(null);
     onAuthChange(null, null);
   };
