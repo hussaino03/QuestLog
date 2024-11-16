@@ -12,8 +12,13 @@ const Auth = ({ onAuthChange }) => {
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },
         }).then(res => res.json());
-
-        // Send authenticated user to database
+  
+        // Get the current XP and level from localStorage
+        const currentXP = parseInt(localStorage.getItem('experience')) || 0;
+        const currentLevel = parseInt(localStorage.getItem('level')) || 1;
+        const completedTasksCount = JSON.parse(localStorage.getItem('completedtasks'))?.length || 0;
+  
+        // Send authenticated user to database with current progress
         const dbResponse = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
           headers: {
@@ -25,11 +30,12 @@ const Auth = ({ onAuthChange }) => {
             email: userInfo.email,
             name: userInfo.name,
             picture: userInfo.picture,
-            xp: 0,
-            level: 1
+            xp: currentXP,
+            level: currentLevel,
+            tasksCompleted: completedTasksCount
           })
         });
-
+  
         const dbUser = await dbResponse.json();
         
         setUser(userInfo);
@@ -42,6 +48,7 @@ const Auth = ({ onAuthChange }) => {
     onError: error => console.error('Login Failed:', error)
   });
 
+  
   const logout = () => {
     setUser(null);
     onAuthChange(null, null);

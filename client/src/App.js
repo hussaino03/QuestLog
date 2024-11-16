@@ -63,45 +63,43 @@ const App = () => {
     }
   };
 
-  useEffect(() => {
-    const initializeUser = async () => {
-      try {
-        let sessionId = localStorage.getItem('sessionId');
-        
-        if (!sessionId) {
-          sessionId = uuidv4();
-          localStorage.setItem('sessionId', sessionId);
-        }
+const initializeUser = async () => {
+  if (!authToken) {
+    return; // Skip initialization if user is not authenticated
+  }
 
-        const response = await fetch(`${API_BASE_URL}/users`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            sessionId,
-            xp: getTotalXP(),
-            level: level
-          })
-        });
+  try {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ 
+        xp: getTotalXP(),
+        level: level
+      })
+    });
 
-        if (!response.ok) {
-          throw new Error(`Failed to initialize user: ${response.status}`);
-        }
+    if (!response.ok) {
+      throw new Error(`Failed to initialize user: ${response.status}`);
+    }
 
-        const data = await response.json();
-        setUserId(data.userId);
+    const data = await response.json();
+    setUserId(data.userId);
 
-        // ... rest of the initialization logic
-      } catch (error) {
-        console.error('Error during initialization:', error);
-        setError(error.message);
-      }
-    };
+  } catch (error) {
+    console.error('Error during initialization:', error);
+    setError(error.message);
+  }
+};
 
-
-  initializeUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+// Update the useEffect to depend on authToken
+useEffect(() => {
+  if (authToken) {
+    initializeUser();
+  }
+}, [authToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const updateUserData = async () => {
@@ -173,7 +171,7 @@ const App = () => {
     }
   };
 
-  const completeTask = (task) => {
+  const completeTask = async (task) => {
     try {
       const updatedTasks = tasks.filter(t => t.id !== task.id);
       const completedTask = {
@@ -181,15 +179,35 @@ const App = () => {
         completedAt: new Date().toISOString()
       };
       const updatedCompletedTasks = [...completedTasks, completedTask];
-
-      calculateXP(task.experience);
-
+  
+      const xpResult = calculateXP(task.experience);
+  
       setTasks(updatedTasks);
       setCompletedTasks(updatedCompletedTasks);
-
+  
       localStorage.setItem('tasks', JSON.stringify(updatedTasks));
       localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
-
+  
+      // Update the database immediately if user is authenticated
+      if (userId && authToken) {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({
+            xp: xpResult.totalExperience,
+            level: xpResult.currentLevel,
+            tasksCompleted: updatedCompletedTasks.length,
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Failed to update user data: ${response.status}`);
+        }
+      }
+  
     } catch (error) {
       console.error('Error completing task:', error);
       setError(error.message);
