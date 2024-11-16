@@ -46,57 +46,44 @@ const authenticateToken = (req, res, next) => {
 };
 
 async function connectToDatabase() {
-  if (cachedDb) {
-    return cachedDb;
+  try {
+    if (dbClient && dbClient.topology.isConnected()) {
+      return dbClient.db("usersDB");
+    }
+    
+    dbClient = await MongoClient.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000
+    });
+    
+    return dbClient.db("usersDB");
+  } catch (error) {
+    console.error('Database connection error:', error);
+    throw error;
   }
-  const client = await MongoClient.connect(process.env.MONGODB_URI);
-  const db = client.db("usersDB");
-  cachedDb = db;
-  return db;
 }
 
 app.post('/api/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
   const authHeader = req.headers.authorization;
 
-  console.log('--- Request Received ---');
-  console.log('Auth header:', authHeader); // Add this log
-  console.log('Received data:', { googleId, email, name, picture, xp, level });
-
-  // Extract token properly
-  const token = authHeader?.split(' ')[1];
-
-  if (!token || !googleId) {
-    console.error('Missing token or googleId:', { token, googleId });
-    return res.status(401).json({ error: 'Authentication required' });
-  }
+  console.log('Request data:', { googleId, email, name, xp, level });
 
   try {
-    console.log('Connecting to database...');
-    const db = await connectToDatabase();
-    console.log('Connected to database.');
-
-    const usersCollection = db.collection('users');
-    console.log('Looking for user with googleId:', googleId);
-
-    // Add index to ensure uniqueness of googleId
-    await usersCollection.createIndex({ googleId: 1 }, { unique: true });
-
-    let user = await usersCollection.findOne({ googleId });
-    
-    if (user) {
-      console.log('User found:', user);
-      console.log('Returning existing user data...');
-      return res.json({
-        userId: user._id.toString(),
-        exists: true,
-        xp: user.xp,
-        level: user.level,
-        tasksCompleted: user.tasksCompleted
-      });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Invalid authentication');
     }
 
-    console.log('User not found, creating a new user...');
+    const token = authHeader.split(' ')[1];
+    if (!token || !googleId) {
+      throw new Error('Missing required fields');
+    }
+
+    const db = await connectToDatabase();
+    const usersCollection = db.collection('users');
+
+    // Create the user document first
     const newUser = {
       googleId,
       email,
@@ -107,39 +94,48 @@ app.post('/api/users', async (req, res) => {
       tasksCompleted: 0,
       createdAt: new Date()
     };
-    console.log('New user data:', newUser);
 
-    // Use updateOne with upsert to handle race conditions
-    const result = await usersCollection.updateOne(
+    // Use findOneAndUpdate for atomic operation
+    const result = await usersCollection.findOneAndUpdate(
       { googleId },
-      { $setOnInsert: newUser },
-      { upsert: true }
+      { 
+        $setOnInsert: newUser,
+        $set: { lastLogin: new Date() }
+      },
+      { 
+        upsert: true,
+        returnDocument: 'after'
+      }
     );
 
-    const insertedUser = await usersCollection.findOne({ googleId });
-    console.log('New user created with ID:', insertedUser._id.toString());
+    const user = result.value;
+    
+    if (!user) {
+      throw new Error('Failed to create/retrieve user');
+    }
 
     res.json({
-      userId: insertedUser._id.toString(),
-      exists: false,
-      xp: newUser.xp,
-      level: newUser.level,
-      tasksCompleted: newUser.tasksCompleted
+      userId: user._id.toString(),
+      exists: !!result.lastErrorObject?.updatedExisting,
+      xp: user.xp,
+      level: user.level,
+      tasksCompleted: user.tasksCompleted
     });
+
   } catch (error) {
-    console.error('Error in user creation/lookup:', error);
-    if (error.code === 11000) { // Duplicate key error
-      const user = await db.collection('users').findOne({ googleId });
-      return res.json({
-        userId: user._id.toString(),
-        exists: true,
-        xp: user.xp,
-        level: user.level,
-        tasksCompleted: user.tasksCompleted
-      });
-    }
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error processing request:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message
+    });
   }
+});
+
+process.on('SIGINT', async () => {
+  if (dbClient) {
+    await dbClient.close();
+  }
+  process.exit();
 });
 
 
