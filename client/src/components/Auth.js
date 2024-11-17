@@ -3,7 +3,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
-const Auth = ({ onAuthChange, onUserDataLoad }) => {
+const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -21,11 +21,22 @@ const Auth = ({ onAuthChange, onUserDataLoad }) => {
   }, [onAuthChange]);
 
   const clearAuthState = () => {
+    // Clear all localStorage items
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
+    localStorage.removeItem('tasks');
+    localStorage.removeItem('completedtasks');
+    localStorage.removeItem('totalExperience');
+    
+    // Reset state
     setUser(null);
     onAuthChange(null, null);
+    
+    // Call parent logout handler
+    if (onLogout) {
+      onLogout();
+    }
   };
 
  const login = useGoogleLogin({

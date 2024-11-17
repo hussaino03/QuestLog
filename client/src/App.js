@@ -34,6 +34,16 @@ const App = () => {
     setUserId(id);
   };
 
+  const handleLogout = () => {
+    // Reset all state
+    setTasks([]);
+    setCompletedTasks([]);
+    resetXP();
+    setError(null);
+    setShowLeaderboard(false);
+    setCurrentView('todo');
+  };
+
   const handleUserDataLoad = (userData) => {
     // Update XP and level
     const loadedXP = userData.xp || 0;    
@@ -341,6 +351,7 @@ const completeTask = async (task) => {
           <Auth 
               onAuthChange={handleAuthChange} 
               onUserDataLoad={handleUserDataLoad}
+              onLogout={handleLogout}
             />
           </div>
           <div>
