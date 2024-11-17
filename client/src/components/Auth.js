@@ -3,7 +3,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
-const Auth = ({ onAuthChange }) => {
+const Auth = ({ onAuthChange, onUserDataLoad }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -21,7 +21,6 @@ const Auth = ({ onAuthChange }) => {
   }, [onAuthChange]);
 
   const clearAuthState = () => {
-    // Only clear authentication-related data
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
@@ -29,7 +28,7 @@ const Auth = ({ onAuthChange }) => {
     onAuthChange(null, null);
   };
 
-  const login = useGoogleLogin({
+ const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
         // Clear auth state
@@ -68,6 +67,17 @@ const Auth = ({ onAuthChange }) => {
         
         setUser(userInfo);
         onAuthChange(response.access_token, dbUser.userId);
+
+        // Handle existing user data
+        if (dbUser.exists) {
+          onUserDataLoad({
+            xp: dbUser.xp,
+            level: dbUser.level,
+            tasksCompleted: dbUser.tasksCompleted,
+            tasks: dbUser.tasks || [],
+            completedTasks: dbUser.completedTasks || []
+          });
+        }
         
       } catch (error) {
         console.error('Error in authentication:', error);

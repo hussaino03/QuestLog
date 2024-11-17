@@ -26,12 +26,39 @@ const App = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('todo');
-
   const [authToken, setAuthToken] = useState(null);
+
+
   const handleAuthChange = (token, id) => {
     setAuthToken(token);
     setUserId(id);
   };
+
+  const handleUserDataLoad = (userData) => {
+    // Update XP and level
+    const loadedXP = userData.xp || 0;
+    const loadedLevel = userData.level || 1;
+    
+    // Update the XP manager state
+    localStorage.setItem('experience', loadedXP.toString());
+    localStorage.setItem('level', loadedLevel.toString());
+    
+    // Force refresh of XP manager
+    resetXP();
+    calculateXP(loadedXP);
+    
+    // Load tasks from user data if authenticated
+    if (userData.tasks) {
+      setTasks(userData.tasks);
+      localStorage.setItem('tasks', JSON.stringify(userData.tasks));
+    }
+    
+    if (userData.completedTasks) {
+      setCompletedTasks(userData.completedTasks);
+      localStorage.setItem('completedtasks', JSON.stringify(userData.completedTasks));
+    }
+  };
+
   const {
     level,
     experience,
@@ -128,6 +155,8 @@ useEffect(() => {
           xp: getTotalXP(),
           level: level,
           tasksCompleted: completedTasks.length,
+          tasks: tasks,
+          completedTasks: completedTasks
         }),
       });
 
@@ -141,7 +170,7 @@ useEffect(() => {
   };
 
   updateUserData();
-}, [userId, authToken, experience, level, completedTasks]); // eslint-disable-line react-hooks/exhaustive-deps
+}, [userId, authToken, tasks, completedTasks, experience, level]); // eslint-disable-line react-hooks/exhaustive-deps
 
 const addTask = async (taskData) => {
   try {
@@ -176,48 +205,49 @@ const addTask = async (taskData) => {
   }
 };
 
-  const completeTask = async (task) => {
-    try {
-      const updatedTasks = tasks.filter(t => t.id !== task.id);
-      const completedTask = {
-        ...task,
-        completedAt: new Date().toISOString()
-      };
-      const updatedCompletedTasks = [...completedTasks, completedTask];
+const completeTask = async (task) => {
+  try {
+    const updatedTasks = tasks.filter(t => t.id !== task.id);
+    const completedTask = {
+      ...task,
+      completedAt: new Date().toISOString()
+    };
+    const updatedCompletedTasks = [...completedTasks, completedTask];
   
-      const xpResult = calculateXP(task.experience);
+    calculateXP(task.experience); // Calculate the XP
+    const totalXP = getTotalXP(); // Get the actual total XP
   
-      setTasks(updatedTasks);
-      setCompletedTasks(updatedCompletedTasks);
+    setTasks(updatedTasks);
+    setCompletedTasks(updatedCompletedTasks);
   
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-      localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
   
-      // Update the database immediately if user is authenticated
-      if (userId && authToken) {
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            xp: xpResult.totalExperience,
-            level: xpResult.currentLevel,
-            tasksCompleted: updatedCompletedTasks.length,
-          }),
-        });
+    // Update the database with the correct total XP
+    if (userId && authToken) {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          xp: totalXP, // Use getTotalXP() instead of xpResult.totalExperience
+          level: level,
+          tasksCompleted: updatedCompletedTasks.length,
+        }),
+      });
   
-        if (!response.ok) {
-          throw new Error(`Failed to update user data: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(`Failed to update user data: ${response.status}`);
       }
-  
-    } catch (error) {
-      console.error('Error completing task:', error);
-      setError(error.message);
     }
-  };
+  
+  } catch (error) {
+    console.error('Error completing task:', error);
+    setError(error.message);
+  }
+};
 
   const removeTask = async (taskId, isCompleted) => {
     try {
@@ -317,7 +347,10 @@ const addTask = async (taskData) => {
         {/* Split the top controls into left and right sections */}
         <div className="fixed top-4 w-full flex justify-between px-4">
           <div className="flex items-center">
-          <Auth onAuthChange={handleAuthChange} />
+          <Auth 
+              onAuthChange={handleAuthChange} 
+              onUserDataLoad={handleUserDataLoad}
+            />
           </div>
           <div>
             <ThemeToggle isDark={isDark} onToggle={toggleTheme} />

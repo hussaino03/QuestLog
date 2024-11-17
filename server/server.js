@@ -88,7 +88,6 @@ app.post('/api/users', async (req, res) => {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     
-    // First try to find the existing user
     const existingUser = await usersCollection.findOne({ googleId });
     
     if (existingUser) {
@@ -98,11 +97,12 @@ app.post('/api/users', async (req, res) => {
         exists: true,
         xp: existingUser.xp,
         level: existingUser.level,
-        tasksCompleted: existingUser.tasksCompleted
+        tasksCompleted: existingUser.tasksCompleted,
+        tasks: existingUser.tasks || [],
+        completedTasks: existingUser.completedTasks || []
       });
     }
 
-    // If no existing user, create a new one
     const newUser = {
       googleId,
       email,
@@ -111,6 +111,8 @@ app.post('/api/users', async (req, res) => {
       xp: xp || 0,
       level: level || 1,
       tasksCompleted: 0,
+      tasks: [],
+      completedTasks: [],
       createdAt: new Date()
     };
 
@@ -122,7 +124,9 @@ app.post('/api/users', async (req, res) => {
       exists: false,
       xp: newUser.xp,
       level: newUser.level,
-      tasksCompleted: newUser.tasksCompleted
+      tasksCompleted: newUser.tasksCompleted,
+      tasks: [],
+      completedTasks: []
     });
 
   } catch (error) {
@@ -132,7 +136,7 @@ app.post('/api/users', async (req, res) => {
 });
 
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
-  const { xp, tasksCompleted, level } = req.body;
+  const { xp, tasksCompleted, level, tasks, completedTasks } = req.body;
   
   const numXP = Number(xp) || 0;
   const numTasksCompleted = Number(tasksCompleted) || 0;
@@ -152,6 +156,8 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
           xp: numXP,
           tasksCompleted: numTasksCompleted,
           level: numLevel,
+          tasks: tasks || [],
+          completedTasks: completedTasks || [],
           updatedAt: new Date() 
         } 
       }
