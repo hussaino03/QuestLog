@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
+import { mergeTasks } from '../lib/TaskMergerUtility';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -39,10 +40,14 @@ const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
     }
   };
 
- const login = useGoogleLogin({
+  const login = useGoogleLogin({
     onSuccess: async (response) => {
       try {
-        // Clear auth state
+        // Store the local data before clearing auth state
+        const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        const localCompletedTasks = JSON.parse(localStorage.getItem('completedtasks') || '[]');
+        
+        // Now clear the auth state
         clearAuthState();
         
         // Get user info from Google
@@ -79,16 +84,21 @@ const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
         setUser(userInfo);
         onAuthChange(response.access_token, dbUser.userId);
 
-        // Handle existing user data
-        if (dbUser.exists) {
-          onUserDataLoad({
-            xp: dbUser.xp,
-            level: dbUser.level,
-            tasksCompleted: dbUser.tasksCompleted,
-            tasks: dbUser.tasks || [],
-            completedTasks: dbUser.completedTasks || []
-          });
-        }
+        // Always merge tasks, whether the user exists or not
+        const mergedTasks = mergeTasks(localTasks, dbUser.tasks || []);
+        const mergedCompletedTasks = mergeTasks(localCompletedTasks, dbUser.completedTasks || []);
+        
+        // Update localStorage with merged tasks
+        localStorage.setItem('tasks', JSON.stringify(mergedTasks));
+        localStorage.setItem('completedtasks', JSON.stringify(mergedCompletedTasks));
+        
+        onUserDataLoad({
+          xp: dbUser.xp || 0,
+          level: dbUser.level || 1,
+          tasksCompleted: dbUser.tasksCompleted || 0,
+          tasks: mergedTasks,
+          completedTasks: mergedCompletedTasks
+        });
         
       } catch (error) {
         console.error('Error in authentication:', error);
