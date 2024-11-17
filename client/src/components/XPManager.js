@@ -36,12 +36,12 @@ const useXPManager = () => {
   }, [totalExperience]);
 
   const calculateXP = (taskExperience) => {
-    const newTotalXP = totalExperience + taskExperience;
+    const newTotalXP = Math.max(0, totalExperience + taskExperience); // Prevent negative total XP
     const currentStats = calculateLevelAndExperience(totalExperience);
     const newStats = calculateLevelAndExperience(newTotalXP);
     
-    // Check if leveled up
-    if (newStats.level > currentStats.level) {
+    // Only show level up if gaining XP (not losing it)
+    if (newStats.level > currentStats.level && taskExperience > 0) {
       setNewLevel(newStats.level);
       setShowLevelUp(true);
     }
@@ -51,7 +51,7 @@ const useXPManager = () => {
     return {
       newExperience: newStats.experience,
       currentLevel: newStats.level,
-      didLevelUp: newStats.level > currentStats.level,
+      didLevelUp: newStats.level > currentStats.level && taskExperience > 0,
       totalExperience: newTotalXP
     };
   };

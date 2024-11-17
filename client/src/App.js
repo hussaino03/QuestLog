@@ -250,43 +250,55 @@ const completeTask = async (task) => {
   }
 };
 
-  const removeTask = async (taskId, isCompleted) => {
-    try {
-      let updatedTasks = tasks;
-      let updatedCompletedTasks = completedTasks;
-  
-      if (isCompleted) {
-        updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
-        setCompletedTasks(updatedCompletedTasks);
-        localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
-      } else {
-        updatedTasks = tasks.filter(t => t.id !== taskId);
-        setTasks(updatedTasks);
-        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+const removeTask = async (taskId, isCompleted) => {
+  try {
+    let updatedTasks = tasks;
+    let updatedCompletedTasks = completedTasks;
+    let xpToSubtract = 0;
+
+    if (isCompleted) {
+      // Find the task being removed to get its XP value
+      const taskToRemove = completedTasks.find(t => t.id === taskId);
+      if (taskToRemove) {
+        xpToSubtract = taskToRemove.experience;
       }
-  
-      // Update server if user is authenticated
-      if (userId && authToken) {
-        await fetch(`${API_BASE_URL}/users/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            xp: getTotalXP(),
-            level: level,
-            tasksCompleted: updatedCompletedTasks.length,
-            tasks: updatedTasks,
-            completedTasks: updatedCompletedTasks
-          }),
-        });
+      
+      updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
+      setCompletedTasks(updatedCompletedTasks);
+      localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
+      
+      // Subtract XP when removing a completed task
+      if (xpToSubtract > 0) {
+        calculateXP(-xpToSubtract); // Use negative value to subtract XP
       }
-    } catch (error) {
-      console.error('Error removing task:', error);
-      setError(error.message);
+    } else {
+      updatedTasks = tasks.filter(t => t.id !== taskId);
+      setTasks(updatedTasks);
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     }
-  };
+
+    // Update server if user is authenticated
+    if (userId && authToken) {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          xp: getTotalXP(), // This will now reflect the subtracted XP
+          level: level,
+          tasksCompleted: updatedCompletedTasks.length,
+          tasks: updatedTasks,
+          completedTasks: updatedCompletedTasks
+        }),
+      });
+    }
+  } catch (error) {
+    console.error('Error removing task:', error);
+    setError(error.message);
+  }
+};
 
 
   const clearAllData = async () => {
