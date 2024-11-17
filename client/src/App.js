@@ -210,9 +210,7 @@ const completeTask = async (task) => {
   
     // Calculate XP and get the results
     const xpResult = calculateXP(task.experience);
-    
-    localStorage.setItem('level', xpResult.currentLevel.toString());
-  
+      
     setTasks(updatedTasks);
     setCompletedTasks(updatedCompletedTasks);
   
