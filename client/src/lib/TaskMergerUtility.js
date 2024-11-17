@@ -1,37 +1,53 @@
-/**
- * Merges two arrays of tasks while preventing duplicates.
- * When duplicates are found, keeps the task with the earlier creation date.
- * 
- * @param {Array} localTasks - Array of tasks from local storage
- * @param {Array} serverTasks - Array of tasks from the server
- * @returns {Array} Merged array of tasks without duplicates
- */
 export const mergeTasks = (localTasks, serverTasks) => {
-    // Convert tasks to a Map using task ID as key for O(1) lookup
-    const taskMap = new Map();
+  console.log('Merge function received:');
+  console.log('Local tasks:', localTasks?.length, 'tasks');
+  console.log('Server tasks:', serverTasks?.length, 'tasks');
+  
+  // Safety check for array input
+  if (!Array.isArray(localTasks) || !Array.isArray(serverTasks)) {
+    console.error('Invalid input:', { localTasks, serverTasks });
+    return [];
+  }
+  
+  // Convert tasks to a Map using task ID as key for O(1) lookup
+  const taskMap = new Map();
+  
+  // Add all server tasks first (this is the key change)
+  serverTasks.forEach(task => {
+    if (!task.id) {
+      // Generate an ID if missing using name and creation date as unique identifier
+      task.id = `${task.name}-${task.createdAt || new Date().toISOString()}`;
+    }
+    taskMap.set(task.id, task);
+  });
+  
+  // Then add local tasks, potentially overwriting server tasks if they're newer
+  localTasks.forEach(task => {
+    if (!task.id) {
+      task.id = `${task.name}-${task.createdAt || new Date().toISOString()}`;
+    }
     
-    // Add all local tasks first
-    localTasks.forEach(task => {
+    const existingTask = taskMap.get(task.id);
+    if (!existingTask) {
       taskMap.set(task.id, task);
-    });
-    
-    // Add server tasks, only if they don't exist locally
-    // If a task exists in both, keep the one with the earlier createdAt timestamp
-    serverTasks.forEach(serverTask => {
-      const existingTask = taskMap.get(serverTask.id);
-      if (!existingTask) {
-        taskMap.set(serverTask.id, serverTask);
-      } else {
-        // If task exists in both, keep the one created first
-        const serverDate = new Date(serverTask.createdAt).getTime();
-        const localDate = new Date(existingTask.createdAt).getTime();
-        if (serverDate < localDate) {
-          taskMap.set(serverTask.id, serverTask);
-        }
+    } else {
+      // If task exists in both, keep the newer one
+      const existingDate = new Date(existingTask.createdAt || 0).getTime();
+      const localDate = new Date(task.createdAt || 0).getTime();
+      if (localDate > existingDate) {
+        taskMap.set(task.id, task);
       }
+    }
+  });
+  
+  // Sort by creation date, defaulting to 0 if missing
+  const result = Array.from(taskMap.values())
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateA - dateB;
     });
     
-    // Convert map back to array and sort by creation date
-    return Array.from(taskMap.values())
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  };
+  console.log('Merge result:', result.length, 'total tasks after merge');
+  return result;
+};
