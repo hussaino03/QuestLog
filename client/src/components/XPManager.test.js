@@ -30,8 +30,9 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('Level up from 41 to 42 with correct XP', () => {
-    localStorage.setItem('level', '41');
-    localStorage.setItem('experience', '0');
+    // Calculate total XP needed for level 41 plus the new XP
+    const xpForLevel41 = Array.from({ length: 40 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    localStorage.setItem('totalExperience', xpForLevel41.toString());
 
     const { result } = renderHook(() => useXPManager());
 
@@ -48,8 +49,9 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('XP gain without level up', () => {
-    localStorage.setItem('level', '10');
-    localStorage.setItem('experience', '0');
+    // Calculate total XP needed for level 10
+    const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    localStorage.setItem('totalExperience', xpForLevel10.toString());
 
     const { result } = renderHook(() => useXPManager());
 
@@ -66,8 +68,9 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('XP gain with level up', () => {
-    localStorage.setItem('level', '10');
-    localStorage.setItem('experience', '500');
+    // Calculate total XP needed for level 10 plus 500 experience
+    const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    localStorage.setItem('totalExperience', (xpForLevel10 + 500).toString());
 
     const { result } = renderHook(() => useXPManager());
 
@@ -84,8 +87,9 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('Reset functionality', () => {
-    localStorage.setItem('level', '10');
-    localStorage.setItem('experience', '500');
+    // Set initial total XP for level 10 plus 500 experience
+    const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    localStorage.setItem('totalExperience', (xpForLevel10 + 500).toString());
 
     const { result } = renderHook(() => useXPManager());
 
@@ -98,17 +102,37 @@ describe('XPManager Hook Tests', () => {
 
     expect(result.current.level).toBe(1);
     expect(result.current.experience).toBe(0);
+    expect(result.current.totalExperience).toBe(0);
     expect(result.current.showLevelUp).toBe(false);
   });
 
   test('Get total XP', () => {
-    localStorage.setItem('level', '3');
-    localStorage.setItem('experience', '150');
+    // Set initial total XP that would result in level 3 with 150 experience
+    const totalXP = 200 + 400 + 150; // XP for level 1 + level 2 + 150
+    localStorage.setItem('totalExperience', totalXP.toString());
 
     const { result } = renderHook(() => useXPManager());
 
-    const expectedTotalXP = 200 + 400 + 150;
+    expect(result.current.getTotalXP()).toBe(totalXP);
+    expect(result.current.level).toBe(3);
+    expect(result.current.experience).toBe(150);
+  });
 
-    expect(result.current.getTotalXP()).toBe(expectedTotalXP);
+  test('Get XP needed for next level', () => {
+    const totalXP = 200 + 400 + 150; // Level 3 with 150 experience
+    localStorage.setItem('totalExperience', totalXP.toString());
+
+    const { result } = renderHook(() => useXPManager());
+
+    expect(result.current.getXPForNextLevel()).toBe(600); // Level 3 requires 600 XP
+  });
+
+  test('Get level progress percentage', () => {
+    const totalXP = 200 + 400 + 150; // Level 3 with 150 experience
+    localStorage.setItem('totalExperience', totalXP.toString());
+
+    const { result } = renderHook(() => useXPManager());
+
+    expect(result.current.getLevelProgress()).toBe(25); // 150/600 = 25%
   });
 });

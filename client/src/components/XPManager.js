@@ -1,65 +1,66 @@
 import { useState, useEffect } from 'react';
 
 const useXPManager = () => {
-  const [level, setLevel] = useState(() => {
-    const savedLevel = localStorage.getItem('level');
-    return savedLevel ? parseInt(savedLevel) : 1;
-  });
-
-  const [experience, setExperience] = useState(() => {
-    const savedExperience = localStorage.getItem('experience');
-    return savedExperience ? parseInt(savedExperience) : 0;
+  // Only track total accumulated XP, calculate level and current experience from this
+  const [totalExperience, setTotalExperience] = useState(() => {
+    const savedTotalXP = localStorage.getItem('totalExperience');
+    return savedTotalXP ? parseInt(savedTotalXP) : 0;
   });
 
   const [showLevelUp, setShowLevelUp] = useState(false);
-  const [newLevel, setNewLevel] = useState(level);
+  const [newLevel, setNewLevel] = useState(1);
 
-  useEffect(() => {
-    localStorage.setItem('level', level.toString());
-    localStorage.setItem('experience', experience.toString());
-  }, [level, experience]);
-
-  const calculateXP = (taskExperience) => {
-    let newExperience = experience + taskExperience;
-    let currentLevel = level;
-    let didLevelUp = false;
-
-    while (newExperience >= currentLevel * 200) {
-      newExperience -= currentLevel * 200;
+  // Calculate current level and experience within that level based on total XP
+  const calculateLevelAndExperience = (xp) => {
+    let remainingXP = xp;
+    let currentLevel = 1;
+    
+    // Keep subtracting XP requirements until we can't level up anymore
+    while (remainingXP >= currentLevel * 200) {
+      remainingXP -= currentLevel * 200;
       currentLevel += 1;
-      didLevelUp = true;
-    }
-
-    if (didLevelUp) {
-      setLevel(currentLevel);
-      setNewLevel(currentLevel);
-      setShowLevelUp(true);
     }
     
-    setExperience(newExperience);
-
     return {
-      newExperience,
-      currentLevel,
-      didLevelUp,
-      totalExperience: getTotalXP() + taskExperience
+      level: currentLevel,
+      experience: remainingXP
     };
   };
 
-  const getTotalXP = () => {
-    let totalXP = 0;
-    for (let i = 1; i < level; i++) {
-      totalXP += i * 200;
+  // Derived values from totalExperience
+  const { level, experience } = calculateLevelAndExperience(totalExperience);
+
+  // Save only totalExperience to localStorage
+  useEffect(() => {
+    localStorage.setItem('totalExperience', totalExperience.toString());
+  }, [totalExperience]);
+
+  const calculateXP = (taskExperience) => {
+    const newTotalXP = totalExperience + taskExperience;
+    const currentStats = calculateLevelAndExperience(totalExperience);
+    const newStats = calculateLevelAndExperience(newTotalXP);
+    
+    // Check if leveled up
+    if (newStats.level > currentStats.level) {
+      setNewLevel(newStats.level);
+      setShowLevelUp(true);
     }
-    totalXP += experience;
-    return totalXP;
+    
+    setTotalExperience(newTotalXP);
+    
+    return {
+      newExperience: newStats.experience,
+      currentLevel: newStats.level,
+      didLevelUp: newStats.level > currentStats.level,
+      totalExperience: newTotalXP
+    };
   };
 
   const resetXP = () => {
-    setLevel(1);
-    setExperience(0);
+    setTotalExperience(0);
     setNewLevel(1);
     setShowLevelUp(false);
+    
     return {
       level: 1,
       experience: 0,
@@ -67,15 +68,29 @@ const useXPManager = () => {
     };
   };
 
+  const getTotalXP = () => totalExperience;
+
+  // Calculate XP needed for next level
+  const getXPForNextLevel = () => level * 200;
+
+  // Calculate progress percentage within current level
+  const getLevelProgress = () => {
+    const xpNeeded = getXPForNextLevel();
+    return (experience / xpNeeded) * 100;
+  };
+
   return {
     level,
     experience,
+    totalExperience,
     showLevelUp,
     newLevel,
     calculateXP,
     resetXP,
     setShowLevelUp,
-    getTotalXP
+    getTotalXP,
+    getXPForNextLevel,
+    getLevelProgress
   };
 };
 

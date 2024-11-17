@@ -36,18 +36,12 @@ const App = () => {
 
   const handleUserDataLoad = (userData) => {
     // Update XP and level
-    const loadedXP = userData.xp || 0;
-    const loadedLevel = userData.level || 1;
-    
-    // Update the XP manager state
-    localStorage.setItem('experience', loadedXP.toString());
-    localStorage.setItem('level', loadedLevel.toString());
-    
+    const loadedXP = userData.xp || 0;    
     // Force refresh of XP manager
     resetXP();
     calculateXP(loadedXP);
     
-    // Load tasks from user data if authenticated
+    // Load tasks
     if (userData.tasks) {
       setTasks(userData.tasks);
       localStorage.setItem('tasks', JSON.stringify(userData.tasks));
@@ -214,8 +208,10 @@ const completeTask = async (task) => {
     };
     const updatedCompletedTasks = [...completedTasks, completedTask];
   
-    calculateXP(task.experience); // Calculate the XP
-    const totalXP = getTotalXP(); // Get the actual total XP
+    // Calculate XP and get the results
+    const xpResult = calculateXP(task.experience);
+    
+    localStorage.setItem('level', xpResult.currentLevel.toString());
   
     setTasks(updatedTasks);
     setCompletedTasks(updatedCompletedTasks);
@@ -225,24 +221,21 @@ const completeTask = async (task) => {
   
     // Update the database with the correct total XP
     if (userId && authToken) {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          xp: totalXP, // Use getTotalXP() instead of xpResult.totalExperience
-          level: level,
+          xp: xpResult.totalExperience, // Use the total XP directly
+          level: xpResult.currentLevel,
           tasksCompleted: updatedCompletedTasks.length,
+          tasks: updatedTasks,
+          completedTasks: updatedCompletedTasks
         }),
       });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to update user data: ${response.status}`);
-      }
     }
-  
   } catch (error) {
     console.error('Error completing task:', error);
     setError(error.message);
