@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { mergeTasks } from '../lib/TaskMergerUtility';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
 const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
   const [user, setUser] = useState(() => {
@@ -116,21 +116,22 @@ const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
   };
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center">
       {user ? (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 max-w-[200px] sm:max-w-none">
           <img 
             src={user.picture} 
             alt="Profile" 
-            className="w-8 h-8 rounded-full"
+            className="w-8 h-8 rounded-full flex-shrink-0"
           />
-          <span className="text-sm text-gray-700 dark:text-gray-300">
+          <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline truncate">
             {user.name}
           </span>
           <button
             onClick={logout}
-            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 
-                     text-gray-700 dark:text-gray-300 rounded-md transition-colors"
+            className="px-2 sm:px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 
+                     dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors 
+                     flex-shrink-0"
           >
             Sign Out
           </button>
@@ -138,12 +139,13 @@ const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
       ) : (
         <button
           onClick={() => login()}
-          className="flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600
-                   text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 
-                   rounded-md transition-colors shadow-sm"
+          className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 bg-white hover:bg-gray-100 
+                   dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 
+                   border border-gray-300 dark:border-gray-600 rounded-md transition-colors shadow-sm
+                   text-xs sm:text-sm"
         >
           <svg 
-            className="w-5 h-5" 
+            className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" 
             viewBox="0 0 24 24" 
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -154,7 +156,7 @@ const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
               <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
             </g>
           </svg>
-          <span>Sign in with Google</span>
+          <span className="whitespace-nowrap">Sign in with Google</span>
         </button>
       )}
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
 const adjectives = [
   'Happy', 'Clever', 'Brave', 'Wise', 'Swift', 'Calm', 'Bright', 'Noble',
@@ -74,7 +74,6 @@ const LeaderboardEntry = ({ user }) => {
         <div className="p-4 bg-gray-50 dark:bg-gray-700 space-y-2 transition-colors duration-200">
           <p className="text-gray-700 dark:text-gray-300">Tasks Completed: {user?.tasksCompleted || 0}</p>
           <p className="text-gray-700 dark:text-gray-300">Level: {user?.level || 1}</p>
-          <p className="text-gray-700 dark:text-gray-300">Email: {user?.email || 'N/A'}</p>
         </div>
       </div>
     </li>

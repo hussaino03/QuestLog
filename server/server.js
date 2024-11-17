@@ -1,11 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
+require('dotenv').config();
 
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.CLIENT || "http://localhost:3000",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -44,7 +45,7 @@ async function connectToDatabase() {
   if (cachedDb) {
     return cachedDb;
   }
-  const client = await MongoClient.connect("mongodb+srv://mhussainomer03:xCoYLu5i3jZ0LFvF@smartlist.t4y9r.mongodb.net/?retryWrites=true&w=majority&appName=smartlist");
+  const client = await MongoClient.connect(process.env.MONGODB_URI);
   const db = client.db("usersDB");
   cachedDb = db;
   return db;
@@ -72,10 +73,6 @@ initializeIndexes();
 app.post('/api/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
   const authHeader = req.headers.authorization;
-
-  console.log('--- Request Received ---');
-  console.log('Auth header:', authHeader);
-  console.log('Received data:', { googleId, email, name, picture, xp, level });
 
   const token = authHeader?.split(' ')[1];
 

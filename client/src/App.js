@@ -15,7 +15,7 @@ import ThemeToggle from './components/ThemeToggle';
 import Auth from './components/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
 const App = () => {
   const [isDark, setIsDark] = useState(false);
