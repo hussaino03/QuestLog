@@ -33,7 +33,7 @@ const generateUsername = (userId) => {
 
 const LeaderboardEntry = ({ user }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const username = useMemo(() => generateUsername(user?._id), [user?._id]);
+  const generatedUsername = useMemo(() => generateUsername(user?._id), [user?._id]);
 
   return (
     <li className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
@@ -49,9 +49,18 @@ const LeaderboardEntry = ({ user }) => {
           >
             {showDetails ? '↑' : '↓'}
           </button>
-          <span className="font-medium text-gray-900 dark:text-gray-100">
-            {username}
-          </span>
+          <div className="flex items-center space-x-3">
+            {user?.picture && (
+              <img 
+                src={user.picture} 
+                alt="Profile" 
+                className="w-8 h-8 rounded-full"
+              />
+            )}
+            <span className="font-medium text-gray-900 dark:text-gray-100">
+              {user?.name || generatedUsername}
+            </span>
+          </div>
         </div>
         <div className="text-gray-600 dark:text-gray-400">
           {user?.xp || 0} XP
@@ -65,6 +74,7 @@ const LeaderboardEntry = ({ user }) => {
         <div className="p-4 bg-gray-50 dark:bg-gray-700 space-y-2 transition-colors duration-200">
           <p className="text-gray-700 dark:text-gray-300">Tasks Completed: {user?.tasksCompleted || 0}</p>
           <p className="text-gray-700 dark:text-gray-300">Level: {user?.level || 1}</p>
+          <p className="text-gray-700 dark:text-gray-300">Email: {user?.email || 'N/A'}</p>
         </div>
       </div>
     </li>
@@ -73,9 +83,21 @@ const LeaderboardEntry = ({ user }) => {
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/leaderboard`)
+    const authToken = localStorage.getItem('authToken');
+    
+    if (!authToken) {
+      setError('Please sign in to view the leaderboard');
+      return;
+    }
+
+    fetch(`${API_BASE_URL}/leaderboard`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch leaderboard data');
@@ -85,11 +107,26 @@ const Leaderboard = () => {
       .then(data => {
         console.log('Leaderboard data:', data);
         setLeaderboard(data);
+        setError(null);
       })
       .catch(error => {
         console.error('Error:', error);
+        setError('Failed to load leaderboard data');
       });
   }, []);
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-colors duration-200">
+        <h2 className="text-xl font-bold p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+          Leaderboard
+        </h2>
+        <div className="p-4 text-red-600 dark:text-red-400">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-colors duration-200">
