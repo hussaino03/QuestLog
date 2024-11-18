@@ -2,6 +2,7 @@ import './styles/globals.css';
 import React, { useState, useEffect } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { v4 as uuidv4 } from 'uuid';
+import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
 import TaskButtons from './components/TaskButtons';
@@ -453,6 +454,7 @@ const removeTask = async (taskId, isCompleted) => {
         onClose={() => setShowLevelUp(false)} 
         level={newLevel}
       />
+      <Analytics />
     </div>
     </GoogleOAuthProvider>
   );

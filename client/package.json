@@ -5,6 +5,7 @@
   "dependencies": {
     "@react-oauth/google": "^0.12.1",
     "@testing-library/user-event": "^13.5.0",
+    "@vercel/analytics": "^1.4.0",
     "ajv": "^8.17.1",
     "dotenv": "^16.4.5",
     "lucide-react": "^0.456.0",
