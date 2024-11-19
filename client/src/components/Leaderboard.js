@@ -83,8 +83,57 @@ const LeaderboardEntry = ({ user }) => {
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [error, setError] = useState(null);
+  const [isOptedIn, setIsOptedIn] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
-  useEffect(() => {
+  const checkOptInStatus = async () => {
+    const authToken = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('userId');
+    
+    if (!authToken || !userId) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setIsOptedIn(userData.isOptIn || false);
+      }
+    } catch (error) {
+      console.error('Error checking opt-in status:', error);
+    }
+  };
+
+  const handleOptInToggle = async () => {
+    const authToken = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('userId');
+    
+    if (!authToken || !userId) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}/opt-in`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsOptedIn(data.isOptIn);
+        // Refresh leaderboard data
+        fetchLeaderboard();
+      }
+    } catch (error) {
+      console.error('Error toggling opt-in status:', error);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
     const authToken = localStorage.getItem('authToken');
     
     if (!authToken) {
@@ -92,26 +141,27 @@ const Leaderboard = () => {
       return;
     }
 
-    fetch(`${API_BASE_URL}/leaderboard`, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch leaderboard data');
+    try {
+      const response = await fetch(`${API_BASE_URL}/leaderboard`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
         }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Leaderboard data:', data);
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
         setLeaderboard(data);
         setError(null);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        setError('Failed to load leaderboard data');
-      });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Failed to load leaderboard data');
+    }
+  };
+
+  useEffect(() => {
+    checkOptInStatus();
+    fetchLeaderboard();
   }, []);
 
   if (error) {
@@ -128,14 +178,42 @@ const Leaderboard = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-colors duration-200">
-      <h2 className="text-xl font-bold p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
-        Leaderboard
-      </h2>
-      <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-visible transition-colors duration-200">
+      <div className="relative z-20 flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          Leaderboard
+        </h2>
+        <div className="relative">
+          <button
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            onClick={handleOptInToggle}
+            className="p-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-800 
+                     shadow-[2px_2px_#77dd77] hover:shadow-none hover:translate-x-0.5 
+                     hover:translate-y-0.5 transition-all duration-200 
+                     text-gray-800 dark:text-white"
+          >
+            {isOptedIn ? 'Opt Out' : 'Opt In'}
+          </button>
+          {showTooltip && (
+            <div className="absolute right-0 mt-2 p-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-[100] w-48">
+              {isOptedIn 
+                ? 'Click to remove your name and stats from the leaderboard'
+                : 'Click to share your name and stats publicly on the leaderboard (can opt-out anytime!)'
+              }
+            </div>
+          )}
+        </div>
+      </div>
+      <ul className="divide-y divide-gray-200 dark:divide-gray-700 min-h-[100px] relative z-10">
         {leaderboard.map((user) => (
           <LeaderboardEntry key={user._id} user={user} />
         ))}
+        {leaderboard.length === 0 && (
+          <li className="p-4 text-gray-500 dark:text-gray-400 text-center">
+            No users in leaderboard yet
+          </li>
+        )}
       </ul>
     </div>
   );

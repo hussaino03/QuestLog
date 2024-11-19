@@ -110,6 +110,7 @@ app.post('/api/users', async (req, res) => {
       tasksCompleted: 0,
       tasks: [],
       completedTasks: [],
+      isOptIn: false,
       createdAt: new Date()
     };
 
@@ -178,7 +179,7 @@ app.get('/api/leaderboard', authenticateToken, async (req, res) => {
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
-    const leaderboard = await usersCollection.find()
+    const leaderboard = await usersCollection.find({ isOptIn: true })
       .sort({ xp: -1 })
       .skip(offset)
       .limit(limit)
@@ -187,6 +188,57 @@ app.get('/api/leaderboard', authenticateToken, async (req, res) => {
     res.json(leaderboard);
   } catch (error) {
     console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Modify endpoint to toggle opt-in status
+app.put('/api/users/:id/opt-in', authenticateToken, async (req, res) => {
+  try {
+    const db = await connectToDatabase();
+    const usersCollection = db.collection('users');
+    
+    // Get current user to check current status
+    const user = await usersCollection.findOne({ _id: new ObjectId(req.params.id) });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Toggle the isOptIn status
+    const newStatus = !user.isOptIn;
+    
+    await usersCollection.updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { isOptIn: newStatus } }
+    );
+    
+    res.json({ 
+      message: `Opt-in status updated successfully`,
+      isOptIn: newStatus 
+    });
+  } catch (error) {
+    console.error('Error updating opt-in status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Add new endpoint to get user data
+app.get('/api/users/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await connectToDatabase();
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne(
+      { _id: new ObjectId(req.params.id) }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
