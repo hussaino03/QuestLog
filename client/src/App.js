@@ -15,6 +15,7 @@ import useXPManager from './components/XPManager';
 import ThemeToggle from './components/ThemeToggle';
 import Auth from './components/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import ClearDataModal from './components/ClearDataModal';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
@@ -28,6 +29,7 @@ const App = () => {
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('todo');
   const [authToken, setAuthToken] = useState(null);
+  const [showClearDataModal, setShowClearDataModal] = useState(false);
 
 
   const handleAuthChange = (token, id) => {
@@ -355,6 +357,15 @@ const removeTask = async (taskId, isCompleted) => {
     setCurrentView('todo');
   };
 
+  const handleClearDataClick = () => {
+    setShowClearDataModal(true);
+  };
+
+  const handleConfirmClear = async () => {
+    await clearAllData();
+    setShowClearDataModal(false);
+  };
+
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -407,7 +418,7 @@ const removeTask = async (taskId, isCompleted) => {
             {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
           </button>
           <button 
-            onClick={clearAllData}
+            onClick={handleClearDataClick}
             className="px-3 py-2 bg-white dark:bg-gray-800 font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
                      text-gray-800 dark:text-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 
                      hover:translate-y-1 transition-all duration-200 rounded-none"
@@ -453,6 +464,11 @@ const removeTask = async (taskId, isCompleted) => {
         show={showLevelUp}
         onClose={() => setShowLevelUp(false)} 
         level={newLevel}
+      />
+      <ClearDataModal
+        show={showClearDataModal}
+        onConfirm={handleConfirmClear}
+        onCancel={() => setShowClearDataModal(false)}
       />
       <Analytics />
     </div>
