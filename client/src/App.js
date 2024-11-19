@@ -369,21 +369,17 @@ const removeTask = async (taskId, isCompleted) => {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        {/* Split the top controls into left and right sections */}
-        <div className="fixed top-4 w-full flex justify-between px-4">
-          <div className="flex items-center">
-          <Auth 
+        <Header 
+          authComponent={
+            <Auth 
               onAuthChange={handleAuthChange} 
               onUserDataLoad={handleUserDataLoad}
               onLogout={handleLogout}
             />
-          </div>
-          <div>
-            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-          </div>
-        </div>
-      <Header />
-      {error && (
+          }
+          themeToggle={<ThemeToggle isDark={isDark} onToggle={toggleTheme} />}
+        />
+        {error && (
         <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
           Error: {error}
         </div>
@@ -420,7 +416,7 @@ const removeTask = async (taskId, isCompleted) => {
           <button 
             onClick={handleClearDataClick}
             className="px-3 py-2 bg-white dark:bg-gray-800 font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
-                     text-gray-800 dark:text-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 
+                     text-gray-800 dark:text-gray-200 shadow-[4px_4px_#ff6b6b] hover:shadow-none hover:translate-x-1 
                      hover:translate-y-1 transition-all duration-200 rounded-none"
           >
             Clear All Data

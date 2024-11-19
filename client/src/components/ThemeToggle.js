@@ -3,7 +3,7 @@ import { Moon, Sun, Github } from 'lucide-react';
 
 const ThemeToggle = ({ isDark, onToggle }) => {
   return (
-    <div className="fixed top-4 right-4 flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <a
         href="https://github.com/hussaino03/QuestLog"
         target="_blank"

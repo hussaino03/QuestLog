@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = () => {
+const Header = ({ authComponent, themeToggle }) => {
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200">
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -9,6 +9,10 @@ const Header = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white truncate mt-12 sm:mt-0">
               QuestLog
             </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            {authComponent}
+            {themeToggle}
           </div>
         </div>
       </div>
