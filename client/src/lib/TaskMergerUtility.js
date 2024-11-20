@@ -1,7 +1,4 @@
 export const mergeTasks = (localTasks, serverTasks) => {
-  console.log('Merge function received:');
-  console.log('Local tasks:', localTasks?.length, 'tasks');
-  console.log('Server tasks:', serverTasks?.length, 'tasks');
   
   // Safety check for array input
   if (!Array.isArray(localTasks) || !Array.isArray(serverTasks)) {
@@ -48,6 +45,5 @@ export const mergeTasks = (localTasks, serverTasks) => {
       return dateA - dateB;
     });
     
-  console.log('Merge result:', result.length, 'total tasks after merge');
   return result;
 };

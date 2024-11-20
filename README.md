@@ -1,38 +1,28 @@
 # QuestLog
-QuestLog is a gamified productivity web application built with React and backed by a MongoDB database. It helps users manage their tasks while providing a rewarding experience through a level-up system and leaderboard competition.
+
+QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
 
 ## Features
-- **Task Management**: Add, complete, and remove tasks
-- **Gamification**: Earn XP and level up by completing tasks
-- **Authentication**: Secure Google OAuth 2.0 login integration
-- **Dark Mode**: Toggle between light and dark themes for comfortable viewing
-- **Difficulty and Importance Ratings**: Assign ratings to tasks to determine XP rewards
-- **Progress Tracking**: Visual representation of current level and XP progress
-- **Streak Tracking**: Tracks the current and longest streak of daily task completions
-- **Leaderboard**: Compare your progress with other users
-- **Persistent Storage**: 
-  - Authenticated users: Tasks and progress are saved in MongoDB and synced across devices
-  - Guest users: Data persists in local storage
-- **Task Organization**: Separate views for active and completed tasks
-- **XP System**: Dynamic XP calculation based on task difficulty and importance
-- **Level Up Notifications**: Celebratory modal when reaching new levels
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-
-## Live Demo
-Check out the live demo of QuestLog [here](https://smart-listapp.vercel.app/).
-
-| ![Image 1](https://github.com/user-attachments/assets/9f6d85ef-6a0d-4409-85f7-f0b0c29e6261) | ![Image 2](https://github.com/user-attachments/assets/9d0a5af9-e016-41bd-abcc-cdcba2bd39e5) |
-| --- | --- |
-| ![image](https://github.com/user-attachments/assets/ed0c0029-9bd5-4fbe-a82a-88374a854289) | ![Image 2](https://github.com/user-attachments/assets/86a2c415-de61-4b36-bfed-49e26bd4dd47) |
-| --- | --- |
+- **Task Management**: Create, complete, and track your daily tasks
+- **Gamification**:
+  - Earn XP for completing tasks
+  - Level up system with celebratory notifications
+  - Daily streaks tracking
+  - Customizable task difficulty and importance ratings
+- **User Experience**:
+  - Responsive design for all devices
+  - Dark/Light theme toggle
+  - Smooth animations and transitions
+  - Clean, modern interface
+- **Data Management**:
+  - Google OAuth 2.0 authentication
+  - Cloud sync across devices
+  - Local storage fallback for guests
+  - **Leaderboard participation**. Users can either Opt-in or Opt-out of it. It is completely optional to respect privacy. 
 
 ## Architecture
-- **Frontend**: React application hosted on Vercel
-- **Backend**: Express.js server hosted on Vercel
-- **Database**: MongoDB
-- **Authentication**: Google OAuth 2.0
-- **State Management**: React Hooks
-- **Styling**: Tailwind CSS with dark mode support
+
+![image](https://github.com/user-attachments/assets/f0e60564-0c06-487e-96bd-bdd364a256e5)
 
 ## Getting Started
 ### Prerequisites
