@@ -12,10 +12,11 @@ import LevelUpModal from './components/LevelUpModal';
 import StreakTracker from './components/StreakTracker';
 import Leaderboard from './components/Leaderboard';
 import useXPManager from './components/XPManager';
-import ThemeToggle from './components/ThemeToggle';
+import AppControls from './components/AppControls';
 import Auth from './components/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/ClearDataModal';
+import Feedback from './components/Feedback';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
@@ -377,7 +378,13 @@ const removeTask = async (taskId, isCompleted) => {
               onLogout={handleLogout}
             />
           }
-          themeToggle={<ThemeToggle isDark={isDark} onToggle={toggleTheme} />}
+          AppControls={
+            <AppControls 
+              isDark={isDark} 
+              onToggle={toggleTheme} 
+              feedbackComponent={<Feedback />}
+            />
+          }
         />
         {error && (
         <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">

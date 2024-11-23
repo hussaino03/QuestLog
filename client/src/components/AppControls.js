@@ -1,7 +1,7 @@
 import React from 'react';
 import { Moon, Sun, Github } from 'lucide-react';
 
-const ThemeToggle = ({ isDark, onToggle }) => {
+const AppControls = ({ isDark, onToggle, feedbackComponent }) => {
   return (
     <div className="flex items-center gap-2">
       <a
@@ -16,6 +16,7 @@ const ThemeToggle = ({ isDark, onToggle }) => {
       >
         <Github className="w-5 h-5 text-gray-800 dark:text-white" />
       </a>
+      {feedbackComponent}
       <button
         onClick={onToggle}
         className="p-2 rounded-lg bg-white dark:bg-gray-800 
@@ -34,4 +35,4 @@ const ThemeToggle = ({ isDark, onToggle }) => {
   );
 };
 
-export default ThemeToggle;
+export default AppControls;

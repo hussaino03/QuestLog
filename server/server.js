@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config();
+const nodemailer = require('nodemailer');
 
 const app = express();
 
@@ -240,6 +241,46 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/feedback', async (req, res) => {
+  const { ratings, feedback } = req.body;
+  
+  try {
+    // Configure nodemailer with more secure settings
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD
+      }
+    });
+
+    // Test the connection
+    await transporter.verify();
+
+    const ratingsSummary = Object.entries(ratings)
+      .filter(([_, value]) => value > 0)
+      .map(([category, value]) => `${category}: ${value}/5`)
+      .join('\n');
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: 'h3114952@gmail.com',
+      subject: 'QuestLog Feedback',
+      text: `Ratings:\n${ratingsSummary}\n\nFeedback:\n${feedback}`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Feedback email sent successfully');
+    res.json({ message: 'Feedback sent successfully' });
+  } catch (error) {
+    console.error('Error sending feedback:', error);
+    res.status(500).json({ error: `Failed to send feedback: ${error.message}` });
   }
 });
 
