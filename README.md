@@ -2,51 +2,35 @@
 
 QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
 
-## Experience System
-QuestLog features a dynamic XP system that rewards strategic task management:
+## Key Features
+- Transform tasks into rewarding quests
+- Track progress with experience points and levels
+- Earn bonuses for early completion
+- Participate in optional leaderboards
+- Seamless data management:
+  - Cloud sync for authenticated users
+  - Local storage fallback for guests
+  - Cross-device accessibility
+  - Privacy-focused leaderboard participation
 
-### Task XP
-When creating tasks, you control your potential rewards by setting:
+## Experience System
+When creating tasks, you control your rewards through:
 - Task Difficulty (Easy, Medium, Hard)
 - Task Importance (Low, Medium, High)
+- Completion Time (Early completion bonuses)
 
-The higher the difficulty and importance, the more XP you'll earn upon completion!
+Watch your progress bar fill as you complete tasks and celebrate as you reach new levels!
 
-### Time Management Bonuses
-Plan ahead and complete tasks early to earn bonus XP:
-- Complete tasks well ahead of deadline for maximum bonus
-- Early completion bonuses scale with how early you finish
-- Same-day completion still earns you a small bonus
-
-### Progression
-- Experience points contribute to your level
-- Each level requires more XP than the previous
-- Watch your progress bar fill as you complete tasks
-- Level-ups are celebrated with special animations!
-
-## Features
-- **Task Management**: Create, complete, and track your daily tasks
-- **Gamification**:
-  - Earn XP for completing tasks
-  - Level up system with celebratory notifications
-  - Daily streaks tracking
-  - Customizable task difficulty and importance ratings with optional deadlines
-- **User Experience**:
-  - Responsive design for all devices
-  - Dark/Light theme toggle
-  - Smooth animations and transitions
-  - Clean, modern interface
-- **Data Management**:
-  - Google OAuth 2.0 authentication
-  - Cloud sync across devices
-  - Local storage fallback for guests
-  - **Leaderboard participation**. Users can either Opt-in or Opt-out of it. It is completely optional to respect privacy. 
-
-## Architecture
-
+## Technical Overview
+Built with:
+- React Frontend
+- Node.js & Express Backend
+- MongoDB Database
+- Tailwind CSS
+- Google OAuth Authentica## System Architecture
 ![image](https://github.com/user-attachments/assets/f0e60564-0c06-487e-96bd-bdd364a256e5)
 
-## Getting Started
+## 🚀 Quick Start
 ### Prerequisites
 - Node.js (v14.0.0 or later)
 - npm (v6.0.0 or later)
@@ -54,46 +38,86 @@ Plan ahead and complete tasks early to earn bonus XP:
 - Google Cloud Platform account for OAuth
 
 ### Installation
-1. Clone the repository:
+
+1. Clone and setup the repository:
    ```bash
    git clone https://github.com/hussaino03/QuestLog.git
-   ```
-2. Navigate to the project directory:
-   ```bash
    cd QuestLog
    ```
-3. Install dependencies for both frontend and backend:
+
+2. Install dependencies:
    ```bash
+   # Install root dependencies
    npm install
+
+   # Install server dependencies
    cd server && npm install
-   ```
-4. Set up environment variables:
-   Create a `.env` file in the root directory with the following:
-   ```
-   MONGODB_URI=your_mongodb_connection_string
-   REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
+
+   # Install client dependencies
+   cd ../client && npm install
    ```
 
-5. Start the development server:
-   ```bash
-   npm run dev
+3. Configure environment variables:
+
+   Create `.env` in the server directory:
    ```
-6. Open your browser and visit `http://localhost:3000` to see the app running.
+   MONGODB_URI=your_connection_string
+   CLIENT=your_client_app_url
+   EMAIL_USER=your_email@gmail.com for feedback form
+   EMAIL_APP_PASSWORD=your_app_specific_password
+   ```
+
+   Create `.env` in the client directory:
+   ```
+   REACT_APP_GOOGLE_CLIENT_ID=your_google_oauth_client_id
+   REACT_APP_PROD=your_production_api_url
+   ```
+
+4. Setup MongoDB:
+  
+5. Setup Google OAuth:
+   
+6. Start the application:
+   ```bash
+   # Start the server (from server directory)
+   npm start
+
+   # In a new terminal, start the client (from client directory)
+   npm start
+   ```
+
+7. Access the application at `http://localhost:3000`
+
+### Development Setup
+- For development, use:
+  ```bash
+  npm run dev  # Runs both client and server in development mode
+  ```
+- Enable debugging in VS Code using the provided launch configurations
+- Install recommended VS Code extensions for best development experience
 
 ## Usage
-1. Open the app in your browser
-2. Sign in with your Google account (optional)
-3. Click on "New Task" to add a new task
-4. Fill in the task details:
-   - Name
-   - Description (optional)
-   - Difficulty (affects XP reward)
-   - Importance (affects XP reward)
-5. Click on the checkmark (✔️) next to a task to complete it and earn XP
-6. Toggle between active and completed tasks using the task buttons
-7. Watch your progress bar fill up as you complete tasks and level up!
-8. Check the leaderboard to see how you compare to other users
-9. Use the theme toggle to switch between light and dark modes
+
+### Account Setup
+- Launch QuestLog in your browser
+- Choose between Google sign-in or guest mode
+- Customize your theme preference (light/dark)
+
+### Task Management
+- Create new tasks via the "+" button
+- Configure each task with:
+  - Title and optional description
+  - Difficulty (Easy/Medium/Hard)
+  - Importance (Low/Medium/High)
+  - Optional deadline for bonus XP
+- Mark tasks complete with the checkmark icon
+- Filter between active and completed tasks
+
+### Progress Tracking
+- Monitor your XP bar and level progression
+- Earn bonus XP for early task completion
+- View your position on the leaderboard (optional)
+- Track daily completion streaks
 
 ## API Endpoints
 - `POST /api/users`: Create or retrieve a user
