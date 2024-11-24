@@ -223,19 +223,28 @@ const completeTask = async (task) => {
       completedAt: new Date().toISOString()
     };
     const updatedCompletedTasks = [...completedTasks, completedTask];
-  
-    // Pass the deadline to calculateXP
+
+    // Check if task is overdue
+    const isOverdue = task.deadline && new Date() > new Date(task.deadline + 'T23:59:59');
+    
+    // Calculate base XP
     const xpResult = calculateXP(task.experience, task.deadline);
-      
+    
+    // Apply overdue penalty if needed
+    if (isOverdue) {
+      xpResult.totalExperience -= 5; // Apply -5 XP penalty
+      completedTask.overduePenalty = -5;
+    }
+    
     // Include early bonus XP in the task object
     completedTask.earlyBonus = xpResult.earlyBonus;
-  
+
     setTasks(updatedTasks);
     setCompletedTasks(updatedCompletedTasks);
-  
+
     localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
-  
+
     // Update the database with the correct total XP
     if (userId && authToken) {
       await fetch(`${API_BASE_URL}/users/${userId}`, {
@@ -245,7 +254,7 @@ const completeTask = async (task) => {
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          xp: xpResult.totalExperience, // Use the total XP directly
+          xp: xpResult.totalExperience,
           level: xpResult.currentLevel,
           tasksCompleted: updatedCompletedTasks.length,
           tasks: updatedTasks,
@@ -263,23 +272,31 @@ const removeTask = async (taskId, isCompleted) => {
   try {
     let updatedTasks = tasks;
     let updatedCompletedTasks = completedTasks;
-    let xpToSubtract = 0;
 
     if (isCompleted) {
-      // Find the task being removed to get its XP value
+      // Find the task being removed
       const taskToRemove = completedTasks.find(t => t.id === taskId);
       if (taskToRemove) {
-        xpToSubtract = taskToRemove.experience;
+        // Calculate total XP to remove, considering both bonuses and penalties
+        let totalXPToRemove = taskToRemove.experience; // Base XP
+
+        // Add early bonus if it exists
+        if (taskToRemove.earlyBonus) {
+          totalXPToRemove += taskToRemove.earlyBonus;
+        }
+
+        // Add back penalty if it exists (since penalty is stored as negative value)
+        if (taskToRemove.overduePenalty) {
+          totalXPToRemove += taskToRemove.overduePenalty;
+        }
+
+        // Remove the total XP (make it negative since we're removing)
+        calculateXP(-totalXPToRemove);
       }
       
       updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
       setCompletedTasks(updatedCompletedTasks);
       localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
-      
-      // Subtract XP when removing a completed task
-      if (xpToSubtract > 0) {
-        calculateXP(-xpToSubtract); // Use negative value to subtract XP
-      }
     } else {
       updatedTasks = tasks.filter(t => t.id !== taskId);
       setTasks(updatedTasks);
@@ -295,7 +312,7 @@ const removeTask = async (taskId, isCompleted) => {
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          xp: getTotalXP(), // This will now reflect the subtracted XP
+          xp: getTotalXP(),
           level: level,
           tasksCompleted: updatedCompletedTasks.length,
           tasks: updatedTasks,
