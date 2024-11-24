@@ -27,7 +27,9 @@ Built with:
 - Node.js & Express Backend
 - MongoDB Database
 - Tailwind CSS
-- Google OAuth Authentica## System Architecture
+- Google OAuth Authentication
+
+## Architecture
 ![image](https://github.com/user-attachments/assets/f0e60564-0c06-487e-96bd-bdd364a256e5)
 
 ## 🚀 Quick Start
@@ -158,6 +160,5 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 This project is open source and available under the [MIT License](LICENSE).
 
 ## Acknowledgments
-- Thanks to all contributors who have helped shape QuestLog
+- Thanks to all contributors
 - Inspired by productivity apps and RPG games
-- Special thanks to the React and MongoDB communities
