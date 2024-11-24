@@ -18,6 +18,7 @@ When creating tasks, you control your rewards through:
 - Task Difficulty (Easy, Medium, Hard)
 - Task Importance (Low, Medium, High)
 - Completion Time (Early completion bonuses)
+- There is also an overdue penalty on tasks that are past the deadline 
 
 Watch your progress bar fill as you complete tasks and celebrate as you reach new levels!
 
