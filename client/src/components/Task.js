@@ -3,6 +3,12 @@ import React, { useState } from 'react';
 const Task = ({ task, removeTask, completeTask, isCompleted }) => {
   const [showDetails, setShowDetails] = useState(false);
 
+  const formatDeadline = (deadline) => {
+    if (!deadline) return '';
+    const date = new Date(deadline);
+    return date.toLocaleDateString();
+  };
+
   return (
     <li className="border-2 border-gray-200 dark:border-gray-700 rounded-xl mb-4 overflow-hidden bg-white dark:bg-gray-800 hover:shadow-md transition-shadow w-full max-w-2xl">
       <div className="flex items-center justify-between p-3">
@@ -25,7 +31,9 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
           </svg>
         </button>
 
-        <span className="flex-grow text-center text-gray-700 dark:text-gray-200 mx-4">{task.name}</span>
+        <span className="flex-grow text-center text-gray-700 dark:text-gray-200 mx-4">
+          {task.name}
+        </span>
 
         <div className="flex gap-1">
           {!isCompleted && (
@@ -52,6 +60,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
       >
         <div className="px-4 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
           <p>Details: {task.desc}</p>
+          {task.deadline && <p>Due date: {formatDeadline(task.deadline)}</p>}
           <p>Difficulty: {task.difficulty}%</p>
           <p>Importance: {task.importance}%</p>
           <p>Experience given: {task.experience}xp</p>

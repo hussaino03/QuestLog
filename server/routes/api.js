@@ -72,6 +72,17 @@ router.put('/users/:id', authenticateToken, async (req, res) => {
   const numXP = Number(xp) || 0;
   const numTasksCompleted = Number(tasksCompleted) || 0;
   const numLevel = Number(level) || 1;
+
+  // Sanitize tasks and completedTasks arrays
+  const sanitizedTasks = Array.isArray(tasks) ? tasks.map(task => ({
+    ...task,
+    deadline: task.deadline || null // Ensure deadline is null if not provided
+  })) : [];
+
+  const sanitizedCompletedTasks = Array.isArray(completedTasks) ? completedTasks.map(task => ({
+    ...task,
+    deadline: task.deadline || null
+  })) : [];
   
   if (isNaN(numXP) || isNaN(numTasksCompleted) || isNaN(numLevel)) {
     return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
@@ -87,8 +98,8 @@ router.put('/users/:id', authenticateToken, async (req, res) => {
           xp: numXP,
           tasksCompleted: numTasksCompleted,
           level: numLevel,
-          tasks: tasks || [],
-          completedTasks: completedTasks || [],
+          tasks: sanitizedTasks,
+          completedTasks: sanitizedCompletedTasks,
           updatedAt: new Date() 
         } 
       }

@@ -6,6 +6,7 @@ const TaskForm = ({ addTask }) => {
   const [description, setDescription] = useState('');
   const [difficulty, setDifficulty] = useState(50);
   const [importance, setImportance] = useState(50);
+  const [deadline, setDeadline] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,6 +15,7 @@ const TaskForm = ({ addTask }) => {
       desc: description,
       difficulty,
       importance,
+      deadline: deadline || null,
       experience: ((parseInt(difficulty) + parseInt(importance) + 20) * 5 + parseInt(parseInt(difficulty) * parseInt(importance) / 20)),
       completion: false
     };
@@ -22,6 +24,7 @@ const TaskForm = ({ addTask }) => {
     setDescription('');
     setDifficulty(50);
     setImportance(50);
+    setDeadline('');
     handleClose();
   };
 
@@ -91,6 +94,20 @@ const TaskForm = ({ addTask }) => {
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
               />
+              
+              <div className="w-full">
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Deadline (optional)</label>
+                <input
+                  type="date"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
+                           rounded text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer
+                           [&::-webkit-calendar-picker-indicator]:dark:filter [&::-webkit-calendar-picker-indicator]:dark:invert"
+                />
+              </div>
               
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
