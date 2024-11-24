@@ -27,6 +27,8 @@ async function initializeIndexes() {
   }
 }
 
+initializeIndexes();
+
 // User routes
 router.post('/users', async (req, res) => {
   const { googleId, email, name, picture, xp, level } = req.body;
@@ -232,7 +234,5 @@ router.post('/feedback', async (req, res) => {
     res.status(500).json({ error: `Failed to send feedback: ${error.message}` });
   }
 });
-
-initializeIndexes();
 
 module.exports = router;
