@@ -203,7 +203,9 @@ const addTask = async (taskData) => {
         body: JSON.stringify({
           xp: getTotalXP(),
           level: level,
-          tasksCompleted: completedTasks.length
+          tasksCompleted: completedTasks.length,
+          tasks: updatedTasks,           
+          completedTasks: completedTasks  
         }),
       });
     }
