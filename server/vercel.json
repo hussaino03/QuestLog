@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "./server.js",
+      "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "./server.js",
+      "dest": "server.js",
       "headers": {
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Origin": "https://smart-listapp.vercel.app",
@@ -19,7 +19,12 @@
     },
     {
       "src": "/(.*)",
-      "dest": "./server.js"
+      "dest": "server.js"
     }
-  ]
+  ],
+  "functions": {
+    "server.js": {
+      "includeFiles": ["routes/**/*", "middleware/**/*"]
+    }
+  }
 }
