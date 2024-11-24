@@ -22,9 +22,5 @@
       "dest": "server.js"
     }
   ],
-  "functions": {
-    "server.js": {
-      "includeFiles": ["routes/**/*", "middleware/**/*"]
-    }
-  }
+  "includes": ["routes/**", "middleware/**"]
 }
