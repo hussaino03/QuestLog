@@ -18,6 +18,13 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
     });
   };
 
+  const isOverdue = (deadline) => {
+    if (!deadline) return false;
+    const now = new Date();
+    const deadlineDate = new Date(deadline + 'T23:59:59');
+    return now > deadlineDate;
+  };
+
   return (
     <li className="border-2 border-gray-200 dark:border-gray-700 rounded-xl mb-4 overflow-hidden bg-white dark:bg-gray-800 hover:shadow-md transition-shadow w-full max-w-2xl">
       <div className="flex items-center justify-between p-3">
@@ -42,6 +49,11 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
 
         <span className="flex-grow text-center text-gray-700 dark:text-gray-200 mx-4">
           {task.name}
+          {!isCompleted && task.deadline && isOverdue(task.deadline) && (
+            <span className="ml-2 text-red-500 text-sm">
+              OVERDUE (-5 XP)
+            </span>
+          )}
         </span>
 
         <div className="flex gap-1">
@@ -76,6 +88,11 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
             {isCompleted && task.earlyBonus > 0 && (
               <span className="text-green-600 dark:text-green-400">
                 {` + ${task.earlyBonus}xp early bonus!`}
+              </span>
+            )}
+            {task.deadline && isOverdue(task.deadline) && (
+              <span className="text-red-500">
+                {` - 5xp`}
               </span>
             )}
           </p>

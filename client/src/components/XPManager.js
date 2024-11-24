@@ -62,9 +62,17 @@ const useXPManager = () => {
     return 0;
   };
 
+  const calculateOverduePenalty = (deadline) => {
+    if (!deadline) return 0;
+    const now = new Date();
+    const deadlineDate = new Date(deadline + 'T23:59:59');
+    return now > deadlineDate ? -5 : 0; // -5 XP penalty for overdue tasks
+  };
+
   const calculateXP = (taskExperience, deadline = null) => {
     const earlyBonus = calculateEarlyBonus(deadline);
-    const totalTaskXP = taskExperience + earlyBonus;
+    const overduePenalty = calculateOverduePenalty(deadline);
+    const totalTaskXP = taskExperience + earlyBonus + overduePenalty;
     const newTotalXP = Math.max(0, totalExperience + totalTaskXP);
     
     const currentStats = calculateLevelAndExperience(totalExperience);
@@ -82,7 +90,8 @@ const useXPManager = () => {
       currentLevel: newStats.level,
       didLevelUp: newStats.level > currentStats.level && totalTaskXP > 0,
       totalExperience: newTotalXP,
-      earlyBonus
+      earlyBonus,
+      overduePenalty
     };
   };
 
