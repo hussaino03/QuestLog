@@ -2,13 +2,35 @@
 
 QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
 
+## Experience System
+QuestLog features a dynamic XP system that rewards strategic task management:
+
+### Task XP
+When creating tasks, you control your potential rewards by setting:
+- Task Difficulty (Easy, Medium, Hard)
+- Task Importance (Low, Medium, High)
+
+The higher the difficulty and importance, the more XP you'll earn upon completion!
+
+### Time Management Bonuses
+Plan ahead and complete tasks early to earn bonus XP:
+- Complete tasks well ahead of deadline for maximum bonus
+- Early completion bonuses scale with how early you finish
+- Same-day completion still earns you a small bonus
+
+### Progression
+- Experience points contribute to your level
+- Each level requires more XP than the previous
+- Watch your progress bar fill as you complete tasks
+- Level-ups are celebrated with special animations!
+
 ## Features
 - **Task Management**: Create, complete, and track your daily tasks
 - **Gamification**:
   - Earn XP for completing tasks
   - Level up system with celebratory notifications
   - Daily streaks tracking
-  - Customizable task difficulty and importance ratings
+  - Customizable task difficulty and importance ratings with optional deadlines
 - **User Experience**:
   - Responsive design for all devices
   - Dark/Light theme toggle
