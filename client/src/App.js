@@ -224,9 +224,12 @@ const completeTask = async (task) => {
     };
     const updatedCompletedTasks = [...completedTasks, completedTask];
   
-    // Calculate XP and get the results
-    const xpResult = calculateXP(task.experience);
+    // Pass the deadline to calculateXP
+    const xpResult = calculateXP(task.experience, task.deadline);
       
+    // Include early bonus XP in the task object
+    completedTask.earlyBonus = xpResult.earlyBonus;
+  
     setTasks(updatedTasks);
     setCompletedTasks(updatedCompletedTasks);
   

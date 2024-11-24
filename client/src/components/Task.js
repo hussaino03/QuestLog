@@ -5,8 +5,17 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
 
   const formatDeadline = (deadline) => {
     if (!deadline) return '';
-    const date = new Date(deadline);
-    return date.toLocaleDateString();
+    
+    // Create date object and force it to be interpreted in local timezone
+    const date = new Date(deadline + 'T12:00:00');
+    
+    // Format using local date string
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      timeZone: 'UTC'  // This ensures the date stays as selected
+    });
   };
 
   return (
@@ -63,7 +72,13 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
           {task.deadline && <p>Due date: {formatDeadline(task.deadline)}</p>}
           <p>Difficulty: {task.difficulty}%</p>
           <p>Importance: {task.importance}%</p>
-          <p>Experience given: {task.experience}xp</p>
+          <p>Experience given: {task.experience}xp
+            {isCompleted && task.earlyBonus > 0 && (
+              <span className="text-green-600 dark:text-green-400">
+                {` + ${task.earlyBonus}xp early bonus!`}
+              </span>
+            )}
+          </p>
         </div>
       </div>
     </li>
