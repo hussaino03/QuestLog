@@ -22,5 +22,5 @@
       "dest": "server.js"
     }
   ],
-  "includes": ["routes/**", "middleware/**"]
+  "includeFiles": ["routes/**", "middleware/**"]
 }
