@@ -13,7 +13,7 @@ QuestLog is a gamified task management web application that transforms your dail
   - Cross-device accessibility
   - Privacy-focused leaderboard participation
 
-## 📈 Experience System
+## 📈 XP System
 When creating tasks, you control your rewards through:
 - Task Difficulty (Easy, Medium, Hard)
 - Task Importance (Low, Medium, High)
