@@ -1,8 +1,8 @@
-# QuestLog
+# 🎮 QuestLog
 
 QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
 
-## Key Features
+## ✨ Key Features
 - Transform tasks into rewarding quests
 - Track progress with experience points and levels
 - Earn bonuses for early completion
@@ -13,7 +13,7 @@ QuestLog is a gamified task management web application that transforms your dail
   - Cross-device accessibility
   - Privacy-focused leaderboard participation
 
-## Experience System
+## 📈 Experience System
 When creating tasks, you control your rewards through:
 - Task Difficulty (Easy, Medium, Hard)
 - Task Importance (Low, Medium, High)
@@ -21,15 +21,16 @@ When creating tasks, you control your rewards through:
 
 Watch your progress bar fill as you complete tasks and celebrate as you reach new levels!
 
-## Technical Overview
+## 🛠️ Technical Overview
 Built with:
-- React Frontend
-- Node.js & Express Backend
-- MongoDB Database
-- Tailwind CSS
-- Google OAuth Authentication
+- [React](https://reactjs.org/) - Frontend framework
+- [Express.js](https://expressjs.com/) - Backend framework
+- [MongoDB](https://www.mongodb.com/) - Database
+- [Vercel](https://vercel.com/) - Hosting platform
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2) - Authentication
 
-## Architecture
+## 🏗️ Architecture
 ![image](https://github.com/user-attachments/assets/f0e60564-0c06-487e-96bd-bdd364a256e5)
 
 ## 🚀 Quick Start
@@ -90,16 +91,7 @@ Built with:
 
 7. Access the application at `http://localhost:3000`
 
-### Development Setup
-- For development, use:
-  ```bash
-  npm run dev  # Runs both client and server in development mode
-  ```
-- Enable debugging in VS Code using the provided launch configurations
-- Install recommended VS Code extensions for best development experience
-
-## Usage
-
+## 💻 Usage
 ### Account Setup
 - Launch QuestLog in your browser
 - Choose between Google sign-in or guest mode
@@ -121,14 +113,14 @@ Built with:
 - View your position on the leaderboard (optional)
 - Track daily completion streaks
 
-## API Endpoints
+## 🔧 API Endpoints
 - `POST /api/users`: Create or retrieve a user
 - `GET /api/users/:id`: Get user data
 - `PUT /api/users/:id`: Update user data (XP, level, tasks completed)
 - `GET /api/leaderboard`: Retrieve leaderboard data
 - `POST /api/auth/google`: Handle Google OAuth authentication
 
-## Data Persistence
+## 💾 Data Persistence
 - **Authenticated Users**: 
   - All data synced with MongoDB
   - Available across devices
@@ -138,27 +130,12 @@ Built with:
   - Limited to current browser/device
   - Not visible on leaderboard
 
-## Testing
-Run the test suite with:
-```bash
-npm test
-```
-
-## Built With
-- [React](https://reactjs.org/) - Frontend framework
-- [Express.js](https://expressjs.com/) - Backend framework
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Vercel](https://vercel.com/) - Hosting platform
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2) - Authentication
-- [React Transition Group](https://reactcommunity.org/react-transition-group/) - Animations
-
-## Contributing
+## 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
-## License
+## 📝 License
 This project is open source and available under the [MIT License](LICENSE).
 
-## Acknowledgments
+## 🙏 Acknowledgments
 - Thanks to all contributors
 - Inspired by productivity apps and RPG games
