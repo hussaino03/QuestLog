@@ -1,12 +1,7 @@
-const express = require('express');
-const router = express.Router();
 const { ObjectId } = require('mongodb');
-const nodemailer = require('nodemailer');
-const authenticateToken = require('../middleware/auth');
-const { connectToDatabase } = require('../db');
+const { connectToDatabase } = require('../../db');
 
-// User routes
-router.post('/users', async (req, res) => {
+async function createOrGetUser(req, res) {
   const { googleId, email, name, picture, xp, level } = req.body;
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(' ')[1];
@@ -64,19 +59,18 @@ router.post('/users', async (req, res) => {
     console.error('Error in user creation/lookup:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}
 
-router.put('/users/:id', authenticateToken, async (req, res) => {
+async function updateUser(req, res) {
   const { xp, tasksCompleted, level, tasks, completedTasks } = req.body;
   
   const numXP = Number(xp) || 0;
   const numTasksCompleted = Number(tasksCompleted) || 0;
   const numLevel = Number(level) || 1;
 
-  // Sanitize tasks and completedTasks arrays
   const sanitizedTasks = Array.isArray(tasks) ? tasks.map(task => ({
     ...task,
-    deadline: task.deadline || null // Ensure deadline is null if not provided
+    deadline: task.deadline || null
   })) : [];
 
   const sanitizedCompletedTasks = Array.isArray(completedTasks) ? completedTasks.map(task => ({
@@ -114,9 +108,9 @@ router.put('/users/:id', authenticateToken, async (req, res) => {
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}
 
-router.get('/users/:id', authenticateToken, async (req, res) => {
+async function getUser(req, res) {
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
@@ -134,30 +128,9 @@ router.get('/users/:id', authenticateToken, async (req, res) => {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}
 
-// Rest of the routes remain unchanged...
-router.get('/leaderboard', authenticateToken, async (req, res) => {
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = parseInt(req.query.offset) || 0;
-  
-  try {
-    const db = await connectToDatabase();
-    const usersCollection = db.collection('users');
-    const leaderboard = await usersCollection.find({ isOptIn: true })
-      .sort({ xp: -1 })
-      .skip(offset)
-      .limit(limit)
-      .toArray();
-
-    res.json(leaderboard);
-  } catch (error) {
-    console.error('Error fetching leaderboard:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-router.put('/users/:id/opt-in', authenticateToken, async (req, res) => {
+async function updateOptInStatus(req, res) {
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
@@ -183,43 +156,11 @@ router.put('/users/:id/opt-in', authenticateToken, async (req, res) => {
     console.error('Error updating opt-in status:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}
 
-router.post('/feedback', async (req, res) => {
-  const { ratings, feedback } = req.body;
-  
-  try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD
-      }
-    });
-
-    await transporter.verify();
-
-    const ratingsSummary = Object.entries(ratings)
-      .filter(([_, value]) => value > 0)
-      .map(([category, value]) => `${category}: ${value}/5`)
-      .join('\n');
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: 'h3114952@gmail.com',
-      subject: 'QuestLog Feedback',
-      text: `Ratings:\n${ratingsSummary}\n\nFeedback:\n${feedback}`
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.json({ message: 'Feedback sent successfully' });
-  } catch (error) {
-    console.error('Error sending feedback:', error);
-    res.status(500).json({ error: `Failed to send feedback: ${error.message}` });
-  }
-});
-
-module.exports = router;
+module.exports = {
+  createOrGetUser,
+  updateUser,
+  getUser,
+  updateOptInStatus
+};
