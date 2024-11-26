@@ -24,7 +24,7 @@ async function sendFeedback(req, res) {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'h3114952@gmail.com',
+      to: process.env.EMAIL_USER,
       subject: 'QuestLog Feedback',
       text: `Ratings:\n${ratingsSummary}\n\nFeedback:\n${feedback}`
     };
