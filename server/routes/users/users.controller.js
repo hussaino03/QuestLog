@@ -115,7 +115,16 @@ async function getUser(req, res) {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     const user = await usersCollection.findOne(
-      { _id: new ObjectId(req.params.id) }
+      { _id: new ObjectId(req.params.id) },
+      {
+        projection: {
+          name: 1,
+          xp: 1, 
+          level: 1,
+          isOptIn: 1,
+          _id: 1
+        }
+      }
     );
 
     if (!user) {
