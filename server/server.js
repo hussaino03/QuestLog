@@ -18,7 +18,7 @@ if (!mongoUri) {
 
 // Session middleware with MongoDB store
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'fallback_secret',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ 
@@ -28,10 +28,10 @@ app.use(session({
     touchAfter: 24 * 3600
   }),
   cookie: { 
+    secure: process.env.NODE_ENV === 'production', 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'none',
-    secure: true
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 }));
 
@@ -41,9 +41,10 @@ app.use(passport.session());
 
 // Update CORS configuration
 app.use(cors({
-  origin: process.env.CLIENT || 'http://localhost:3000',  
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',  
   credentials: true,  // Allow credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']  // Allowed methods
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization']  // Allowed headers
 }));
 
 // Require passport setup
