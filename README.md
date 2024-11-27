@@ -48,7 +48,57 @@ Built with:
 - [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2) - Authentication
 
 ## 🏗️ Architecture
-![image](https://github.com/user-attachments/assets/f0e60564-0c06-487e-96bd-bdd364a256e5)
+
+```mermaid
+graph TB
+    %% External Services Layer
+    subgraph External["External Services"]
+        GoogleOAuth[Google OAuth 2.0]
+    end
+
+    %% Frontend Layer
+    subgraph Frontend["Frontend (React)"]
+        direction TB
+        App[App.js]
+        Auth[Auth Component]
+        Tasks[Task Management]
+        XP[XP Manager]
+        Store[(Local Storage)]
+    end
+
+    %% Backend Layer
+    subgraph Backend["Backend (Express.js)"]
+        direction TB
+        Server[Server.js]
+        AuthRoutes[Auth Routes]
+        UserRoutes[User Routes]
+        LeaderboardRoutes[Leaderboard Routes]
+        Passport[Passport.js]
+        Session[Express Session]
+    end
+
+    %% Database Layer
+    subgraph Database["Database"]
+        direction TB
+        MongoDB[(MongoDB)]
+        Sessions[(Session Store)]
+    end
+
+    %% Connections
+    Auth --> AuthRoutes
+    Tasks --> UserRoutes
+    XP --> UserRoutes
+    AuthRoutes --> GoogleOAuth
+    UserRoutes --> MongoDB
+    Session --> Sessions
+    
+    %% Internal Frontend Connections
+    App --> Auth & Tasks & XP & Store
+    
+    %% Internal Backend Connections
+    Server --> AuthRoutes & UserRoutes & LeaderboardRoutes & Session
+    AuthRoutes --> Passport
+  ```
 
 ## 🚀 Quick Start
 ### Prerequisites
