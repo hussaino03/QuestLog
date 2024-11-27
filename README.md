@@ -135,6 +135,9 @@ graph TB
    CLIENT=your_client_app_url
    EMAIL_USER=your_email@gmail.com for feedback form
    EMAIL_APP_PASSWORD=your_app_specific_password
+   SESSION_SECRET=your session secret
+   GOOGLE_CLIENT_ID=your client id from google cloud console
+   GOOGLE_CLIENT_SECRET=your oauth password
    ```
 
    Create `.env` in the client directory:
