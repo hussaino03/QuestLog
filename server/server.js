@@ -4,7 +4,7 @@ const session = require('express-session');
 const passport = require('passport');
 const MongoStore = require('connect-mongo');
 require('dotenv').config();
-
+app.set('trust proxy', 1);
 const app = express();
 app.use(express.json());
 
