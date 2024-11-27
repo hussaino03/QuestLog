@@ -53,7 +53,7 @@ app.use(cors({
 require('./config/passport-setup');
 
 const apiRoutes = require('./routes');
-const authRoutes = require('./routes/auth.routes');
+const authRoutes = require('./routes/auth/auth.routes');
 
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);

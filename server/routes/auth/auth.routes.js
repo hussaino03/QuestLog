@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const passport = require('../config/passport-setup');
+const passport = require('../../config/passport-setup');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
