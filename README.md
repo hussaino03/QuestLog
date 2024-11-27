@@ -13,6 +13,22 @@ QuestLog is a gamified task management web application that transforms your dail
   - Cross-device accessibility
   - Privacy-focused leaderboard participation
 
+## 🔒 Security
+- **Authentication**: 
+  - Secure sign-in via Google OAuth 2.0
+  - Session-based authentication with Passport.js
+  - Secure cookie management with express-session
+
+- **Data Protection**:
+  - MongoDB session store
+  - Resource ownership verification
+  - Password-less authentication flow
+
+- **Network Security**:
+  - Express.js security middleware
+  - Production-grade CORS policy
+  - Rate limiting protection
+
 ## 📈 XP System
 When creating tasks, you control your rewards through:
 - Task Difficulty (Easy, Medium, Hard)
