@@ -12,13 +12,17 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
+    "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^5.5.0",
     "nodemailer": "^6.9.16",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "uuid": "^10.0.0"
   }
 }

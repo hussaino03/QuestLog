@@ -1,119 +1,97 @@
 import React, { useEffect, useState } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
-import { mergeTasks } from '../lib/TaskMergerUtility';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
-const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+const Auth = ({ onAuthChange, onLogout, handleUserDataLoad}) => {
+  const [user, setUser] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
+
+  // Add redirect detection
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('oauth')) {
+      setSessionChecked(false); // Force session check after OAuth
+    }
+  }, []);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('authToken');
-    const savedUser = localStorage.getItem('user');
-    const savedUserId = localStorage.getItem('userId');
-    
-    if (savedToken && savedUser) {
-      setUser(JSON.parse(savedUser));
-      onAuthChange(savedToken, savedUserId);
+    if (isLoggingOut) {
+      setUser(null);
+      setSessionChecked(true);
+      return;
     }
-  }, [onAuthChange]);
 
-  const clearAuthState = () => {
-    // Clear all localStorage items
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('tasks');
-    localStorage.removeItem('completedtasks');
-    localStorage.removeItem('totalExperience');
-    
-    // Reset state
-    setUser(null);
-    onAuthChange(null, null);
-    
-    // Call parent logout handler
-    if (onLogout) {
-      onLogout();
-    }
-  };
+    const abortController = new AbortController();
+    let mounted = true;
 
-  const login = useGoogleLogin({
-    onSuccess: async (response) => {
+    const checkSession = async () => {
+      if (sessionChecked) return;
+      
       try {
-        // Store the local data before clearing auth state
-        const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        const localCompletedTasks = JSON.parse(localStorage.getItem('completedtasks') || '[]');
-        
-        // Now clear the auth state
-        clearAuthState();
-        
-        // Get user info from Google
-        const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${response.access_token}` },
-        }).then(res => res.json());
-        
-        // Make API call to create/get user
-        const dbResponse = await fetch(`${API_BASE_URL}/users`, {
-          method: 'POST',
+        const response = await fetch(`${API_BASE_URL}/auth/current_user`, {
+          credentials: 'include',
+          signal: abortController.signal,
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${response.access_token}`
-          },
-          body: JSON.stringify({
-            googleId: userInfo.sub,
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture
-          })
+            'Content-Type': 'application/json'
+          }
         });
-  
-        if (!dbResponse.ok) {
-          throw new Error(`Server responded with ${dbResponse.status}`);
+    
+        if (!response.ok) {
+          if (response.status === 401 && mounted) {
+            setUser(null);
+            onAuthChange(null);
+            setSessionChecked(true);
+            return;
+          }
+          throw new Error('Network response was not ok');
         }
-  
-        const dbUser = await dbResponse.json();
-  
-        // Set auth state
-        localStorage.setItem('user', JSON.stringify(userInfo));
-        localStorage.setItem('authToken', response.access_token);
-        localStorage.setItem('userId', dbUser.userId);
-        
-        setUser(userInfo);
-        onAuthChange(response.access_token, dbUser.userId);
-
-        // Always merge tasks, whether the user exists or not
-        const mergedTasks = mergeTasks(localTasks, dbUser.tasks || []);
-        const mergedCompletedTasks = mergeTasks(localCompletedTasks, dbUser.completedTasks || []);
-        
-        // Update localStorage with merged tasks
-        localStorage.setItem('tasks', JSON.stringify(mergedTasks));
-        localStorage.setItem('completedtasks', JSON.stringify(mergedCompletedTasks));
-        
-        onUserDataLoad({
-          xp: dbUser.xp || 0,
-          level: dbUser.level || 1,
-          tasksCompleted: dbUser.tasksCompleted || 0,
-          tasks: mergedTasks,
-          completedTasks: mergedCompletedTasks
-        });
-        
+    
+        const data = await response.json();
+        if (mounted) {
+          setUser(data);
+          onAuthChange(data.userId);
+          setSessionChecked(true);
+          handleUserDataLoad(data);
+        }
       } catch (error) {
-        console.error('Error in authentication:', error);
-        clearAuthState();
+        if (error.name !== 'AbortError' && mounted) {
+          setUser(null);
+          onAuthChange(null);
+          setSessionChecked(true);
+        }
       }
-    },
-    onError: error => {
-      console.error('Login Failed:', error);
-      clearAuthState();
-    }
-  });
+    };
 
-  const logout = () => {
-    clearAuthState();
+    checkSession();
+
+    return () => {
+      mounted = false;
+      abortController.abort();
+    };
+  }, [isLoggingOut, sessionChecked, onAuthChange, handleUserDataLoad]);
+
+  const login = () => {
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
+
+  const logout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        credentials: 'include'
+      });
+      localStorage.clear();
+      setUser(null);
+      onAuthChange(null, true);  // Pass true to indicate active logout
+      if (onLogout) onLogout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+  
 
   return (
     <div className="flex items-center">
@@ -135,17 +113,13 @@ const Auth = ({ onAuthChange, onUserDataLoad, onLogout }) => {
         </div>
       ) : (
         <button
-          onClick={() => login()}
+          onClick={login}
           className="p-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-800 
                    shadow-[2px_2px_#77dd77] hover:shadow-none hover:translate-x-0.5 
                    hover:translate-y-0.5 transition-all duration-200 flex items-center gap-2 
                    text-gray-800 dark:text-white"
         >
-          <svg 
-            className="w-5 h-5" 
-            viewBox="0 0 24 24" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
               <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
               <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>

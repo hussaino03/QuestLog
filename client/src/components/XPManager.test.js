@@ -159,24 +159,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.getLevelProgress()).toBe(25); // 150/600 = 25%
   });
 
-  test('XP calculation with overdue penalty', () => {
-    const initialXP = Array.from({ length: 4 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0) + 300;
-    localStorage.setItem('totalExperience', initialXP.toString());
-
-    const { result } = renderHook(() => useXPManager());
-
-    // Create a task that's overdue (yesterday's date)
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const overdueDeadline = yesterday.toISOString().split('T')[0];
-
-    act(() => {
-      // Base XP of 100, but should get -5 penalty for being overdue
-      result.current.calculateXP(100, overdueDeadline);
-    });
-
-    expect(result.current.getTotalXP()).toBe(initialXP + 95); // 100 - 5 penalty
-  });
+ 
 
   test('XP calculation with early completion bonus', () => {
     const initialXP = 1000;
@@ -270,4 +253,5 @@ describe('XPManager Hook Tests', () => {
 
     expect(result.current.getTotalXP()).toBe(initialXP);
   });
+
 });

@@ -87,21 +87,16 @@ const Leaderboard = () => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const checkOptInStatus = async () => {
-    const authToken = localStorage.getItem('authToken');
-    const userId = localStorage.getItem('userId');
-    
-    if (!authToken || !userId) return;
-
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+      const response = await fetch(`${API_BASE_URL}/auth/current_user`, {
+        credentials: 'include'
       });
       
       if (response.ok) {
         const userData = await response.json();
         setIsOptedIn(userData.isOptIn || false);
+      } else if (response.status === 401) {
+        setError('Please sign in to view the leaderboard');
       }
     } catch (error) {
       console.error('Error checking opt-in status:', error);
@@ -109,24 +104,28 @@ const Leaderboard = () => {
   };
 
   const handleOptInToggle = async () => {
-    const authToken = localStorage.getItem('authToken');
-    const userId = localStorage.getItem('userId');
-    
-    if (!authToken || !userId) return;
-
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}/opt-in`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+      const userResponse = await fetch(`${API_BASE_URL}/auth/current_user`, {
+        credentials: 'include'
       });
-
+  
+      if (!userResponse.ok) {
+        throw new Error('Not authenticated');
+      }
+  
+      const userData = await userResponse.json();
+      
+      const response = await fetch(`${API_BASE_URL}/users/${userData.userId}/opt-in`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+  
       if (response.ok) {
         const data = await response.json();
         setIsOptedIn(data.isOptIn);
-        // Refresh leaderboard data
         fetchLeaderboard();
+      } else if (response.status === 401) {
+        setError('Please sign in to change opt-in status');
       }
     } catch (error) {
       console.error('Error toggling opt-in status:', error);
@@ -134,24 +133,17 @@ const Leaderboard = () => {
   };
 
   const fetchLeaderboard = async () => {
-    const authToken = localStorage.getItem('authToken');
-    
-    if (!authToken) {
-      setError('Please sign in to view the leaderboard');
-      return;
-    }
-
     try {
       const response = await fetch(`${API_BASE_URL}/leaderboard`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+        credentials: 'include'
       });
       
       if (response.ok) {
         const data = await response.json();
         setLeaderboard(data);
         setError(null);
+      } else if (response.status === 401) {
+        setError('Please sign in to view the leaderboard');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -163,6 +155,7 @@ const Leaderboard = () => {
     checkOptInStatus();
     fetchLeaderboard();
   }, []);
+
 
   if (error) {
     return (

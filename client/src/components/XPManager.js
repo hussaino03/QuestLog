@@ -129,7 +129,8 @@ const useXPManager = () => {
     setShowLevelUp,
     getTotalXP,
     getXPForNextLevel,
-    getLevelProgress
+    getLevelProgress,
+    setTotalExperience
   };
 };
 
