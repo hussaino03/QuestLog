@@ -18,7 +18,7 @@ if (!mongoUri) {
 
 // Session middleware with MongoDB store
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback_secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ 
@@ -30,9 +30,8 @@ app.use(session({
   cookie: { 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'none', 
-    secure: true,
-    domain: '.vercel.app' 
+    sameSite: 'none',
+    secure: true
   }
 }));
 
@@ -44,8 +43,7 @@ app.use(passport.session());
 app.use(cors({
   origin: process.env.CLIENT || 'http://localhost:3000',  
   credentials: true,  // Allow credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization']  // Allowed headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']  // Allowed methods
 }));
 
 // Require passport setup
