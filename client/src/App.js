@@ -17,6 +17,7 @@ import Auth from './components/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/ClearDataModal';
 import Feedback from './components/Feedback';
+import { validateUserId } from './utils/validation';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
@@ -29,43 +30,41 @@ const App = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('todo');
-  const [authToken, setAuthToken] = useState(null);
   const [showClearDataModal, setShowClearDataModal] = useState(false);
 
 
-  const handleAuthChange = (token, id) => {
-    setAuthToken(token);
+  const handleAuthChange = (id, isLogout = false) => {
     setUserId(id);
+    if (!id && isLogout) {  // Only clear data if actively logging out
+      setTasks([]);
+      setCompletedTasks([]);
+      resetXP();
+      setError(null);
+      setShowLeaderboard(false);
+      setCurrentView('todo');
+    }
   };
 
   const handleLogout = () => {
-    // Reset all state
-    setTasks([]);
-    setCompletedTasks([]);
-    resetXP();
-    setError(null);
-    setShowLeaderboard(false);
+    // Auth component now handles logout cleanup
     setCurrentView('todo');
   };
 
   const handleUserDataLoad = (userData) => {
     // Update XP and level
     const loadedXP = userData.xp || 0;    
-    // Force refresh of XP manager
     resetXP();
-    calculateXP(loadedXP);
+    setTotalExperience(loadedXP); // Replace calculateXP with direct set
     
-    // Load tasks
+    // Load tasks from server data only
     if (userData.tasks) {
       setTasks(userData.tasks);
-      localStorage.setItem('tasks', JSON.stringify(userData.tasks));
     }
     
     if (userData.completedTasks) {
       setCompletedTasks(userData.completedTasks);
-      localStorage.setItem('completedtasks', JSON.stringify(userData.completedTasks));
     }
-  };
+};
 
   const {
     level,
@@ -75,7 +74,8 @@ const App = () => {
     calculateXP,
     resetXP,
     setShowLevelUp,
-    getTotalXP
+    getTotalXP,
+    setTotalExperience
   } = useXPManager();
 
   useEffect(() => {
@@ -101,26 +101,31 @@ const App = () => {
 
   const initializeUser = async () => {
     // Load local storage data for all users
-    const savedTasks = localStorage.getItem('tasks');
-    const savedCompletedTasks = localStorage.getItem('completedtasks');
+  const savedTasks = localStorage.getItem('tasks');
+  const savedCompletedTasks = localStorage.getItem('completedtasks');
+  const savedXP = localStorage.getItem('totalExperience');
+
+  if (savedTasks) {
+    setTasks(JSON.parse(savedTasks));
+  }
+
+  if (savedCompletedTasks) {
+    setCompletedTasks(JSON.parse(savedCompletedTasks));
+  }
+
+  // Direct set instead of calculate
+  if (savedXP) {
+    setTotalExperience(parseInt(savedXP));
+  }
   
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  
-    if (savedCompletedTasks) {
-      setCompletedTasks(JSON.parse(savedCompletedTasks));
-    }
-  
-    // Only make API call if authenticated
-    if (authToken && userId) {
+    if (userId) {
       try {
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify({
             xp: getTotalXP(),
             level: level,
@@ -139,26 +144,23 @@ const App = () => {
   };
   
 
-// Update the useEffect to handle both authenticated and non-authenticated cases
 useEffect(() => {
   initializeUser();
-}, [authToken]); // eslint-disable-line react-hooks/exhaustive-deps
+}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 useEffect(() => {
-  // Skip update if user is not authenticated
-  if (!userId || !authToken) {
-    return;
-  }
+  if (!userId) return;
 
   const updateUserData = async () => {
     try {
+      validateUserId(userId);
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           xp: getTotalXP(),
           level: level,
@@ -178,7 +180,7 @@ useEffect(() => {
   };
 
   updateUserData();
-}, [userId, authToken, tasks, completedTasks, experience, level]); // eslint-disable-line react-hooks/exhaustive-deps
+}, [userId, tasks, completedTasks, experience, level]); // eslint-disable-line react-hooks/exhaustive-deps
 
 const addTask = async (taskData) => {
   try {
@@ -192,26 +194,25 @@ const addTask = async (taskData) => {
     setTasks(updatedTasks);
     localStorage.setItem('tasks', JSON.stringify(updatedTasks));
 
-    // Only update server if authenticated
-    if (userId && authToken) {
+    if (userId) {
       await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include', 
         body: JSON.stringify({
           xp: getTotalXP(),
           level: level,
           tasksCompleted: completedTasks.length,
-          tasks: updatedTasks,           
-          completedTasks: completedTasks  
+          tasks: updatedTasks,
+          completedTasks: completedTasks
         }),
       });
     }
   } catch (error) {
     console.error('Error adding task:', error);
-    setError(error.message);
+    setError(error.message); 
   }
 };
 
@@ -223,21 +224,13 @@ const completeTask = async (task) => {
       completedAt: new Date().toISOString()
     };
     const updatedCompletedTasks = [...completedTasks, completedTask];
-
-    // Check if task is overdue
-    const isOverdue = task.deadline && new Date() > new Date(task.deadline + 'T23:59:59');
     
-    // Calculate base XP
+    // Calculate XP with penalty handled internally by calculateXP
     const xpResult = calculateXP(task.experience, task.deadline);
     
-    // Apply overdue penalty if needed
-    if (isOverdue) {
-      xpResult.totalExperience -= 5; // Apply -5 XP penalty
-      completedTask.overduePenalty = -5;
-    }
-    
-    // Include early bonus XP in the task object
+    // Store the early bonus and overdue penalty for record keeping
     completedTask.earlyBonus = xpResult.earlyBonus;
+    completedTask.overduePenalty = xpResult.overduePenalty;
 
     setTasks(updatedTasks);
     setCompletedTasks(updatedCompletedTasks);
@@ -246,16 +239,16 @@ const completeTask = async (task) => {
     localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
 
     // Update the database with the correct total XP
-    if (userId && authToken) {
+    if (userId) {
       await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
-          xp: xpResult.totalExperience,
-          level: xpResult.currentLevel,
+          xp: getTotalXP(),
+          level: level,
           tasksCompleted: updatedCompletedTasks.length,
           tasks: updatedTasks,
           completedTasks: updatedCompletedTasks
@@ -268,6 +261,7 @@ const completeTask = async (task) => {
   }
 };
 
+
 const removeTask = async (taskId, isCompleted) => {
   try {
     let updatedTasks = tasks;
@@ -277,20 +271,16 @@ const removeTask = async (taskId, isCompleted) => {
       // Find the task being removed
       const taskToRemove = completedTasks.find(t => t.id === taskId);
       if (taskToRemove) {
-        // Calculate total XP to remove, considering both bonuses and penalties
-        let totalXPToRemove = taskToRemove.experience; // Base XP
-
-        // Add early bonus if it exists
+        // Calculate total XP to remove
+        let totalXPToRemove = taskToRemove.experience;
         if (taskToRemove.earlyBonus) {
           totalXPToRemove += taskToRemove.earlyBonus;
         }
-
-        // Add back penalty if it exists (since penalty is stored as negative value)
         if (taskToRemove.overduePenalty) {
           totalXPToRemove += taskToRemove.overduePenalty;
         }
 
-        // Remove the total XP (make it negative since we're removing)
+        // Remove the XP and store the result
         calculateXP(-totalXPToRemove);
       }
       
@@ -304,21 +294,27 @@ const removeTask = async (taskId, isCompleted) => {
     }
 
     // Update server if user is authenticated
-    if (userId && authToken) {
-      await fetch(`${API_BASE_URL}/users/${userId}`, {
+    if (userId) {
+      const currentTotalXP = getTotalXP();
+      
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
         },
+        credentials: 'include',
         body: JSON.stringify({
-          xp: getTotalXP(),
-          level: level,
+          xp: currentTotalXP, 
+          level,
           tasksCompleted: updatedCompletedTasks.length,
           tasks: updatedTasks,
           completedTasks: updatedCompletedTasks
         }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update user data: ${response.status}`);
+      }
     }
   } catch (error) {
     console.error('Error removing task:', error);
@@ -339,14 +335,14 @@ const removeTask = async (taskId, isCompleted) => {
     const { level: resetLevel, experience: resetExp } = resetXP();
   
     // Only update database if authenticated
-    if (userId && authToken) {
+    if (userId) {
       try {
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
+            'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify({
             xp: resetExp,
             level: resetLevel, 
@@ -396,8 +392,8 @@ const removeTask = async (taskId, isCompleted) => {
           authComponent={
             <Auth 
               onAuthChange={handleAuthChange} 
-              onUserDataLoad={handleUserDataLoad}
               onLogout={handleLogout}
+              handleUserDataLoad={handleUserDataLoad}
             />
           }
           AppControls={
