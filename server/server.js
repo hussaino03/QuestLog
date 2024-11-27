@@ -41,7 +41,7 @@ app.use(passport.session());
 
 // Update CORS configuration
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',  
+  origin: process.env.CLIENT || 'http://localhost:3000',  
   credentials: true,  // Allow credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
   allowedHeaders: ['Content-Type', 'Authorization']  // Allowed headers
