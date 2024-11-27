@@ -22,7 +22,7 @@ router.get('/google/callback',
   }),
   (req, res) => {
     // Successful authentication, redirect to home page
-    const clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
+    const clientURL = process.env.CLIENT || 'http://localhost:3000';
     res.redirect(clientURL);
   }
 );
