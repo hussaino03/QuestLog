@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userRoutes = require('./users/users.routes');
-const leaderboardRoutes = require('./Leaderboard/Leaderboard.routes');
+const leaderboardRoutes = require('./leaderboard/leaderboard.routes');
 const feedbackRoutes = require('./feedback/feedback.routes');
 
 router.use('/users', userRoutes);
