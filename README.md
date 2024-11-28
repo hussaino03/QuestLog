@@ -1,6 +1,6 @@
 # 🎮 QuestLog
 
-![Current Authorized Users](https://img.shields.io/badge/dynamic/json?color=blue&label=Current%20Authorized%20Users&query=count&url=https://img.shields.io/badge/count-0-blue&logo=mongodb&logoColor=white)
+![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-0-blue?logo=mongodb&logoColor=white)
 
 QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
 

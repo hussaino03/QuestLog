@@ -18,21 +18,19 @@ async function getUserCount() {
     
     console.log(`Authenticated users count: ${userCount}`);
 
-    // Update README
     const readmePath = path.join(process.cwd(), 'README.md');
     let readme = await fs.readFile(readmePath, 'utf8');
 
-    // Update README with shield.io badge including MongoDB logo
     const userCountRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)/;
     if (readme.match(userCountRegex)) {
       readme = readme.replace(
         userCountRegex, 
-        `![Current Authorized Users](https://img.shields.io/badge/dynamic/json?color=blue&label=Current%20Authorized%20Users&query=count&url=https://img.shields.io/badge/count-${userCount}-blue&logo=mongodb&logoColor=white)`
+        `![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white)`
       );
     } else {
       readme = readme.replace(
         '# 🎮 QuestLog',
-        `# 🎮 QuestLog\n\n![Current Authorized Users](https://img.shields.io/badge/dynamic/json?color=blue&label=Current%20Authorized%20Users&query=count&url=https://img.shields.io/badge/count-${userCount}-blue&logo=mongodb&logoColor=white)`
+        `# 🎮 QuestLog\n\n![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white)`
       );
     }
 
@@ -50,5 +48,4 @@ async function getUserCount() {
   }
 }
 
-// Self-execute for testing
 getUserCount().catch(console.error);
