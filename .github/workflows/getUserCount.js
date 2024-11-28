@@ -5,6 +5,7 @@ const path = require('path');
 async function getUserCount() {
   let client;
   try {
+    // Validate environment variable
     if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI environment variable is not set');
     }
@@ -18,9 +19,7 @@ async function getUserCount() {
       googleId: { $exists: true, $ne: null }
     });
     
-    // Use absolute path relative to script location
-    const readmePath = path.join(__dirname, '..', 'README.md');
-    
+    const readmePath = path.join(__dirname, '..', '..', 'README.md');    
     // Verify file exists
     try {
       await fs.access(readmePath);
@@ -54,6 +53,7 @@ async function getUserCount() {
     return userCount;
 
   } catch (error) {
+    // Sanitize error message
     console.error('Error:', error.message);
     throw new Error('Failed to update user count');
   } finally {
