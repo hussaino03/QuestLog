@@ -1,5 +1,7 @@
 # 🎮 QuestLog
 
+Current authorized users: 0
+
 QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
 
 ## ✨ Key Features
