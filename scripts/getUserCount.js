@@ -1,29 +1,25 @@
-import { connectToDatabase } from '../server/db.js';
-import { promises as fs } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+const { MongoClient } = require('mongodb');
+const fs = require('fs').promises;
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+async function getUserCount() {
+  const uri = process.env.MONGODB_URI;
+  const client = new MongoClient(uri);
 
-export async function updateReadme() {
   try {
-    const db = await connectToDatabase();
-    console.log('📊 Connected to MongoDB, fetching user count...');
+    await client.connect();
+    console.log('📊 Connected to MongoDB');
+    
+    const db = client.db("usersDB");
 
     const userCount = await db.collection('users').countDocuments({
-      googleId: { 
-        $exists: true, 
-        $ne: null,
-        $ne: "" 
-      }
+      googleId: { $exists: true, $ne: null }
     });
+    
+    console.log(`Authenticated users count: ${userCount}`);
 
-    console.log(`Database query: Found ${userCount} authenticated users`);
-    console.log(`Collection total documents: ${await db.collection('users').countDocuments()}`);
-
-    const readmePath = join(__dirname, '..', '..', 'README.md');
+    // Update README
+    const readmePath = path.join(process.cwd(), 'README.md');
     let readme = await fs.readFile(readmePath, 'utf8');
 
     // Update or add the user count section
@@ -39,10 +35,17 @@ export async function updateReadme() {
 
     await fs.writeFile(readmePath, readme);
     console.log(`Updated README with ${userCount} users`);
+
     return userCount;
 
   } catch (error) {
-    console.error('Error updating user count:', error);
+    console.error('Database error:', error);
     throw error;
+  } finally {
+    await client.close();
+    console.log('🔌 Closed MongoDB connection');
   }
 }
+
+// Self-execute for testing
+getUserCount().catch(console.error);
