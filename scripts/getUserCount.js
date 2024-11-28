@@ -12,6 +12,10 @@ async function updateReadme() {
     
     const db = client.db();
     console.log('📊 Connected to MongoDB, fetching user count...');
+
+    const users = await db.collection('users').find({}).toArray();
+    console.log(users);
+
     
     // Only count users who have authenticated (have googleId)
     const userCount = await db.collection('users').countDocuments({
