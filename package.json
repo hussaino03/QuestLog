@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "dotenv": "^16.4.5",
-    "mongodb": "^6.9.0"
+    "mongodb": "^6.11.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
