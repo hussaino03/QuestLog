@@ -11,8 +11,15 @@ async function updateReadme() {
     console.log('📊 Connected to MongoDB, fetching user count...');
     
     const db = client.db();
-    const userCount = await db.collection('users').countDocuments();
-    console.log(`✅ Successfully fetched user count from database: ${userCount} users`);
+    console.log('📊 Connected to MongoDB, fetching user count...');
+    
+    // Only count users who have authenticated (have googleId)
+    const userCount = await db.collection('users').countDocuments({
+      googleId: { $exists: true, $ne: null }  // Only count users with a valid googleId
+    });
+    
+    console.log(`Database query: Found ${userCount} authenticated users`);
+    console.log(`Collection total documents: ${await db.collection('users').countDocuments()}`);
     
     const readmePath = path.join(process.cwd(), 'README.md');
     let readme = await fs.readFile(readmePath, 'utf8');
