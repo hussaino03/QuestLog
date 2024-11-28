@@ -2,15 +2,13 @@ name: Update User Count
 
 on:
   schedule:
-    - cron: '0 0 1,15 * *' # set to run on 1st and 15th of every month
-  workflow_dispatch:
-  push:
-    branches: [ main, test, develop ]
+    - cron: '0 0 1,15 * *'  # 1st and 15th of each month
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   update-readme:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
       
@@ -20,17 +18,20 @@ jobs:
         node-version: '18'
         
     - name: Install dependencies
-      run: npm install mongodb
+      run: npm install mongodb --no-save mongodb
         
     - name: Update README with user count
       run: node .github/workflows/getUserCount.js  
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
         
-    - name: Commit and push if changed
-      run: |
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "GitHub Actions"
-        git add README.md
-        git diff --quiet && git diff --staged --quiet || git commit -m "Update user count"
-        git push
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        title: 'Analytics: Update User Count'
+        branch: 'analytics/user-count'
+        delete-branch: true
+        commit-message: 'Update user count in README'
+        body: |
+          Automated user count update
+          - Updates badge in README with current user count
