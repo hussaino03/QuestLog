@@ -22,14 +22,17 @@ async function getUserCount() {
     const readmePath = path.join(process.cwd(), 'README.md');
     let readme = await fs.readFile(readmePath, 'utf8');
 
-    // Update or add the user count section
-    const userCountRegex = /(Current authorized users: )\d+/;
+    // Update README with shield.io badge including MongoDB logo
+    const userCountRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)/;
     if (readme.match(userCountRegex)) {
-      readme = readme.replace(userCountRegex, `$1${userCount}`);
+      readme = readme.replace(
+        userCountRegex, 
+        `![Current Authorized Users](https://img.shields.io/badge/dynamic/json?color=blue&label=Current%20Authorized%20Users&query=count&url=https://img.shields.io/badge/count-${userCount}-blue&logo=mongodb&logoColor=white)`
+      );
     } else {
       readme = readme.replace(
         '# 🎮 QuestLog',
-        `# 🎮 QuestLog\n\nCurrent authorized users: ${userCount}`
+        `# 🎮 QuestLog\n\n![Current Authorized Users](https://img.shields.io/badge/dynamic/json?color=blue&label=Current%20Authorized%20Users&query=count&url=https://img.shields.io/badge/count-${userCount}-blue&logo=mongodb&logoColor=white)`
       );
     }
 
