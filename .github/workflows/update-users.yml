@@ -2,12 +2,10 @@ name: Update User Count
 
 on:
   schedule:
-    - cron: '0 0 1,15 * *'
+    - cron: '0 0 1,15 * *' # set to run on 1st and 15th of every month
   workflow_dispatch:
   push:
-    branches: [ main, test, develop ]  
-  pull_request:
-    branches: [ main, test, develop ] 
+    branches: [ main, test, develop ]
 
 jobs:
   update-readme:
