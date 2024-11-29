@@ -19,6 +19,14 @@ async function getUserCount() {
       googleId: { $exists: true, $ne: null }
     });
     
+    // Calculate total XP across all users
+    const xpResult = await db.collection('users').aggregate([
+      { $group: { _id: null, totalXP: { $sum: "$xp" } } }
+    ]).toArray();
+    
+    const totalXP = xpResult[0]?.totalXP || 0;
+    console.log("the total user xp is: ", totalXP)
+
     const readmePath = path.join(__dirname, '..', '..', 'README.md');    
     // Verify file exists
     try {
@@ -30,17 +38,18 @@ async function getUserCount() {
     // Read file
     let readme = await fs.readFile(readmePath, 'utf8');
 
-    // Prepare new content
-    const userCountRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)/;
-    if (readme.match(userCountRegex)) {
-      readme = readme.replace(
-        userCountRegex, 
-        `![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white)`
-      );
+    // Update regex and replacement
+    const statsRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)(?:\s*!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\))?/;
+    const newBadges = 
+      `![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white) ` +
+      `![Total User XP](https://img.shields.io/badge/Total%20User%20XP-${totalXP.toLocaleString()}-red?logo=zap&logoColor=white)`;
+
+    if (readme.match(statsRegex)) {
+      readme = readme.replace(statsRegex, newBadges);
     } else {
       readme = readme.replace(
         '# 🎮 QuestLog',
-        `# 🎮 QuestLog\n\n![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white)`
+        `# 🎮 QuestLog\n\n${newBadges}`
       );
     }
 
@@ -49,8 +58,8 @@ async function getUserCount() {
     await fs.writeFile(tempPath, readme);
     await fs.rename(tempPath, readmePath);
 
-    console.log(`Updated README with ${userCount} users`);
-    return userCount;
+    console.log(`Updated README with ${userCount} users and ${totalXP.toLocaleString()} total XP`);
+    return { userCount, totalXP };
 
   } catch (error) {
     // Sanitize error message

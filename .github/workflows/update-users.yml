@@ -1,4 +1,4 @@
-name: Update User Count
+name: Update User Count & Total XP
 
 on:
   schedule:
@@ -28,10 +28,10 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v5
       with:
-        title: 'Analytics: Update User Count'
+        title: 'Analytics: Update User Count & Total XP'
         branch: 'analytics/user-count'
         delete-branch: true
-        commit-message: 'Update user count in README'
+        commit-message: 'Update user count and xp in README'
         body: |
-          Automated user count update
-          - Updates badge in README with current user count
+          Automated user count & Total XP update
+          - Updates badge in README with current user count & total xp
