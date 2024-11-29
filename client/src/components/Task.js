@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const Task = ({ task, removeTask, completeTask, isCompleted }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
 
   const formatDeadline = (deadline) => {
     if (!deadline) return '';
@@ -33,7 +34,8 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
           onClick={() => setShowDetails(!showDetails)}
         >
           <svg 
-            className="w-6 h-6 text-gray-400"
+            className="w-6 h-6 text-gray-400 transition-transform duration-300"
+            style={{ transform: showDetails ? 'rotate(-180deg)' : 'rotate(0)' }}
             viewBox="0 0 24 24"
             fill="none" 
             stroke="currentColor"
@@ -42,7 +44,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
               strokeLinecap="round" 
               strokeLinejoin="round" 
               strokeWidth={2} 
-              d={showDetails ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"}
+              d="M19 9l-7 7-7-7"
             />
           </svg>
         </button>
@@ -76,11 +78,42 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
 
       <div
         className={`transition-all duration-300 ease-in-out bg-gray-50 dark:bg-gray-900 ${
-          showDetails ? 'max-h-48 py-3' : 'max-h-0'
+          showDetails ? 'max-h-[500px] py-3' : 'max-h-0'
         } overflow-hidden`}
       >
-        <div className="px-4 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
-          <p>Details: {task.desc}</p>
+        <div className="px-4 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">  
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setShowDescription(!showDescription)}
+              className="w-6 h-6 flex items-center justify-center focus:outline-none"
+            >
+              <svg 
+                className="w-4 h-4 text-gray-400 transition-transform duration-300"
+                style={{ transform: showDescription ? 'rotate(-180deg)' : 'rotate(0)' }}
+                viewBox="0 0 24 24"
+                fill="none" 
+                stroke="currentColor"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            <span>Details</span>
+          </div>
+          <div className={`transition-all duration-300 ease-in-out ${
+            showDescription ? 'max-h-[300px]' : 'max-h-0'
+          } overflow-hidden pl-6`}>
+            {task.desc.split("\n").map((line, index) => (
+              <React.Fragment key={index}>
+                {line}
+                <br />
+              </React.Fragment>
+            ))}
+          </div>
           {task.deadline && <p>Due date: {formatDeadline(task.deadline)}</p>}
           <p>Difficulty: {task.difficulty}%</p>
           <p>Importance: {task.importance}%</p>
