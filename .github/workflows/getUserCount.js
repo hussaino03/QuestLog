@@ -19,14 +19,13 @@ async function getUserCount() {
       googleId: { $exists: true, $ne: null }
     });
     
-    // Add task count aggregation
-    const taskCount = await db.collection('users').aggregate([
-      { $unwind: "$tasks" },
-      { $match: { "tasks.completed": true } },
-      { $count: "total" }
+    // Calculate total XP across all users
+    const xpResult = await db.collection('users').aggregate([
+      { $group: { _id: null, totalXP: { $sum: "$xp" } } }
     ]).toArray();
     
-    const totalTasks = taskCount[0]?.total || 0;
+    const totalXP = xpResult[0]?.totalXP || 0;
+    console.log("the total user xp is: ", totalXP)
 
     const readmePath = path.join(__dirname, '..', '..', 'README.md');    
     // Verify file exists
@@ -43,7 +42,7 @@ async function getUserCount() {
     const statsRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)(?:\s*!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\))?/;
     const newBadges = 
       `![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white) ` +
-      `![Total Tasks Completed](https://img.shields.io/badge/Total%20Tasks%20Completed-${totalTasks}-green?logo=checklist&logoColor=white)`;
+      `![Total User XP](https://img.shields.io/badge/Total%20User%20XP-${totalXP.toLocaleString()}-red?logo=zap&logoColor=white)`;
 
     if (readme.match(statsRegex)) {
       readme = readme.replace(statsRegex, newBadges);
@@ -59,8 +58,8 @@ async function getUserCount() {
     await fs.writeFile(tempPath, readme);
     await fs.rename(tempPath, readmePath);
 
-    console.log(`Updated README with ${userCount} users and ${totalTasks} completed tasks`);
-    return { userCount, totalTasks };
+    console.log(`Updated README with ${userCount} users and ${totalXP.toLocaleString()} total XP`);
+    return { userCount, totalXP };
 
   } catch (error) {
     // Sanitize error message
