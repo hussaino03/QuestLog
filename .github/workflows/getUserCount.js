@@ -19,6 +19,15 @@ async function getUserCount() {
       googleId: { $exists: true, $ne: null }
     });
     
+    // Add task count aggregation
+    const taskCount = await db.collection('users').aggregate([
+      { $unwind: "$tasks" },
+      { $match: { "tasks.completed": true } },
+      { $count: "total" }
+    ]).toArray();
+    
+    const totalTasks = taskCount[0]?.total || 0;
+
     const readmePath = path.join(__dirname, '..', '..', 'README.md');    
     // Verify file exists
     try {
@@ -30,17 +39,18 @@ async function getUserCount() {
     // Read file
     let readme = await fs.readFile(readmePath, 'utf8');
 
-    // Prepare new content
-    const userCountRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)/;
-    if (readme.match(userCountRegex)) {
-      readme = readme.replace(
-        userCountRegex, 
-        `![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white)`
-      );
+    // Update regex and replacement
+    const statsRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)(?:\s*!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\))?/;
+    const newBadges = 
+      `![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white) ` +
+      `![Total Tasks Completed](https://img.shields.io/badge/Total%20Tasks%20Completed-${totalTasks}-green?logo=checklist&logoColor=white)`;
+
+    if (readme.match(statsRegex)) {
+      readme = readme.replace(statsRegex, newBadges);
     } else {
       readme = readme.replace(
         '# 🎮 QuestLog',
-        `# 🎮 QuestLog\n\n![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white)`
+        `# 🎮 QuestLog\n\n${newBadges}`
       );
     }
 
@@ -49,8 +59,8 @@ async function getUserCount() {
     await fs.writeFile(tempPath, readme);
     await fs.rename(tempPath, readmePath);
 
-    console.log(`Updated README with ${userCount} users`);
-    return userCount;
+    console.log(`Updated README with ${userCount} users and ${totalTasks} completed tasks`);
+    return { userCount, totalTasks };
 
   } catch (error) {
     // Sanitize error message
