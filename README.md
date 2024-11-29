@@ -1,6 +1,6 @@
 # 🎮 QuestLog
 
-![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-52-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-10,206,648-red?logo=zap&logoColor=white)
+![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-52-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-206,649-red?logo=zap&logoColor=white)
 <!-- These values update automatically every 1st and 15th of the month -->
 
 QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
