@@ -14,7 +14,6 @@ const CustomSlider = ({
   const [localValue, setLocalValue] = useState(value);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Memoize the helper functions
   const constrainValue = useCallback((value) => {
     return Math.min(Math.max(value, min), max);
   }, [min, max]);
@@ -181,7 +180,8 @@ const TaskForm = ({ addTask }) => {
     description: '',
     difficulty: 50,
     importance: 50,
-    deadline: ''
+    deadline: '',
+    collaborative: false  
   });
 
   const updateFormState = useCallback((field, value) => {
@@ -199,9 +199,11 @@ const TaskForm = ({ addTask }) => {
       difficulty: formState.difficulty,
       importance: formState.importance,
       deadline: formState.deadline || null,
+      collaborative: formState.collaborative,  
       experience: (
         (parseInt(formState.difficulty) + parseInt(formState.importance) + 20) * 5 + 
-        parseInt(parseInt(formState.difficulty) * parseInt(formState.importance) / 20)
+        parseInt(parseInt(formState.difficulty) * parseInt(formState.importance) / 20) +
+        (formState.collaborative ? 150 : 0)  
       ),
       completion: false
     };
@@ -229,6 +231,10 @@ const TaskForm = ({ addTask }) => {
     }
   };
 
+  const toggleCollaborative = () => {
+    updateFormState('collaborative', !formState.collaborative);
+  };
+
   return (
     <div 
       id="newtask-form" 
@@ -247,8 +253,7 @@ const TaskForm = ({ addTask }) => {
         >
           <div className="p-6 space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-200">Create New Task</h3>
+            <div className="flex items-center justify-end">
               <button
                 type="button"
                 onClick={handleClose}
@@ -257,7 +262,7 @@ const TaskForm = ({ addTask }) => {
                 <span className="text-red-600 dark:text-red-400 text-lg">×</span>
               </button>
             </div>
-            
+
             {/* Icon */}
             <div className="flex justify-center">
               <ClipboardList className="w-24 h-24 text-gray-600 dark:text-gray-300" />
@@ -268,7 +273,7 @@ const TaskForm = ({ addTask }) => {
               {/* Task Name */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Task Name <span className="text-red-500">*</span>
+                  Quest Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -282,7 +287,7 @@ const TaskForm = ({ addTask }) => {
                 />
               </div>
               
-              {/* Description */}
+              {/* Description section */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Description
@@ -317,36 +322,88 @@ const TaskForm = ({ addTask }) => {
                 />
               </div>
               
-              {/* Difficulty Slider */}
-              <div className="space-y-2">
-                <CustomSlider
-                  value={formState.difficulty}
-                  onChange={(value) => updateFormState('difficulty', value)}
-                  snapPoints={[25, 50, 75]}
-                  snapLabels={['Beginner', 'Intermediate', 'Advanced']}
-                />
+              {/* XP Controls Section */}
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  XP Settings
+                </label>
+                <div className="space-y-6">
+                  {/* Sliders Row */}
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Difficulty Slider */}
+                    <div>
+                      <CustomSlider
+                        value={formState.difficulty}
+                        onChange={(value) => updateFormState('difficulty', value)}
+                        snapPoints={[25, 50, 75]}
+                        snapLabels={['Easy', 'Medium', 'Hard']}
+                      />
+                      <div className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
+                        Difficulty Level
+                      </div>
+                    </div>
+
+                    {/* Importance Slider */}
+                    <div>
+                      <CustomSlider
+                        value={formState.importance}
+                        onChange={(value) => updateFormState('importance', value)}
+                        snapPoints={[25, 50, 75]}
+                        snapLabels={['Low', 'Medium', 'High']}
+                      />
+                      <div className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
+                        Priority Level
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* XP Summary Row */}
+                  <div className="flex items-center gap-4 pt-2">
+                    <button
+                      type="button"
+                      onClick={toggleCollaborative}
+                      className={`flex-1 px-3 py-2 rounded-lg border transition-all duration-200
+                        ${formState.collaborative 
+                          ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
+                          : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
+                        }`}
+                    >
+                      <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {formState.collaborative ? '👥 Team Task' : '👤 Solo Task'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {formState.collaborative ? '+150 XP Bonus' : 'Base XP'}
+                      </div>
+                    </button>
+
+                    <div className="flex-1 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Total XP</div>
+                      <div className="text-lg font-bold text-gray-700 dark:text-gray-200">
+                        {(
+                          (parseInt(formState.difficulty) + parseInt(formState.importance) + 20) * 5 + 
+                          parseInt(parseInt(formState.difficulty) * parseInt(formState.importance) / 20) +
+                          (formState.collaborative ? 150 : 0)
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              {/* Importance Slider */}
-              <div className="space-y-2">
-                <CustomSlider
-                  value={formState.importance}
-                  onChange={(value) => updateFormState('importance', value)}
-                  snapPoints={[25, 50, 75]}
-                  snapLabels={['Low Priority', 'Medium Priority', 'High Priority']}
-                />
-              </div>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold text-lg 
+                         border-3 border-gray-800 dark:border-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none 
+                         hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <span>🎯</span>
+                  <span>Create Quest</span>
+                  <span className="text-sm opacity-75">(Press Enter)</span>
+                </div>
+              </button>
             </div>
-            
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold text-lg 
-                       border-3 border-gray-800 dark:border-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none 
-                       hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
-            >
-              Press Enter or click to submit
-            </button>
           </div>
         </form>
       </div>
