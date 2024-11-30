@@ -85,6 +85,22 @@ const Leaderboard = () => {
   const [error, setError] = useState(null);
   const [isOptedIn, setIsOptedIn] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [communityXP, setCommunityXP] = useState(0);  
+
+  const fetchCommunityXP = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/analytics`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCommunityXP(data.communityXP);
+      }
+    } catch (error) {
+      console.error('Error fetching community XP:', error);
+    }
+  };
 
   const checkOptInStatus = async () => {
     try {
@@ -154,6 +170,7 @@ const Leaderboard = () => {
   useEffect(() => {
     checkOptInStatus();
     fetchLeaderboard();
+    fetchCommunityXP();  
   }, []);
 
 
@@ -173,9 +190,14 @@ const Leaderboard = () => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-visible transition-colors duration-200">
       <div className="relative z-20 flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-          Leaderboard
-        </h2>
+        <div className="flex flex-col">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            Leaderboard
+          </h2>
+          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Total XP: {communityXP.toLocaleString()}
+          </div>
+        </div>
         <div className="relative">
           <button
             onMouseEnter={() => setShowTooltip(true)}

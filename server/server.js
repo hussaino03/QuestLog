@@ -54,9 +54,11 @@ require('./config/passport-setup');
 
 const apiRoutes = require('./routes');
 const authRoutes = require('./routes/auth/auth.routes');
+const analyticsRoutes = require('./routes/analytics/analytics.routes');
 
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
