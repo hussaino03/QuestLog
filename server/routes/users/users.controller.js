@@ -6,7 +6,7 @@ async function updateUser(req, res) {
     return res.status(400).json({ error: 'Invalid user ID format' });
   }
 
-  const { xp, tasksCompleted, level, tasks, completedTasks } = req.body;
+  const { xp, tasksCompleted, level, tasks, completedTasks, unlockedBadges } = req.body;
   
   const numXP = Number(xp) || 0;
   const numTasksCompleted = Number(tasksCompleted) || 0;
@@ -44,6 +44,7 @@ async function updateUser(req, res) {
           level: numLevel,
           tasks: sanitizedTasks,
           completedTasks: sanitizedCompletedTasks,
+          unlockedBadges: Array.isArray(unlockedBadges) ? unlockedBadges : [],
           updatedAt: new Date() 
         }
       }
@@ -78,6 +79,7 @@ async function getUser(req, res) {
           xp: 1, 
           level: 1,
           isOptIn: 1,
+          unlockedBadges: 1,
           _id: 1
         }
       }

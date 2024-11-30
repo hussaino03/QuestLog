@@ -78,7 +78,7 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
   }, [completedTasks, today]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-colors duration-200">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 h-[160px] transition-colors duration-200">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
         <span className="mr-2">🔥</span>
         Streak
