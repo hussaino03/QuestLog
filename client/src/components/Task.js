@@ -117,6 +117,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted }) => {
           {task.deadline && <p>Due date: {formatDeadline(task.deadline)}</p>}
           <p>Difficulty: {task.difficulty}%</p>
           <p>Importance: {task.importance}%</p>
+          <p>Type: {task.collaborative ? '👥 Collaborative' : '👤 Individual'}</p>
           <p>Experience given: {task.experience}xp
             {isCompleted && task.earlyBonus > 0 && (
               <span className="text-green-600 dark:text-green-400">
