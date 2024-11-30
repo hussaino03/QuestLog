@@ -195,7 +195,7 @@ const Leaderboard = () => {
             Leaderboard
           </h2>
           <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Total XP: {communityXP.toLocaleString()}
+            Total User XP: {communityXP.toLocaleString()}
           </div>
         </div>
         <div className="relative">
