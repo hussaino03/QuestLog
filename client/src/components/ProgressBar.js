@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ProgressBar = ({ level, experience }) => {
+const ProgressBar = ({ level, experience, userName }) => {
   let experienceNeededToLevel = level * 200;
   let barWidth = (experience / experienceNeededToLevel) * 100;
   const remainingXP = experienceNeededToLevel - experience;
@@ -9,24 +9,30 @@ const ProgressBar = ({ level, experience }) => {
     <div className="w-full max-w-2xl mx-auto p-4">
       <div className="mb-2 flex justify-between items-center">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Welcome back! - Level {level}
+          {userName ? `Welcome back ${userName.charAt(0).toUpperCase() + userName.slice(1)}!` : 'Welcome!'} - Level {level}
         </span>
         <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
           {remainingXP}xp to go!
         </span>
       </div>
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 relative">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6 relative overflow-hidden">
         <div 
-          className="h-full bg-blue-500 dark:bg-blue-600 rounded-full transition-all duration-300 ease-in-out"
+          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 
+                     rounded-full transition-all duration-300 ease-in-out flex items-center justify-center"
           style={{ width: `${barWidth}%` }}
         >
+          {barWidth > 8 && (
+            <span className="text-xs font-medium text-white px-2">
+              {Math.round(barWidth)}%
+            </span>
+          )}
         </div>
-        <div 
-          className="absolute -top-8 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-900 text-white px-2 py-1 rounded text-xs transition-colors duration-200"
-          style={{ left: `${barWidth}%` }}
-        >
-          {Math.round(barWidth)}%
-        </div>
+        {barWidth <= 8 && (
+          <span className="absolute inset-0 text-xs font-medium text-gray-600 dark:text-gray-400 
+                        flex items-center justify-start px-2">
+            {Math.round(barWidth)}%
+          </span>
+        )}
       </div>
     </div>
   );

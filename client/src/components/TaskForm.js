@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ClipboardList } from 'lucide-react';
 
 const CustomSlider = ({ 
@@ -12,6 +12,11 @@ const CustomSlider = ({
   snapLabels = []
 }) => {
   const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   const [isDragging, setIsDragging] = useState(false);
 
   const constrainValue = useCallback((value) => {
@@ -175,14 +180,16 @@ const CustomSlider = ({
 };
 
 const TaskForm = ({ addTask }) => {
-  const [formState, setFormState] = useState({
+  const defaultFormState = {
     name: '',
     description: '',
     difficulty: 50,
     importance: 50,
     deadline: '',
-    collaborative: false  
-  });
+    collaborative: false
+  };
+
+  const [formState, setFormState] = useState(defaultFormState);
 
   const updateFormState = useCallback((field, value) => {
     setFormState(prev => ({
@@ -208,13 +215,8 @@ const TaskForm = ({ addTask }) => {
       completion: false
     };
     addTask(newTask);
-    setFormState({
-      name: '',
-      description: '',
-      difficulty: 50,
-      importance: 50,
-      deadline: ''
-    });
+    // Reset form to default values
+    setFormState(defaultFormState);
     handleClose();
   };
 
