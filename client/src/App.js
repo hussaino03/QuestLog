@@ -18,6 +18,8 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/ClearDataModal';
 import Feedback from './components/Feedback';
 import { validateUserId } from './utils/validation';
+import BadgeGrid from './components/BadgeGrid';
+import { checkBadgeUnlocks } from './utils/badgeManager';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
@@ -32,6 +34,7 @@ const App = () => {
   const [currentView, setCurrentView] = useState('todo');
   const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [userName, setUserName] = useState(null);
+  const [unlockedBadges, setUnlockedBadges] = useState([]);
 
   const handleAuthChange = (id, isLogout = false) => {
     setUserId(id);
@@ -46,7 +49,6 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    // Auth component now handles logout cleanup
     setCurrentView('todo');
   };
 
@@ -56,7 +58,7 @@ const App = () => {
     // Update XP and level
     const loadedXP = userData.xp || 0;    
     resetXP();
-    setTotalExperience(loadedXP); // Replace calculateXP with direct set
+    setTotalExperience(loadedXP); 
     
     // Load tasks from server data only
     if (userData.tasks) {
@@ -66,6 +68,7 @@ const App = () => {
     if (userData.completedTasks) {
       setCompletedTasks(userData.completedTasks);
     }
+    setUnlockedBadges(userData.unlockedBadges || []);
 };
 
   const {
@@ -173,7 +176,8 @@ useEffect(() => {
           level: level,
           tasksCompleted: completedTasks.length,
           tasks: tasks,
-          completedTasks: completedTasks
+          completedTasks: completedTasks,
+          unlockedBadges
         }),
       });
 
@@ -187,7 +191,15 @@ useEffect(() => {
   };
 
   updateUserData();
-}, [userId, tasks, completedTasks, experience, level]); // eslint-disable-line react-hooks/exhaustive-deps
+}, [userId, tasks, completedTasks, experience, level, unlockedBadges]); // eslint-disable-line react-hooks/exhaustive-deps
+
+useEffect(() => {
+  const newUnlockedBadges = checkBadgeUnlocks(level);
+  
+  if (JSON.stringify(newUnlockedBadges) !== JSON.stringify(unlockedBadges)) {
+    setUnlockedBadges(newUnlockedBadges);
+  }
+}, [level, unlockedBadges]);
 
 const addTask = async (taskData) => {
   try {
@@ -411,8 +423,15 @@ const removeTask = async (taskId, isCompleted) => {
       )}
       <div className="relative max-w-4xl mx-auto px-4 py-6 space-y-6">
         <ProgressBar level={level} experience={experience} userName={userName} />
-        <div>
-          <StreakTracker completedTasks={completedTasks} />
+        <div className="flex gap-4 flex-col md:flex-row">
+          <div className="flex-1 min-w-0">
+            <StreakTracker completedTasks={completedTasks} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <BadgeGrid 
+              unlockedBadges={unlockedBadges} 
+            />
+          </div>
         </div>
         <CSSTransition
           in={!showLeaderboard}
