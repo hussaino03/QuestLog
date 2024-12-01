@@ -205,6 +205,11 @@ graph TB
   - Limited to current browser/device
   - Not visible on leaderboard
 
+## ☕ Support
+If you find QuestLog helpful and would like to support its development, you can:
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Development-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/hsz_11)
+
 ## 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
