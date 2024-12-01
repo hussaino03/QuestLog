@@ -79,7 +79,6 @@ const Feedback = () => {
       setFeedback('');
       setIsOpen(false);
 
-      // You might want to show a success message here
       alert('Thank you for your feedback!');
     } catch (error) {
       console.error('Error sending feedback:', error);
