@@ -20,6 +20,7 @@ import Feedback from './components/Feedback';
 import { validateUserId } from './utils/validation';
 import BadgeGrid from './components/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
+import Footer from './components/Footer';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
@@ -524,6 +525,7 @@ const removeTask = async (taskId, isCompleted) => {
         onCancel={() => setShowClearDataModal(false)}
       />
       <Analytics />
+      <Footer />
     </div>
     </GoogleOAuthProvider>
   );
