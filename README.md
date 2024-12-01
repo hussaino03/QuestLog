@@ -1,6 +1,6 @@
 # 🎮 QuestLog
 
-![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-52-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-206,649-red?logo=zap&logoColor=white)
+![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-33-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-0-red?logo=zap&logoColor=white)
 <!-- These values update automatically every 1st and 15th of the month -->
 
 QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
@@ -9,6 +9,7 @@ QuestLog is a gamified task management web application that transforms your dail
 - Transform tasks into rewarding quests
 - Track progress with experience points and levels
 - Earn bonuses for early completion
+- Badge system to unlock different achievements
 - Participate in optional leaderboards
 - Seamless data management:
   - Cloud sync for authenticated users
@@ -37,6 +38,7 @@ When creating tasks, you control your rewards through:
 - Task Difficulty (Easy, Medium, Hard)
 - Task Importance (Low, Medium, High)
 - Completion Time (Early completion bonuses)
+- Task Type (Solo/Team tasks - Team tasks provide bonus XP)
 - There is also an overdue penalty on tasks that are past the deadline 
 
 Watch your progress bar fill as you complete tasks and celebrate as you reach new levels!
