@@ -93,24 +93,22 @@ const Feedback = () => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 rounded-lg bg-white dark:bg-gray-800 
-                   border-2 border-gray-800 shadow-[2px_2px_#77dd77] 
-                   hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 
-                   transition-all duration-200"
+        className="inline-flex items-center gap-1 cursor-pointer"
         aria-label="Give feedback"
       >
-        <MessageSquare className="w-5 h-5 text-gray-800 dark:text-white" />
+        <MessageSquare className="w-4 h-4" />
+        <span>Feedback</span>
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white text-left">
               Feedback
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-4">
+              <div className="space-y-4 text-left">
                 <RatingCategory 
                   title="Design & Visual Appeal"
                   rating={ratings.design}
@@ -133,7 +131,7 @@ const Feedback = () => {
                 />
               </div>
 
-              <div>
+              <div className="text-left">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Additional Comments <span className="text-red-500">*</span>
                 </label>

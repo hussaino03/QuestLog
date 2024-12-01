@@ -16,7 +16,6 @@ import AppControls from './components/AppControls';
 import Auth from './components/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/ClearDataModal';
-import Feedback from './components/Feedback';
 import { validateUserId } from './utils/validation';
 import BadgeGrid from './components/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
@@ -413,7 +412,6 @@ const removeTask = async (taskId, isCompleted) => {
             <AppControls 
               isDark={isDark} 
               onToggle={toggleTheme} 
-              feedbackComponent={<Feedback />}
             />
           }
         />
