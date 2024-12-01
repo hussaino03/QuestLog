@@ -30,7 +30,7 @@ const BadgeGrid = ({ unlockedBadges }) => {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 h-[160px] transition-colors duration-200">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
         <span className="mr-2">🏆</span>
-        Badges (adding more soon!)
+        Badges (more soon!)
       </h3>
       <div className="grid grid-cols-3 gap-6">
         {Object.values(BADGES).map(badge => (
