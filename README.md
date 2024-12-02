@@ -1,4 +1,4 @@
-# 🎮 QuestLog
+# QuestLog
 
 ![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-121-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-220,605-red?logo=zap&logoColor=white)
 <!-- These values update automatically every 1st and 15th of the month -->
@@ -39,7 +39,9 @@ When creating tasks, you control your rewards through:
 - Task Importance (Low, Medium, High)
 - Completion Time (Early completion bonuses)
 - Task Type (Solo/Team tasks - Team tasks provide bonus XP)
-- There is also an overdue penalty on tasks that are past the deadline 
+- There is also an overdue penalty on tasks that are past the deadline
+
+_Default XP settings are given for Quick Task creation_
 
 Watch your progress bar fill as you complete tasks and celebrate as you reach new levels!
 
