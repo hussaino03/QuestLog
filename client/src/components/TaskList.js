@@ -53,18 +53,10 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask }) => 
     if (dateA === 'No due date') return 1;
     if (dateB === 'No due date') return -1;
     if (dateA !== 'No due date' && dateB !== 'No due date') {
-      return new Date(tasks.find(t => t.deadline && new Date(t.deadline).toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      }) === dateA).deadline) - 
-      new Date(tasks.find(t => t.deadline && new Date(t.deadline).toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      }) === dateB).deadline);
+      // Convert the formatted dates back to timestamps for comparison
+      const dateAObj = new Date(dateA);
+      const dateBObj = new Date(dateB);
+      return dateAObj - dateBObj;
     }
     return 0;
   });
