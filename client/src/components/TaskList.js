@@ -9,11 +9,11 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask }) => 
       addTask({
         name: quickTaskInput.trim(),
         desc: '',
-        difficulty: 50,
-        importance: 50,
+        difficulty: 5,
+        importance: 5,
         deadline: null,
         collaborative: false,
-        experience: 725
+        experience: 150
       });
       setQuickTaskInput('');
     }
