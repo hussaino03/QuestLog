@@ -8,7 +8,7 @@ import ProgressBar from './components/ProgressBar';
 import TaskButtons from './components/TaskButtons';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
-import LevelUpModal from './components/LevelUpModal';
+import LevelUpNoti from './components/LevelUp';
 import StreakTracker from './components/StreakTracker';
 import Leaderboard from './components/Leaderboard';
 import useXPManager from './components/XPManager';
@@ -512,7 +512,7 @@ const removeTask = async (taskId, isCompleted) => {
       </div>
 
       {}
-      <LevelUpModal 
+      <LevelUpNoti 
         show={showLevelUp}
         onClose={() => setShowLevelUp(false)} 
         level={newLevel}
