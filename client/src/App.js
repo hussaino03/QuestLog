@@ -475,6 +475,7 @@ const removeTask = async (taskId, isCompleted) => {
                     removeTask={removeTask}
                     completeTask={completeTask}
                     isCompleted={false}
+                    addTask={addTask}  
                   />
                 )}
                 {currentView === 'completed' && (

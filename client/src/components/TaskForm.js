@@ -275,7 +275,7 @@ const TaskForm = ({ addTask }) => {
               {/* Task Name */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Quest Name <span className="text-red-500">*</span>
+                  Task Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -401,7 +401,7 @@ const TaskForm = ({ addTask }) => {
               >
                 <div className="flex items-center justify-center gap-2">
                   <span>🎯</span>
-                  <span>Create Quest</span>
+                  <span>Create Task</span>
                   <span className="text-sm opacity-75">(Press Enter)</span>
                 </div>
               </button>
