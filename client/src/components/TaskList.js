@@ -27,6 +27,48 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask }) => 
     return new Date(a.deadline) - new Date(b.deadline);
   });
 
+  // Group tasks by date
+  const groupedTasks = sortedTasks.reduce((groups, task) => {
+    if (!task.deadline) {
+      if (!groups['No due date']) groups['No due date'] = [];
+      groups['No due date'].push(task);
+    } else {
+      const dateObj = new Date(task.deadline);
+      const userTimezoneOffset = dateObj.getTimezoneOffset() * 60000;
+      const adjustedDate = new Date(dateObj.getTime() + userTimezoneOffset);
+      
+      const date = adjustedDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(task);
+    }
+    return groups;
+  }, {});
+
+  const sortedGroups = Object.entries(groupedTasks).sort(([dateA], [dateB]) => {
+    if (dateA === 'No due date') return 1;
+    if (dateB === 'No due date') return -1;
+    if (dateA !== 'No due date' && dateB !== 'No due date') {
+      return new Date(tasks.find(t => t.deadline && new Date(t.deadline).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }) === dateA).deadline) - 
+      new Date(tasks.find(t => t.deadline && new Date(t.deadline).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }) === dateB).deadline);
+    }
+    return 0;
+  });
+
   return (
     <div className="flex flex-col items-center w-full bg-white dark:bg-gray-800 rounded-lg p-6 transition-colors duration-200">
       <div className="flex items-center justify-between w-full mb-6">
@@ -58,15 +100,24 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask }) => 
         )}
       </div>
       
-      <ul className="space-y-4 w-full flex flex-col items-center">
-        {sortedTasks.map((task) => (
-          <Task
-            key={task.id}
-            task={task}
-            removeTask={removeTask}
-            completeTask={completeTask}
-            isCompleted={isCompleted}
-          />
+      <ul className="space-y-8 w-full flex flex-col items-center">
+        {sortedGroups.map(([date, dateTasks]) => (
+          <li key={date} className="w-full flex flex-col items-center space-y-2">
+            <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+              {date}
+            </div>
+            <div className="w-full flex flex-col items-center">
+              {dateTasks.map((task) => (
+                <Task
+                  key={task.id}
+                  task={task}
+                  removeTask={removeTask}
+                  completeTask={completeTask}
+                  isCompleted={isCompleted}
+                />
+              ))}
+            </div>
+          </li>
         ))}
         {!isCompleted && sortedTasks.length === 0 && (
           <li className="text-center text-gray-500 dark:text-gray-400 py-8">
