@@ -7,13 +7,30 @@ const Auth = ({ onAuthChange, onLogout, handleUserDataLoad}) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [showLegacyWarning, setShowLegacyWarning] = useState(false);
-
+  const [cookiesBlocked, setCookiesBlocked] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.has('oauth')) {
       setSessionChecked(false); // Force session check after OAuth
     }
+  }, []);
+
+  useEffect(() => {
+    // Check if cookies are blocked in incognito/private mode
+    const checkCookies = () => {
+      try {
+        document.cookie = "testCookie=1";
+        const cookieEnabled = document.cookie.indexOf("testCookie") !== -1;
+        document.cookie = "testCookie=1; expires=Thu, 01-Jan-1970 00:00:01 GMT";
+        if (!cookieEnabled || !navigator.cookieEnabled) {
+          setCookiesBlocked(true);
+        }
+      } catch (e) {
+        setCookiesBlocked(true);
+      }
+    };
+    checkCookies();
   }, []);
 
   useEffect(() => {
@@ -102,6 +119,21 @@ const Auth = ({ onAuthChange, onLogout, handleUserDataLoad}) => {
   
   return (
     <>
+      {cookiesBlocked && (
+        <div className="fixed top-0 left-0 right-0 bg-red-100 dark:bg-red-900 p-4 text-center z-50 shadow-md">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <p className="text-red-800 dark:text-red-200">
+              ⚠️ Please enable cookies in your browser settings to sign in. If using private/incognito mode, allow third-party cookies.
+            </p>
+            <button 
+              onClick={() => setCookiesBlocked(false)}
+              className="ml-4 text-red-900 dark:text-red-100 hover:opacity-75"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       {showLegacyWarning && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-100 dark:bg-yellow-900 p-4 text-center z-50 shadow-md">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
