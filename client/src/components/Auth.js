@@ -64,23 +64,8 @@ const Auth = ({ onAuthChange, onLogout, handleUserDataLoad}) => {
     
         if (!response.ok) {
           if (response.status === 401 && mounted) {
-            // Check if cookies are actually enabled and accessible
-            const cookieTest = () => {
-              try {
-                document.cookie = "testCookie=1; SameSite=None; Secure";
-                const result = document.cookie.indexOf("testCookie") !== -1;
-                document.cookie = "testCookie=1; expires=Thu, 01-Jan-1970 00:00:01 GMT";
-                return result;
-              } catch (e) {
-                return false;
-              }
-            };
-
-            // Set cookie warning if we got 401 and cookies aren't working
-            if (!cookieTest()) {
-              setCookiesBlocked(true);
-            }
-
+            // Simply show cookie warning on 401
+            setCookiesBlocked(true);
             setUser(null);
             onAuthChange(null);
             setSessionChecked(true);
