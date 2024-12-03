@@ -341,6 +341,33 @@ const removeTask = async (taskId, isCompleted) => {
   }
 };
 
+const updateTask = async (taskId, updatedTask) => {
+  try {
+    const updatedTasks = tasks.map(task => 
+      task.id === taskId ? updatedTask : task
+    );
+    
+    setTasks(updatedTasks);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+
+    if (userId) {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          tasks: updatedTasks,
+          completedTasks
+        }),
+      });
+    }
+  } catch (error) {
+    console.error('Error updating task:', error);
+    setError(error.message);
+  }
+};
 
   const clearAllData = async () => {
     // Clear local storage for all users
@@ -476,6 +503,7 @@ const removeTask = async (taskId, isCompleted) => {
                     completeTask={completeTask}
                     isCompleted={false}
                     addTask={addTask}  
+                    updateTask={updateTask}  
                   />
                 )}
                 {currentView === 'completed' && (

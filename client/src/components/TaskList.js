@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Task from './Task';
 
-const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask }) => {
+const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updateTask }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
 
   const handleQuickAdd = (e) => {
@@ -106,6 +106,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask }) => 
                   removeTask={removeTask}
                   completeTask={completeTask}
                   isCompleted={isCompleted}
+                  updateTask={updateTask}
                 />
               ))}
             </div>
