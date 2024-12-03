@@ -30,10 +30,10 @@ app.use(session({
     touchAfter: 24 * 3600
   }),
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', 
+    secure: true,  // Always use secure cookies
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    sameSite: 'none'  // Required for cross-site cookies
   }
 }));
 
@@ -41,7 +41,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Update CORS configuration
+// CORS must be after session middleware
 app.use(cors({
   origin: process.env.CLIENT || 'http://localhost:3000',  
   credentials: true,  // Allow credentials
