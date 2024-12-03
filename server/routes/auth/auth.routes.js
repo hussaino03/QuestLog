@@ -21,7 +21,6 @@ router.get('/google/callback',
     failureRedirect: '/login' 
   }),
   (req, res) => {
-    // Successful authentication, redirect to home page
     const clientURL = process.env.CLIENT || 'http://localhost:3000';
     res.redirect(clientURL);
   }
