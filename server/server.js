@@ -30,14 +30,13 @@ app.use(session({
     touchAfter: 24 * 3600
   }),
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', 
+    secure: false, 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', 
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined, 
+    sameSite: 'none',  // For cross-origin requests
     path: '/'
   },
-  proxy: true // Important for production behind proxy
+  proxy: true
 }));
 
 // Passport initialization
@@ -49,8 +48,7 @@ app.use(cors({
   origin: process.env.CLIENT || 'http://localhost:3000',  
   credentials: true,  // Allow credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
-  exposedHeaders: ['Set-Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization']  // Allowed headers
 }));
 
 // Require passport setup
