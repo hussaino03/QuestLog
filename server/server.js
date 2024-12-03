@@ -18,7 +18,16 @@ if (!mongoUri) {
   process.exit(1);
 }
 
-// Session middleware with MongoDB store
+// Move CORS before session middleware
+app.use(cors({
+  origin: ['https://smart-listapp.vercel.app', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['set-cookie']
+}));
+
+// Update session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fallback_secret',
   resave: false,
@@ -33,24 +42,14 @@ app.use(session({
     secure: true,  // Always use secure cookies
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'none'  // Required for cross-site cookies
+    sameSite: 'none',  // Required for cross-site cookies
+    domain: '.vercel.app'  // Allow cookies across *.vercel.app subdomains
   }
 }));
 
 // Passport initialization
 app.use(passport.initialize());
 app.use(passport.session());
-
-// CORS must be after session middleware
-app.use(cors({
-  origin: process.env.CLIENT || 'http://localhost:3000',  
-  credentials: true,  // Allow credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization']  // Allowed headers
-}));
-
-// Require passport setup
-require('./config/passport-setup');
 
 const apiRoutes = require('./routes');
 const authRoutes = require('./routes/auth/auth.routes');
