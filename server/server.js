@@ -33,7 +33,7 @@ app.use(session({
     secure: false, 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'none',  // For cross-origin requests
+    sameSite: 'lax',  // For cross-origin requests
     path: '/'
   },
   proxy: true
