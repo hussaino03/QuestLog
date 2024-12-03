@@ -30,13 +30,11 @@ app.use(session({
     touchAfter: 24 * 3600
   }),
   cookie: { 
-    secure: false, 
+    secure: process.env.NODE_ENV === 'production', 
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'lax',  // For cross-origin requests
-    path: '/'
-  },
-  proxy: true
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+  }
 }));
 
 // Passport initialization
