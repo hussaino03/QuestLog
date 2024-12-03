@@ -30,7 +30,7 @@ const Footer = () => {
             aria-label="Support on Ko-fi"
           >
             <Coffee className="w-4 h-4" />
-            <span>Support the project</span>
+            <span>Like QuestLog?</span>
           </a>
         </div>
       </div>
