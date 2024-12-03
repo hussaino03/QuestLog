@@ -18,10 +18,11 @@ router.get('/google',
 
 router.get('/google/callback', 
   passport.authenticate('google', { 
-    failureRedirect: '/login' 
+    failureRedirect: '/login',
+    failureMessage: true
   }),
   (req, res) => {
-    // Successful authentication, redirect to home page
+    console.log('Authentication successful. User:', req.user?._id);
     const clientURL = process.env.CLIENT || 'http://localhost:3000';
     res.redirect(clientURL);
   }
@@ -56,12 +57,16 @@ router.get('/logout', (req, res) => {
 
 // New route to get current user
 router.get('/current_user', isAuthenticated, (req, res) => {
-  console.log('[Session] User verified:', {
-    id: req.user._id,
-    xp: req.user.xp || 0,
-    isOptIn: req.user.isOptIn || false,
-    timestamp: new Date().toISOString()
+  console.log('Current user session:', {
+    id: req.user?._id,
+    isAuthenticated: req.isAuthenticated(),
+    sessionID: req.sessionID
   });
+  
+  if (!req.user) {
+    return res.status(401).json({ error: 'No user found in session' });
+  }
+
   res.json({
     userId: req.user._id,
     name: req.user.name,

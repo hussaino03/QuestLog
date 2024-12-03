@@ -4,15 +4,22 @@ const { connectToDatabase } = require('../db');
 const { ObjectId } = require('mongodb');
 
 passport.serializeUser((user, done) => {
+  console.log('Serializing user:', user._id);
   done(null, user._id.toString());
 });
 
 passport.deserializeUser(async (id, done) => {
   try {
+    console.log('Deserializing user:', id);
     const db = await connectToDatabase();
     const user = await db.collection('users').findOne({ _id: new ObjectId(id) });
+    if (!user) {
+      console.log('User not found during deserialization');
+      return done(null, false);
+    }
     done(null, user);
   } catch (error) {
+    console.error('Deserialization error:', error);
     done(error);
   }
 });
