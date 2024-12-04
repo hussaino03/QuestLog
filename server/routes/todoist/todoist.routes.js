@@ -60,32 +60,31 @@ router.get('/auth/todoist/callback', isAuthenticated, async (req, res) => {
 
     res.send(`
       <html>
-        <body>
+        <head><title>Importing...</title></head>
+        <body style="background: #1f2937; color: white; font-family: sans-serif;">
           <script>
-            if (window.opener) {
-              window.opener.postMessage({
-                type: 'todoist-auth-success',
-                tasks: ${JSON.stringify(relevantTasks)}
-              }, '*');
-              window.close();
-            }
+            window.opener.postMessage({
+              type: 'todoist-auth-success',
+              tasks: ${JSON.stringify(relevantTasks)}
+            }, '*');
+            window.close();
           </script>
-          <p>Authentication successful! You can close this window.</p>
         </body>
       </html>
     `);
   } catch (error) {
     console.error('Todoist OAuth error:', error);
-    res.status(500).send(`
+    res.send(`
       <html>
-        <body>
+        <head><title>Error</title></head>
+        <body style="background: #1f2937; color: white; font-family: sans-serif;">
           <script>
-            if (window.opener) {
-              window.opener.postMessage({ type: 'todoist-auth-error' }, '*');
-              window.close();
-            }
+            window.opener.postMessage({ 
+              type: 'todoist-auth-error',
+              error: ${JSON.stringify(error.message)}
+            }, '*');
+            window.close();
           </script>
-          <p>Authentication failed. You can close this window.</p>
         </body>
       </html>
     `);

@@ -16,8 +16,8 @@ const AppControls = ({ isDark, onToggle, addTask, isAuthenticated }) => {
             const tasksToAdd = event.data.tasks.map(taskName => ({
               name: taskName,
               desc: 'Imported from Todoist',
-              difficulty: 50,
-              importance: 50,
+              difficulty: 5,
+              importance: 5,
               deadline: null,
               collaborative: false,
               experience: 150
@@ -66,9 +66,16 @@ const AppControls = ({ isDark, onToggle, addTask, isAuthenticated }) => {
                      transition-all duration-200"
           aria-label="Import from Todoist"
         >
-          <svg className="w-5 h-5 text-gray-800 dark:text-white" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm-1.36 16.92L6.1 12.4l1.42-1.42 3.12 3.12 6.56-6.56 1.42 1.42-7.98 7.96z"/>
-          </svg>
+          {isLoading ? (
+            <svg className="w-5 h-5 animate-spin text-gray-800 dark:text-white" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-gray-800 dark:text-white" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm-1.36 16.92L6.1 12.4l1.42-1.42 3.12 3.12 6.56-6.56 1.42 1.42-7.98 7.96z"/>
+            </svg>
+          )}
         </button>
       )}
 
