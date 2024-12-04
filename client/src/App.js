@@ -203,13 +203,16 @@ useEffect(() => {
 
 const addTask = async (taskData) => {
   try {
-    const newTask = {
-      ...taskData,
+    // If taskData is a single task, wrap it in an array
+    const tasksToAdd = Array.isArray(taskData) ? taskData : [taskData];
+    
+    const newTasks = tasksToAdd.map(task => ({
+      ...task,
       id: uuidv4(),
       createdAt: new Date().toISOString()
-    };
+    }));
     
-    const updatedTasks = [...tasks, newTask];
+    const updatedTasks = [...tasks, ...newTasks];
     setTasks(updatedTasks);
     localStorage.setItem('tasks', JSON.stringify(updatedTasks));
 
@@ -438,7 +441,9 @@ const updateTask = async (taskId, updatedTask) => {
           AppControls={
             <AppControls 
               isDark={isDark} 
-              onToggle={toggleTheme} 
+              onToggle={toggleTheme}
+              addTask={addTask}
+              isAuthenticated={!!userId}  // Add this line
             />
           }
         />
