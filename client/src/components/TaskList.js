@@ -92,13 +92,13 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
         )}
       </div>
       
-      <ul className="space-y-8 w-full flex flex-col items-center">
+      <div className="space-y-8 w-full flex flex-col items-center">
         {sortedGroups.map(([date, dateTasks]) => (
-          <li key={date} className="w-full flex flex-col items-center space-y-2">
+          <div key={date} className="w-full flex flex-col items-center space-y-2">
             <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
               {date}
             </div>
-            <div className="w-full flex flex-col items-center">
+            <ul className="w-full flex flex-col items-center">
               {dateTasks.map((task) => (
                 <Task
                   key={task.id}
@@ -109,15 +109,15 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
                   updateTask={updateTask}
                 />
               ))}
-            </div>
-          </li>
+            </ul>
+          </div>
         ))}
         {!isCompleted && sortedTasks.length === 0 && (
-          <li className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             Type above for quick task or use New Task for more options
-          </li>
+          </div>
         )}
-      </ul>
+      </div>
     </div>
   );
 };
