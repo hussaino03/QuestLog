@@ -61,13 +61,17 @@ router.get('/auth/todoist/callback', isAuthenticated, async (req, res) => {
     res.send(`
       <html>
         <head><title>Importing...</title></head>
-        <body style="background: #1f2937; color: white; font-family: sans-serif;">
+        <body style="background: #1f2937; color: white; font-family: sans-serif; text-align: center; padding: 20px;">
           <script>
-            window.opener.postMessage({
-              type: 'todoist-auth-success',
-              tasks: ${JSON.stringify(relevantTasks)}
-            }, '*');
-            window.close();
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'todoist-auth-success',
+                tasks: ${JSON.stringify(relevantTasks)}
+              }, '*');
+              window.close();
+            } else {
+              document.body.innerHTML = 'Authentication successful! Please close this window and click the Todoist import button again to see your tasks.';
+            }
           </script>
         </body>
       </html>
@@ -79,11 +83,15 @@ router.get('/auth/todoist/callback', isAuthenticated, async (req, res) => {
         <head><title>Error</title></head>
         <body style="background: #1f2937; color: white; font-family: sans-serif;">
           <script>
-            window.opener.postMessage({ 
-              type: 'todoist-auth-error',
-              error: ${JSON.stringify(error.message)}
-            }, '*');
-            window.close();
+            if (window.opener) {
+              window.opener.postMessage({ 
+                type: 'todoist-auth-error',
+                error: ${JSON.stringify(error.message)}
+              }, '*');
+              window.close();
+            } else {
+              document.body.innerHTML = 'Authentication failed! You can close this window.';
+            }
           </script>
         </body>
       </html>
