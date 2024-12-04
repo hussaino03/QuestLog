@@ -38,7 +38,12 @@ const App = () => {
 
   const handleAuthChange = (id, isLogout = false) => {
     setUserId(id);
-    if (!id && isLogout) {  // Only clear data if actively logging out
+    if (id) {
+      // User just logged in - clear localStorage after server data is loaded
+      window.isAuthenticated = true;
+    } else if (isLogout) {
+      // User logged out - clear everything
+      window.isAuthenticated = false;
       setTasks([]);
       setCompletedTasks([]);
       resetXP();
@@ -53,23 +58,21 @@ const App = () => {
   };
 
   const handleUserDataLoad = (userData) => {
-    // Add name handling
     setUserName(userData.name || null);
-    // Update XP and level
-    const loadedXP = userData.xp || 0;    
-    resetXP();
-    setTotalExperience(loadedXP); 
     
-    // Load tasks from server data only
-    if (userData.tasks) {
-      setTasks(userData.tasks);
+    // After loading server data, clear localStorage
+    if (userData) {
+      localStorage.removeItem('totalExperience');
+      localStorage.removeItem('tasks');
+      localStorage.removeItem('completedtasks');
     }
     
-    if (userData.completedTasks) {
-      setCompletedTasks(userData.completedTasks);
-    }
+    // Update from server data
+    setTotalExperience(userData.xp || 0);
+    setTasks(userData.tasks || []);
+    setCompletedTasks(userData.completedTasks || []);
     setUnlockedBadges(userData.unlockedBadges || []);
-};
+  };
 
   const {
     level,
@@ -110,53 +113,38 @@ const App = () => {
   };
 
   const initializeUser = async () => {
-    // Load local storage data for all users
-  const savedTasks = localStorage.getItem('tasks');
-  const savedCompletedTasks = localStorage.getItem('completedtasks');
-  const savedXP = localStorage.getItem('totalExperience');
-
-  if (savedTasks) {
-    setTasks(JSON.parse(savedTasks));
-  }
-
-  if (savedCompletedTasks) {
-    setCompletedTasks(JSON.parse(savedCompletedTasks));
-  }
-
-  // Direct set instead of calculate
-  if (savedXP) {
-    setTotalExperience(parseInt(savedXP));
-  }
-  
     if (userId) {
+      // Load from server for authenticated users
       try {
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            xp: getTotalXP(),
-            level: level,
-            tasksCompleted: completedTasks?.length || 0
-          }),
+          credentials: 'include'
         });
-  
-        if (!response.ok) {
-          throw new Error(`Failed to update user: ${response.status}`);
+
+        if (response.ok) {
+          const userData = await response.json();
+          setTotalExperience(userData.xp || 0);
+        } else {
+          throw new Error(`Failed to fetch user data: ${response.status}`);
         }
       } catch (error) {
         console.error('Error during initialization:', error);
         setError(error.message);
       }
+    } else {
+      // Load from localStorage for unauthenticated users
+      const savedTasks = localStorage.getItem('tasks');
+      const savedCompletedTasks = localStorage.getItem('completedtasks');
+      const savedXP = localStorage.getItem('totalExperience');
+
+      if (savedTasks) setTasks(JSON.parse(savedTasks));
+      if (savedCompletedTasks) setCompletedTasks(JSON.parse(savedCompletedTasks));
+      if (savedXP) setTotalExperience(parseInt(savedXP));
     }
   };
-  
 
-useEffect(() => {
-  initializeUser();
-}, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    initializeUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 useEffect(() => {
@@ -203,7 +191,6 @@ useEffect(() => {
 
 const addTask = async (taskData) => {
   try {
-    // If taskData is a single task, wrap it in an array
     const tasksToAdd = Array.isArray(taskData) ? taskData : [taskData];
     
     const newTasks = tasksToAdd.map(task => ({
@@ -214,9 +201,9 @@ const addTask = async (taskData) => {
     
     const updatedTasks = [...tasks, ...newTasks];
     setTasks(updatedTasks);
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
 
     if (userId) {
+      // For authenticated users, only update server
       await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
@@ -231,6 +218,9 @@ const addTask = async (taskData) => {
           completedTasks: completedTasks
         }),
       });
+    } else {
+      // For unauthenticated users, use localStorage
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     }
   } catch (error) {
     console.error('Error adding task:', error);
@@ -257,11 +247,8 @@ const completeTask = async (task) => {
     setTasks(updatedTasks);
     setCompletedTasks(updatedCompletedTasks);
 
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-    localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
-
-    // Update the database with the correct total XP
     if (userId) {
+      // For authenticated users, only update server
       await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
@@ -276,6 +263,10 @@ const completeTask = async (task) => {
           completedTasks: updatedCompletedTasks
         }),
       });
+    } else {
+      // For unauthenticated users, use localStorage
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+      localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
     }
   } catch (error) {
     console.error('Error completing task:', error);
@@ -283,50 +274,40 @@ const completeTask = async (task) => {
   }
 };
 
-
 const removeTask = async (taskId, isCompleted) => {
   try {
     let updatedTasks = tasks;
     let updatedCompletedTasks = completedTasks;
 
     if (isCompleted) {
-      // Find the task being removed
       const taskToRemove = completedTasks.find(t => t.id === taskId);
       if (taskToRemove) {
-        // Calculate total XP to remove
         let totalXPToRemove = taskToRemove.experience;
-        if (taskToRemove.earlyBonus) {
-          totalXPToRemove += taskToRemove.earlyBonus;
-        }
-        if (taskToRemove.overduePenalty) {
-          totalXPToRemove += taskToRemove.overduePenalty;
-        }
-
-        // Remove the XP and store the result
+        if (taskToRemove.earlyBonus) totalXPToRemove += taskToRemove.earlyBonus;
+        if (taskToRemove.overduePenalty) totalXPToRemove += taskToRemove.overduePenalty;
         calculateXP(-totalXPToRemove);
       }
       
       updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
       setCompletedTasks(updatedCompletedTasks);
-      localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
+      if (!userId) {
+        localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
+      }
     } else {
       updatedTasks = tasks.filter(t => t.id !== taskId);
       setTasks(updatedTasks);
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+      if (!userId) {
+        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+      }
     }
 
-    // Update server if user is authenticated
     if (userId) {
-      const currentTotalXP = getTotalXP();
-      
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          xp: currentTotalXP, 
+          xp: getTotalXP(),
           level,
           tasksCompleted: updatedCompletedTasks.length,
           tasks: updatedTasks,
@@ -351,14 +332,13 @@ const updateTask = async (taskId, updatedTask) => {
     );
     
     setTasks(updatedTasks);
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-
-    if (userId) {
+    
+    if (!userId) {
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    } else {
       await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           tasks: updatedTasks,
@@ -372,42 +352,41 @@ const updateTask = async (taskId, updatedTask) => {
   }
 };
 
-  const clearAllData = async () => {
-    // Clear local storage for all users
+const clearAllData = async () => {
+  if (!userId) {
     localStorage.removeItem('tasks');
     localStorage.removeItem('completedtasks');
-    localStorage.removeItem('experience');
-    localStorage.removeItem('level');
-    
-    setTasks([]);
-    setCompletedTasks([]);
-    const { level: resetLevel, experience: resetExp } = resetXP();
+    localStorage.removeItem('totalExperience');
+  }
   
-    // Only update database if authenticated
-    if (userId) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            xp: resetExp,
-            level: resetLevel, 
-            tasksCompleted: 0,
-          }),
-        });
-  
-        if (!response.ok) {
-          throw new Error(`Failed to reset user data: ${response.status}`);
-        }
-      } catch (error) {
-        console.error('Error clearing data:', error);
-        setError(error.message);
+  setTasks([]);
+  setCompletedTasks([]);
+  resetXP();  
+
+  if (userId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          xp: 0,
+          level: 1,
+          tasksCompleted: 0,
+          tasks: [],
+          completedTasks: []
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to reset user data: ${response.status}`);
       }
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      setError(error.message);
     }
-  };
+  }
+};
 
   const toggleLeaderboard = () => {
     setShowLeaderboard(!showLeaderboard);
@@ -443,7 +422,7 @@ const updateTask = async (taskId, updatedTask) => {
               isDark={isDark} 
               onToggle={toggleTheme}
               addTask={addTask}
-              isAuthenticated={!!userId}  // Add this line
+              isAuthenticated={!!userId}  
             />
           }
         />
