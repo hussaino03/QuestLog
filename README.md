@@ -16,6 +16,10 @@ QuestLog is a gamified task management web application that transforms your dail
   - Local storage fallback for guests
   - Cross-device accessibility
   - Privacy-focused leaderboard participation
+ 
+## ⚙️ Integrations
+
+- Todoist - you can import your tasks from todoist. Tasks will be imported with default XP settings. 
 
 ## 🔒 Security
 - **Authentication**: 
@@ -145,6 +149,11 @@ graph TB
    SESSION_SECRET=your session secret
    GOOGLE_CLIENT_ID=your client id from google cloud console
    GOOGLE_CLIENT_SECRET=your oauth password
+
+   # Integrations
+   TODOIST_CLIENT_ID=your client id
+   TODOIST_CLIENT_SECRET=your client secret
+   TODOIST_REDIRECT_URL=http://localhost:3001/api/auth/todoist/callback or your prod url
    ```
 
    Create `.env` in the client directory:
@@ -196,6 +205,7 @@ graph TB
 - `PUT /api/users/:id`: Update user data (XP, level, tasks completed)
 - `GET /api/leaderboard`: Retrieve leaderboard data
 - `POST /api/auth/google`: Handle Google OAuth authentication
+- `GET /api/auth/todoist` : Todoist OAuth import
 
 ## 💾 Data Persistence
 - **Authenticated Users**: 
@@ -208,7 +218,7 @@ graph TB
   - Not visible on leaderboard
 
 ## ☕ Support
-If you find QuestLog helpful and would like to support its development, you can:
+If you find QuestLog helpful and would like to support its development:
 
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Development-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/hsz_11)
 
