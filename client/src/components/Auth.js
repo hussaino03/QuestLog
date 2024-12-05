@@ -7,6 +7,30 @@ const Auth = ({ isAuthenticated, onAuthChange, onLogout, handleUserDataLoad}) =>
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [showLegacyWarning, setShowLegacyWarning] = useState(false);
+  const [showCookieWarning, setShowCookieWarning] = useState(false);
+
+  useEffect(() => {
+    const checkCookies = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/current_user`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // If response is null (401), cookies might be blocked
+        const data = await response.json();
+        if (data === null) {
+          setShowCookieWarning(true);
+        }
+      } catch (error) {
+        console.error('Cookie check failed:', error);
+      }
+    };
+
+    checkCookies();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -104,6 +128,21 @@ const Auth = ({ isAuthenticated, onAuthChange, onLogout, handleUserDataLoad}) =>
   
   return (
     <>
+      {showCookieWarning && (
+        <div className="fixed top-0 left-0 right-0 bg-red-100 dark:bg-red-900 p-4 text-center z-50 shadow-md">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <p className="text-red-800 dark:text-red-200">
+              ⚠️ Please enable third-party cookies in your browser settings to use all features. The app requires cookies for authentication.
+            </p>
+            <button 
+              onClick={() => setShowCookieWarning(false)}
+              className="ml-4 text-red-900 dark:text-red-100 hover:opacity-75"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       {showLegacyWarning && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-100 dark:bg-yellow-900 p-4 text-center z-50 shadow-md">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
