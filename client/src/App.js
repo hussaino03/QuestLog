@@ -56,22 +56,23 @@ const handleAuthChange = (id, isLogout = false) => {
     setCurrentView('todo');
   };
 
-  const handleUserDataLoad = (userData) => {
-    setUserName(userData.name || null);
-    
-    // After loading server data, clear localStorage
-    if (userData) {
-      localStorage.removeItem('totalExperience');
-      localStorage.removeItem('tasks');
-      localStorage.removeItem('completedtasks');
-    }
-    
-    // Update from server data
-    setTotalExperience(userData.xp || 0);
-    setTasks(userData.tasks || []);
-    setCompletedTasks(userData.completedTasks || []);
-    setUnlockedBadges(userData.unlockedBadges || []);
-  };
+const handleUserDataLoad = (userData) => {
+  if (!userData) return;
+  
+  setUserName(userData.name || null);
+  
+  // Only clear localStorage if we have valid XP data from server
+  if (typeof userData.xp === 'number') {
+    localStorage.removeItem('totalExperience');
+    localStorage.removeItem('tasks');
+    localStorage.removeItem('completedtasks');
+    setTotalExperience(userData.xp);
+  }
+  
+  setTasks(userData.tasks || []);
+  setCompletedTasks(userData.completedTasks || []);
+  setUnlockedBadges(userData.unlockedBadges || []);
+};
 
   const {
     level,

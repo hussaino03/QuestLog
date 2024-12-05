@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 
 const useXPManager = (isAuthenticated) => {
-  // Initialize from localStorage for unauthenticated users
   const [totalExperience, setTotalExperience] = useState(() => {
-    const savedTotalXP = localStorage.getItem('totalExperience');
-    return savedTotalXP ? parseInt(savedTotalXP) : 0;
+    if (!isAuthenticated) {
+      const savedTotalXP = localStorage.getItem('totalExperience');
+      return savedTotalXP ? parseInt(savedTotalXP) : 0;
+    }
+    return 0;
   });
 
   const [showLevelUp, setShowLevelUp] = useState(false);
