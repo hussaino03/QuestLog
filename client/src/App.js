@@ -112,26 +112,9 @@ const App = () => {
     setCurrentView(!showCompleted ? 'completed' : 'todo');
   };
 
-  const initializeUser = async () => {
-    if (userId) {
-      // Load from server for authenticated users
-      try {
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          setTotalExperience(userData.xp || 0);
-        } else {
-          throw new Error(`Failed to fetch user data: ${response.status}`);
-        }
-      } catch (error) {
-        console.error('Error during initialization:', error);
-        setError(error.message);
-      }
-    } else {
-      // Load from localStorage for unauthenticated users
+  const initializeUser = () => {
+    if (!userId) {
+      // Load from localStorage for unauthenticated users only
       const savedTasks = localStorage.getItem('tasks');
       const savedCompletedTasks = localStorage.getItem('completedtasks');
       const savedXP = localStorage.getItem('totalExperience');
