@@ -53,14 +53,19 @@ router.get('/logout', (req, res) => {
   });
 });
 
-// New route to get current user
-router.get('/current_user', isAuthenticated, (req, res) => {
+// handle unauthenticated users silently
+router.get('/current_user', (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.json(null);
+  }
+  
   console.log('[Session] User verified:', {
     id: req.user._id,
     xp: req.user.xp || 0,
     isOptIn: req.user.isOptIn || false,
     timestamp: new Date().toISOString()
   });
+  
   res.json({
     userId: req.user._id,
     name: req.user.name,
