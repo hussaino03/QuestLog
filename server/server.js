@@ -10,6 +10,7 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(express.json());
 
+const { connectToDatabase } = require('./db');
 
 // MongoDB connection for session store
 const mongoUri = process.env.MONGODB_URI;
@@ -60,10 +61,20 @@ const todoistRoutes = require('./routes/todoist/todoist.routes');
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/analytics', analyticsRoutes);
-// Move Todoist routes here after auth middleware
 app.use('/api', todoistRoutes);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+const startServer = async () => {
+  try {
+    await connectToDatabase();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
