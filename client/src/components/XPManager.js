@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const useXPManager = () => {
+const useXPManager = (isAuthenticated) => {
   // Initialize from localStorage for unauthenticated users
   const [totalExperience, setTotalExperience] = useState(() => {
     const savedTotalXP = localStorage.getItem('totalExperience');
@@ -102,10 +102,10 @@ const useXPManager = () => {
 
   // Save to localStorage only if not authenticated
   useEffect(() => {
-    if (!window.isAuthenticated) {  
+    if (!isAuthenticated) {  
       localStorage.setItem('totalExperience', totalExperience.toString());
     }
-  }, [totalExperience]);
+  }, [totalExperience, isAuthenticated]);
 
   return {
     level,

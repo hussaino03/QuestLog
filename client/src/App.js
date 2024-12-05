@@ -35,23 +35,22 @@ const App = () => {
   const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [userName, setUserName] = useState(null);
   const [unlockedBadges, setUnlockedBadges] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const handleAuthChange = (id, isLogout = false) => {
-    setUserId(id);
-    if (id) {
-      // User just logged in - clear localStorage after server data is loaded
-      window.isAuthenticated = true;
-    } else if (isLogout) {
-      // User logged out - clear everything
-      window.isAuthenticated = false;
-      setTasks([]);
-      setCompletedTasks([]);
-      resetXP();
-      setError(null);
-      setShowLeaderboard(false);
-      setCurrentView('todo');
-    }
-  };
+const handleAuthChange = (id, isLogout = false) => {
+  setUserId(id);
+  if (id) {
+    setIsAuthenticated(true);
+  } else if (isLogout) {
+    setIsAuthenticated(false);
+    setTasks([]);
+    setCompletedTasks([]);
+    resetXP();
+    setError(null);
+    setShowLeaderboard(false);
+    setCurrentView('todo');
+  }
+};
 
   const handleLogout = () => {
     setCurrentView('todo');
@@ -84,7 +83,7 @@ const App = () => {
     setShowLevelUp,
     getTotalXP,
     setTotalExperience
-  } = useXPManager();
+  } = useXPManager(isAuthenticated);
 
   useEffect(() => {
     // Check for saved theme preference
@@ -395,6 +394,7 @@ const clearAllData = async () => {
         <Header 
           authComponent={
             <Auth 
+              isAuthenticated={isAuthenticated}
               onAuthChange={handleAuthChange} 
               onLogout={handleLogout}
               handleUserDataLoad={handleUserDataLoad}
