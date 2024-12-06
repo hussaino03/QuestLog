@@ -190,6 +190,7 @@ const TaskForm = ({ addTask }) => {
   };
 
   const [formState, setFormState] = useState(defaultFormState);
+  const [selectedDeadline, setSelectedDeadline] = useState(null); 
 
   const updateFormState = useCallback((field, value) => {
     setFormState(prev => ({
@@ -217,6 +218,7 @@ const TaskForm = ({ addTask }) => {
     addTask(newTask);
     // Reset form to default values
     setFormState(defaultFormState);
+    setSelectedDeadline(null); 
     handleClose();
   };
 
@@ -225,6 +227,7 @@ const TaskForm = ({ addTask }) => {
     if (modal) {
       modal.style.display = 'none';
     }
+    setSelectedDeadline(null); 
   };
 
   const handleOutsideClick = (e) => {
@@ -235,6 +238,14 @@ const TaskForm = ({ addTask }) => {
 
   const toggleCollaborative = () => {
     updateFormState('collaborative', !formState.collaborative);
+  };
+
+  const handleDeadlineClick = (days, buttonType) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    const formattedDate = date.toISOString().split('T')[0];
+    updateFormState('deadline', formattedDate);
+    setSelectedDeadline(buttonType);
   };
 
   return (
@@ -310,10 +321,51 @@ const TaskForm = ({ addTask }) => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Deadline
                 </label>
+                <div className="flex gap-2 text-xs mb-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDeadlineClick(1, 'tomorrow')}
+                    className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
+                             border transition-all duration-200
+                             ${selectedDeadline === 'tomorrow'
+                               ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
+                               : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                             }`}
+                  >
+                    Tomorrow
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeadlineClick(2, 'dayAfter')}
+                    className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
+                             border transition-all duration-200
+                             ${selectedDeadline === 'dayAfter'
+                               ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
+                               : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                             }`}
+                  >
+                    Day After
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeadlineClick(7, 'nextWeek')}
+                    className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
+                             border transition-all duration-200
+                             ${selectedDeadline === 'nextWeek'
+                               ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
+                               : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                             }`}
+                  >
+                    Next Week
+                  </button>
+                </div>
                 <input
                   type="date"
                   value={formState.deadline}
-                  onChange={(e) => updateFormState('deadline', e.target.value)}
+                  onChange={(e) => {
+                    updateFormState('deadline', e.target.value);
+                    setSelectedDeadline(null);  
+                  }}
                   min={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
                            rounded-lg text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent
@@ -364,7 +416,7 @@ const TaskForm = ({ addTask }) => {
                     <button
                       type="button"
                       onClick={toggleCollaborative}
-                      className={`flex-1 px-3 py-2 rounded-lg border transition-all duration-200
+                      className={`flex-[1.2] px-3 py-2 rounded-lg border transition-all duration-200
                         ${formState.collaborative 
                           ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
                           : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
@@ -378,7 +430,7 @@ const TaskForm = ({ addTask }) => {
                       </div>
                     </button>
 
-                    <div className="flex-1 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                    <div className="flex-1 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-center">
                       <div className="text-xs text-gray-500 dark:text-gray-400">Total XP</div>
                       <div className="text-lg font-bold text-gray-700 dark:text-gray-200">
                         {(
@@ -393,18 +445,21 @@ const TaskForm = ({ addTask }) => {
               </div>
               
               {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold text-lg 
-                         border-3 border-gray-800 dark:border-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none 
-                         hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <span>🎯</span>
-                  <span>Create Task</span>
-                  <span className="text-sm opacity-75">(Press Enter)</span>
-                </div>
-              </button>
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  className="w-full px-3 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 
+                           font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
+                           shadow-[4px_4px_#77dd77] hover:shadow-none 
+                           hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <span>✨</span>
+                    <span>Create New Task</span>
+                    <span className="text-sm opacity-75">(Enter ↵)</span>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </form>
