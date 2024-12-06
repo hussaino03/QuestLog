@@ -51,7 +51,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
 
   return (
     <li className="border-2 border-gray-200 dark:border-gray-700 rounded-xl mb-4 overflow-hidden bg-white dark:bg-gray-800 hover:shadow-md transition-shadow w-full max-w-2xl">
-      <div className="flex items-center justify-between p-3">
+      <div className="flex flex-wrap items-center justify-between p-3 gap-2">
         <button
           className="flex-shrink-0 w-8 h-8 flex items-center justify-center"
           onClick={() => setShowDetails(!showDetails)}
@@ -73,7 +73,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
         </button>
 
         {isEditing ? (
-          <form onSubmit={handleEdit} className="flex-grow mx-4">
+          <form onSubmit={handleEdit} className="flex-1 min-w-0 mx-2">
             <input
               type="text"
               value={editForm.name}
@@ -84,7 +84,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
             />
           </form>
         ) : (
-          <span className="flex-grow text-center text-gray-700 dark:text-gray-200 mx-4">
+          <span className="flex-1 min-w-0 text-center text-gray-700 dark:text-gray-200 mx-2 break-words">
             {task.name}
             {!isCompleted && task.deadline && isOverdue(task.deadline) && (
               <span className="ml-2 text-red-500 text-sm">
@@ -94,7 +94,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
           </span>
         )}
 
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-shrink-0">
           {!isCompleted && !isEditing && (
             <button
               onClick={() => {
