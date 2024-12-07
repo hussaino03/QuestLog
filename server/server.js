@@ -56,12 +56,14 @@ require('./config/passport-setup');
 const apiRoutes = require('./routes');
 const authRoutes = require('./routes/auth/auth.routes');
 const analyticsRoutes = require('./routes/analytics/analytics.routes');
-const todoistRoutes = require('./routes/todoist/todoist.routes');
+const todoistRoutes = require('./routes/integrations/todoist/todoist.routes');
+const ticktickRoutes = require('./routes/integrations/ticktick/ticktick.routes');
 
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api', todoistRoutes);
+app.use('/api', ticktickRoutes);
 
 const PORT = process.env.PORT || 3001;
 
