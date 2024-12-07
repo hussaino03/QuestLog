@@ -16,6 +16,7 @@ QuestLog is a gamified task management web application that transforms your dail
   - Local storage fallback for guests
   - Cross-device accessibility
   - Privacy-focused leaderboard participation
+- Toggle between List View & Calendar View
  
 ## ⚙️ Integrations
 
