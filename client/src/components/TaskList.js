@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import Task from './Task';
+import CalendarView from './CalendarView';
+import { LayoutList, Calendar } from 'lucide-react';
 
 const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updateTask }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
+  const [isCalendarView, setIsCalendarView] = useState(false);
 
   const handleQuickAdd = (e) => {
     if (e.key === 'Enter' && quickTaskInput.trim()) {
@@ -65,59 +68,82 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
     <div className="flex flex-col items-center w-full bg-white dark:bg-gray-800 rounded-lg p-6 transition-colors duration-200">
       <div className="flex items-center justify-between w-full mb-6">
         {!isCompleted ? (
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder="Quick add (150 XP)"
-              value={quickTaskInput}
-              onChange={(e) => setQuickTaskInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleQuickAdd(e);
-                }
-              }}
-              className="w-full px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 
+          <>
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder="Quick add (150 XP)"
+                value={quickTaskInput}
+                onChange={(e) => setQuickTaskInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleQuickAdd(e);
+                  }
+                }}
+                className="w-full px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 
                        dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 
                        placeholder-gray-400 dark:placeholder-gray-500"
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
-              press ⏎
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                press ⏎
+              </div>
             </div>
-          </div>
+            <button
+              onClick={() => setIsCalendarView(!isCalendarView)}
+              className="ml-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg 
+                       text-gray-600 dark:text-gray-400 flex items-center gap-2"
+            >
+              {isCalendarView ? (
+                <>
+                  <LayoutList className="w-5 h-5" />
+                  <span className="text-sm">List View</span>
+                </>
+              ) : (
+                <>
+                  <Calendar className="w-5 h-5" />
+                  <span className="text-sm">Calendar View</span>
+                </>
+              )}
+            </button>
+          </>
         ) : (
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 w-full text-center">
             Completed
           </h2>
         )}
       </div>
-      
-      <div className="space-y-8 w-full flex flex-col items-center">
-        {sortedGroups.map(([date, dateTasks]) => (
-          <div key={date} className="w-full flex flex-col items-center space-y-2">
-            <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-              {date}
+
+      {!isCompleted && isCalendarView ? (
+        <CalendarView tasks={tasks} />
+      ) : (
+        <div className="space-y-8 w-full flex flex-col items-center">
+          {sortedGroups.map(([date, dateTasks]) => (
+            <div key={date} className="w-full flex flex-col items-center space-y-2">
+              <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                {date}
+              </div>
+              <ul className="w-full flex flex-col items-center">
+                {dateTasks.map((task) => (
+                  <Task
+                    key={task.id}
+                    task={task}
+                    removeTask={removeTask}
+                    completeTask={completeTask}
+                    isCompleted={isCompleted}
+                    updateTask={updateTask}
+                  />
+                ))}
+              </ul>
             </div>
-            <ul className="w-full flex flex-col items-center">
-              {dateTasks.map((task) => (
-                <Task
-                  key={task.id}
-                  task={task}
-                  removeTask={removeTask}
-                  completeTask={completeTask}
-                  isCompleted={isCompleted}
-                  updateTask={updateTask}
-                />
-              ))}
-            </ul>
-          </div>
-        ))}
-        {!isCompleted && sortedTasks.length === 0 && (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            Type above for quick task or use New Task for more options
-          </div>
-        )}
-      </div>
+          ))}
+          {!isCompleted && sortedTasks.length === 0 && (
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+              Type above for quick task or use New Task for more options
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
