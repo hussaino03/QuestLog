@@ -12,7 +12,13 @@ const isAuthenticated = (req, res, next) => {
 
 router.get('/google', 
   passport.authenticate('google', { 
-    scope: ['profile', 'email'] 
+    scope: [
+      'profile', 
+      'email',
+      'https://www.googleapis.com/auth/tasks.readonly'
+    ],
+    accessType: 'offline',
+    prompt: 'consent'
   })
 );
 
@@ -21,6 +27,20 @@ router.get('/google/callback',
     failureRedirect: '/login' 
   }),
   (req, res) => {
+    if (req.authInfo) {
+      console.log('[Token Debug] Initial token setup:', {
+        hasAccessToken: !!req.authInfo.accessToken,
+        hasRefreshToken: !!req.authInfo.refreshToken,
+        expiryDate: new Date(req.authInfo.expiry_date),
+        timeUntilExpiry: req.authInfo.expiry_date - Date.now()
+      });
+      
+      req.session.tokens = {
+        access_token: req.authInfo.accessToken,
+        refresh_token: req.authInfo.refreshToken,
+        expiry_date: req.authInfo.expiry_date
+      };
+    }
     const clientURL = process.env.CLIENT || 'http://localhost:3000';
     res.redirect(clientURL);
   }
