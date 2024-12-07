@@ -21,29 +21,48 @@ passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "/api/auth/google/callback",
-    proxy: true
+    proxy: true,
+    accessType: 'offline',  // Requests refresh token
+    prompt: 'consent select_account', // Forces consent AND account selection
+    enablePersistentToken: true, // Ensures refresh token is always included
+    hostedDomain: undefined, // Add this to ensure all domains are allowed
+    includeGrantedScopes: true, // Add this to include all granted scopes
+    scope: [
+      'profile',
+      'email',
+      'https://www.googleapis.com/auth/tasks.readonly'
+    ]
   },
-  async (_accessToken, _refreshToken, profile, done) => {
+  async (accessToken, refreshToken, params, profile, done) => {
     try {
+      // Calculate expiry time from expires_in
+      const expiry_date = Date.now() + (params.expires_in * 1000);
+      
+      console.log('[OAuth Debug] Received tokens:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        expiryDate: new Date(expiry_date),
+        timeUntilExpiry: params.expires_in,
+        scope: params.scope
+      });
+      
       const db = await connectToDatabase();
       const usersCollection = db.collection('users');
       
       const existingUser = await usersCollection.findOne({ googleId: profile.id });
       
       if (existingUser) {
-        const userData = {
-          ...existingUser,
-          lastLogin: new Date()
-        };
-        
-        // Update last login time
+        // Only update last login, no token storage
         await usersCollection.updateOne(
           { _id: existingUser._id },
           { $set: { lastLogin: new Date() }}
         );
         
-        console.log('User logged in with ID:', existingUser._id.toString());
-        return done(null, userData);
+        return done(null, existingUser, {
+          accessToken,
+          refreshToken,
+          expiry_date
+        });
       }
       
       const newUser = {
@@ -65,8 +84,14 @@ passport.use(new GoogleStrategy({
       newUser._id = result.insertedId;
       
       console.log('New user created with ID:', newUser._id.toString());
-      return done(null, newUser);
+      
+      return done(null, newUser, {
+        accessToken,
+        refreshToken,
+        expiry_date
+      });
     } catch (error) {
+      // ...existing code...
       return done(error);
     }
   }
