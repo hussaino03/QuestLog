@@ -228,7 +228,7 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 - `PUT /api/users/:id`: Update user data (XP, level, tasks completed)
 - `GET /api/leaderboard`: Retrieve leaderboard data
 - `POST /api/auth/google`: Handle Google OAuth authentication
-- `GET /api/auth/todoist` : Todoist OAuth import
+- `GET /api/auth/<integration>` : Integrations OAuth import
 
 ## 💾 Data Persistence
 - **Authenticated Users**: 
@@ -250,7 +250,3 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## 📝 License
 This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-- Thanks to all contributors
-- Inspired by productivity apps and RPG games
