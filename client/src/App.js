@@ -17,6 +17,7 @@ import Auth from './components/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/ClearDataModal';
 import { validateUserId } from './utils/validation';
+import { mergeTasks } from './lib/TaskMergerUtility';
 import BadgeGrid from './components/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
 import Footer from './components/Footer';
@@ -63,14 +64,26 @@ const handleUserDataLoad = (userData) => {
   
   // Only clear localStorage if we have valid XP data from server
   if (typeof userData.xp === 'number') {
+    const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    const localCompletedTasks = JSON.parse(localStorage.getItem('completedtasks') || '[]');
+    const localXP = parseInt(localStorage.getItem('totalExperience')) || 0;
+
+    const mergedTasks = mergeTasks(localTasks, userData.tasks || []);
+    const mergedCompletedTasks = mergeTasks(localCompletedTasks, userData.completedTasks || []);
+    const mergedXP = localXP + userData.xp;
+
     localStorage.removeItem('totalExperience');
     localStorage.removeItem('tasks');
     localStorage.removeItem('completedtasks');
-    setTotalExperience(userData.xp);
+
+    setTotalExperience(mergedXP);
+    setTasks(mergedTasks);
+    setCompletedTasks(mergedCompletedTasks);
+  } else{
+    setTasks(userData.tasks || []);
+    setCompletedTasks(userData.completedTasks || []);
   }
   
-  setTasks(userData.tasks || []);
-  setCompletedTasks(userData.completedTasks || []);
   setUnlockedBadges(userData.unlockedBadges || []);
 };
 
