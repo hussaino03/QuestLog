@@ -19,7 +19,10 @@ QuestLog is a gamified task management web application that transforms your dail
  
 ## ⚙️ Integrations
 
-- Todoist - you can import your tasks from todoist. Tasks will be imported with default XP settings. 
+_Tasks will be imported with default XP settings_
+
+- Todoist 
+- TickTick  
 
 ## 🔒 Security
 - **Authentication**: 
@@ -64,51 +67,64 @@ Built with:
 graph TB
     %% External Services Layer
     subgraph External["External Services"]
-        GoogleOAuth[Google OAuth 2.0]
+        OAuth[OAuth Providers]
+        AppIntegrations[App Integrations]
     end
 
     %% Frontend Layer
     subgraph Frontend["Frontend (React)"]
         direction TB
         App[App.js]
-        Auth[Auth Component]
-        Tasks[Task Management]
-        XP[XP Manager]
-        Store[(Local Storage)]
+        Auth[Authentication]
+        TaskManager[Task Management]
+        GameSystem[Game Systems]
+        ClientStore[(Local Storage)]
     end
 
     %% Backend Layer
     subgraph Backend["Backend (Express.js)"]
         direction TB
         Server[Server.js]
-        AuthRoutes[Auth Routes]
-        UserRoutes[User Routes]
-        LeaderboardRoutes[Leaderboard Routes]
+        AuthService[Auth Service]
+        TaskService[Task Service]
+        GameService[Game Service]
+        IntegrationService[Integration Service]
         Passport[Passport.js]
-        Session[Express Session]
+        Session[Session Management]
     end
 
     %% Database Layer
-    subgraph Database["Database"]
+    subgraph Database["Database Layer"]
         direction TB
         MongoDB[(MongoDB)]
-        Sessions[(Session Store)]
+        SessionStore[(Session Store)]
     end
 
-    %% Connections
-    Auth --> AuthRoutes
-    Tasks --> UserRoutes
-    XP --> UserRoutes
-    AuthRoutes --> GoogleOAuth
-    UserRoutes --> MongoDB
-    Session --> Sessions
+    %% Core Connections
+    Frontend --> Backend
+    Backend --> External
+    Backend --> Database
+
+    %% Detailed Connections
+    Auth --> AuthService
+    TaskManager --> TaskService
+    TaskManager --> IntegrationService
+    GameSystem --> GameService
+    AuthService --> OAuth
+    IntegrationService --> AppIntegrations
+    Session --> SessionStore
     
-    %% Internal Frontend Connections
-    App --> Auth & Tasks & XP & Store
+    %% Frontend Flow
+    App --> Auth & TaskManager & GameSystem & ClientStore
     
-    %% Internal Backend Connections
-    Server --> AuthRoutes & UserRoutes & LeaderboardRoutes & Session
-    AuthRoutes --> Passport
+    %% Backend Flow
+    Server --> AuthService & TaskService & GameService & IntegrationService & Session
+    AuthService --> Passport
+
+classDef frontend fill:#42b883,stroke:#333,stroke-width:2px
+classDef backend fill:#68a063,stroke:#333,stroke-width:2px
+classDef external fill:#f5a623,stroke:#333,stroke-width:2px
+classDef database fill:#4479a1,stroke:#333,stroke-width:2px
   ```
 
 ## 🚀 Quick Start
@@ -147,13 +163,19 @@ graph TB
    EMAIL_USER=your_email@gmail.com for feedback form
    EMAIL_APP_PASSWORD=your_app_specific_password
    SESSION_SECRET=your session secret
+   
+   # Auth & Google APIs
    GOOGLE_CLIENT_ID=your client id from google cloud console
    GOOGLE_CLIENT_SECRET=your oauth password
 
-   # Integrations
+   # Other Integrations
    TODOIST_CLIENT_ID=your client id
    TODOIST_CLIENT_SECRET=your client secret
    TODOIST_REDIRECT_URL=http://localhost:3001/api/auth/todoist/callback or your prod url
+
+   TICKTICK_CLIENT_ID=your client id
+   TICKTICK_CLIENT_SECRET=your client secret
+   TICKTICK_REDIRECT_URL=http://localhost:3001/api/auth/todoist/callback or your prod url
    ```
 
    Create `.env` in the client directory:
