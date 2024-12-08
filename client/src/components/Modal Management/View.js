@@ -106,7 +106,13 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
             )}
             {!isCompleted && task.deadline && isOverdue(task.deadline) && (
               <span className="ml-2 text-red-500 text-sm">
-                OVERDUE (-5 XP)
+                OVERDUE ({(() => {
+                  const [year, month, day] = task.deadline.split('-').map(Number);
+                  const deadlineDate = new Date(year, month - 1, day, 23, 59, 59);
+                  const now = new Date();
+                  const daysPastDeadline = Math.floor((now - deadlineDate) / (1000 * 60 * 60 * 24));
+                  return `${daysPastDeadline * -5} XP`
+                })()})
               </span>
             )}
           </span>
@@ -237,7 +243,13 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
                   </span>
                 )}
                 {task.deadline && isOverdue(task.deadline) && (
-                  <span className="text-red-500">{` - 5xp`}</span>
+                  <span className="text-red-500">{` ${(() => {
+                    const [year, month, day] = task.deadline.split('-').map(Number);
+                    const deadlineDate = new Date(year, month - 1, day, 23, 59, 59);
+                    const now = new Date();
+                    const daysPastDeadline = Math.floor((now - deadlineDate) / (1000 * 60 * 60 * 24));
+                    return daysPastDeadline * -5;
+                  })()} XP`}</span>
                 )}
               </p>
             </>
@@ -288,7 +300,13 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
                 )}
                 {task.deadline && isOverdue(task.deadline) && (
                   <span className="text-red-500">
-                    {` - 5xp`}
+                    {` ${(() => {
+                      const [year, month, day] = task.deadline.split('-').map(Number);
+                      const deadlineDate = new Date(year, month - 1, day, 23, 59, 59);
+                      const now = new Date();
+                      const daysPastDeadline = Math.floor((now - deadlineDate) / (1000 * 60 * 60 * 24));
+                      return daysPastDeadline * -5;
+                    })()} XP`}
                   </span>
                 )}
               </p>

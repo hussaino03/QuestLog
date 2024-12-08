@@ -53,12 +53,22 @@ const useXPManager = (isAuthenticated) => {
     
     // Parse the deadline string into year, month, day components
     const [year, month, day] = deadline.split('-').map(Number);
-    const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
     
+    // Set deadline to end of the day (23:59:59)
+    const deadlineDate = new Date(year, month - 1, day, 23, 59, 59);
+    
+    // Set current time to start of today to avoid partial days
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
     
-    // Compare current time with deadline
-    return now > deadlineDate ? -5 : 0;
+    // If not past deadline, no penalty
+    if (now <= deadlineDate) return 0;
+    
+    // Calculate days past deadline (add 1 since we want to include the deadline day)
+    const daysPastDeadline = Math.floor((now - deadlineDate) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Return penalty of -5 per day
+    return daysPastDeadline * -5;
   };
 
   const calculateXP = (taskExperience, deadline = null) => {

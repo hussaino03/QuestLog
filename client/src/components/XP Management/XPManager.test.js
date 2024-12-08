@@ -96,17 +96,18 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.level).toBe(5);
     expect(result.current.experience).toBe(300);
 
+    // Create a task that's 2 days overdue
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const overdueDeadline = twoDaysAgo.toISOString().split('T')[0];
+
     // Simulate completing an overdue task with base XP of 100
-    // The -5 XP penalty should be applied
     act(() => {
       const baseXP = 100;
-      const penaltyXP = baseXP - 5; // 95 XP after penalty
-      result.current.calculateXP(penaltyXP);
+      const xpResult = result.current.calculateXP(baseXP, overdueDeadline);
+      expect(xpResult.overduePenalty).toBe(-10); // 2 days * -5
+      expect(xpResult.totalExperience).toBe(initialXP + baseXP - 10);
     });
-
-    expect(result.current.level).toBe(5);
-    expect(result.current.experience).toBe(395); // 300 + 95
-    expect(result.current.getTotalXP()).toBe(initialXP + 95);
   });
 
   test('Reset functionality', () => {
@@ -232,23 +233,23 @@ describe('XPManager Hook Tests', () => {
 
     const { result } = renderHook(() => useXPManager());
 
-    // Create a task that's overdue
+    // Create a task that's 3 days overdue
     const pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 2);
+    pastDate.setDate(pastDate.getDate() - 3);
     const overdueDeadline = pastDate.toISOString().split('T')[0];
 
     // First simulate completing an overdue task
     let xpResult;
     act(() => {
-      // Base XP of 100, with -5 penalty
+      // Base XP of 100, with -15 penalty (3 days * -5)
       xpResult = result.current.calculateXP(100, overdueDeadline);
     });
 
-    expect(result.current.getTotalXP()).toBe(initialXP + 95); // 100 - 5 penalty
+    expect(result.current.getTotalXP()).toBe(initialXP + 85); // 100 - 15 penalty
 
     // Now simulate removing that completed task
     act(() => {
-      result.current.calculateXP(-95); // Remove the penalized XP amount
+      result.current.calculateXP(-85); // Remove the penalized XP amount
     });
 
     expect(result.current.getTotalXP()).toBe(initialXP);
@@ -274,7 +275,7 @@ describe('Timezone-aware Overdue Tests', () => {
     // Task completed today should get penalty
     act(() => {
       const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
+      expect(xpResult.overduePenalty).toBe(-5); // 1 day overdue = -5
     });
   });
 
@@ -311,7 +312,7 @@ describe('Timezone-aware Overdue Tests', () => {
   test('Overdue calculation works across month boundaries', () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create a date from last month
+    // Create a date from last month that would be 30 days ago
     const lastMonth = new Date();
     lastMonth.setMonth(lastMonth.getMonth() - 1);
     lastMonth.setHours(0, 0, 0, 0);
@@ -319,7 +320,8 @@ describe('Timezone-aware Overdue Tests', () => {
     
     act(() => {
       const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
+      // Should be -5 * number of days since last month
+      expect(xpResult.overduePenalty).toBe(-150); // Approximately 30 days * -5
     });
   });
 
@@ -334,10 +336,10 @@ describe('Timezone-aware Overdue Tests', () => {
     
     act(() => {
       const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
+      expect(xpResult.overduePenalty).toBeLessThan(-1800); // Approximately 365 days * -5
     });
   });
-  
+
   test('Multiple days overdue still results in same penalty', () => {
     const { result } = renderHook(() => useXPManager());
     
@@ -349,7 +351,106 @@ describe('Timezone-aware Overdue Tests', () => {
     
     act(() => {
       const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5); // Penalty should still be -5, not -25
+      expect(xpResult.overduePenalty).toBe(-25); // 5 days * -5
+    });
+  });
+});
+
+describe('Progressive Overdue Penalty Tests', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('Overdue by 3 days results in -15 XP penalty', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Set deadline to 3 days ago
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const deadlineStr = threeDaysAgo.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(-15); // 3 days * -5
+    });
+  });
+
+  test('Overdue by 7 days results in -35 XP penalty', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const deadlineStr = sevenDaysAgo.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(-35); // 7 days * -5
+    });
+  });
+
+  test('Overdue by 30 days results in -150 XP penalty', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const deadlineStr = thirtyDaysAgo.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(-150); // 30 days * -5
+    });
+  });
+
+  test('Total XP cannot go below 0 even with large overdue penalty', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Set initial XP to 50
+    act(() => {
+      result.current.calculateXP(50);
+    });
+    
+    // Create task with 100XP but 30 days overdue (-150 penalty)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const deadlineStr = thirtyDaysAgo.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      // Even though penalty is -150, total XP should be 0, not negative
+      expect(xpResult.totalExperience).toBe(0);
+    });
+  });
+
+  test('Overdue penalty is correctly applied when removing task', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Set initial XP to 200
+    act(() => {
+      result.current.calculateXP(200);
+    });
+    
+    // Complete task that's 5 days overdue
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    const deadlineStr = fiveDaysAgo.toISOString().split('T')[0];
+    
+    let xpResult;
+    act(() => {
+      xpResult = result.current.calculateXP(100, deadlineStr);
+      // Should be 200 + (100 - 25) = 275
+      expect(xpResult.totalExperience).toBe(275);
+    });
+    
+    // Remove the task (including penalty)
+    act(() => {
+      const removeResult = result.current.calculateXP(-(100 + xpResult.overduePenalty));
+      // Should be back to 200
+      expect(removeResult.totalExperience).toBe(200);
     });
   });
 });
