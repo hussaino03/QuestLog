@@ -6,6 +6,7 @@ import { LayoutList, Calendar } from 'lucide-react';
 const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updateTask }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
+  const [activeTab, setActiveTab] = useState('tasks'); 
 
   const handleQuickAdd = (e) => {
     if (e.key === 'Enter' && quickTaskInput.trim()) {
@@ -22,7 +23,19 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
     }
   };
 
-  const sortedTasks = [...tasks].sort((a, b) => {
+  // Separate tasks and projects
+  const { regularTasks, projects } = tasks.reduce((acc, task) => {
+    if (task.subtasks) {
+      acc.projects.push(task);
+    } else {
+      acc.regularTasks.push(task);
+    }
+    return acc;
+  }, { regularTasks: [], projects: [] });
+
+  // Sort tasks based on active tab
+  const itemsToDisplay = activeTab === 'tasks' ? regularTasks : projects;
+  const sortedTasks = [...itemsToDisplay].sort((a, b) => {
     // Tasks without deadlines go last
     if (!a.deadline && !b.deadline) return 0;
     if (!a.deadline) return 1;
@@ -113,6 +126,33 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
           </h2>
         )}
       </div>
+
+      {!isCompleted && !isCalendarView && (
+        <div className="w-full flex justify-center mb-6">
+          <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
+            <button
+              onClick={() => setActiveTab('tasks')}
+              className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${
+                activeTab === 'tasks'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Tasks ({regularTasks.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('projects')}
+              className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${
+                activeTab === 'projects'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Projects ({projects.length})
+            </button>
+          </div>
+        </div>
+      )}
 
       {!isCompleted && isCalendarView ? (
         <CalendarView tasks={tasks} />
