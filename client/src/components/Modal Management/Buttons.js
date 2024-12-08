@@ -9,7 +9,7 @@ const TaskButtons = ({ showCompleted, toggleView, onClearDataClick }) => {
                  text-gray-800 dark:text-gray-200 shadow-[4px_4px_#2563EB] hover:shadow-none hover:translate-x-1 
                  hover:translate-y-1 transition-all duration-200 rounded-none"
       >
-        New Task
+        Create +
       </button>
       <button
         onClick={toggleView}

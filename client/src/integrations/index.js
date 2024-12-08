@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Link2 } from 'lucide-react';
-import { importFromTodoist } from './todoist';
-import { importFromTickTick } from './ticktick';
+import { importFromTodoist } from './todoist/todoist';
+import { importFromTickTick } from './ticktick/ticktick';
 
 const IntegrationsDropdown = ({ addTask, isAuthenticated }) => {
   const [isOpen, setIsOpen] = useState(false);

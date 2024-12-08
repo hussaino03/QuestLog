@@ -1,5 +1,5 @@
 
-import { BADGES } from '../components/BadgeGrid';
+import { BADGES } from '../components/Badge/BadgeGrid';
 
 export const checkBadgeUnlocks = (level) => {
   return Object.values(BADGES)
