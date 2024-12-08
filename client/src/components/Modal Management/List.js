@@ -179,7 +179,10 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
           ))}
           {!isCompleted && sortedTasks.length === 0 && (
             <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-              Type above for quick task or use Create + for more options
+              {activeTab === 'tasks' 
+                ? "Type above for quick task or use Create + for more options"
+                : "Use Create + to add a new project with subtasks"
+              }
             </div>
           )}
         </div>
