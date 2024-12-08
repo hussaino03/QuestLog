@@ -161,19 +161,21 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
                 Deadline
               </label>
-              <input
-                type="date"
-                value={editForm.deadline}
-                onChange={(e) => setEditForm({...editForm, deadline: e.target.value})}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
-                         dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
-                         [&::-webkit-calendar-picker-indicator]:dark:filter 
-                         [&::-webkit-calendar-picker-indicator]:dark:invert
-                         [&::-webkit-calendar-picker-indicator]:p-0
-                         [&::-webkit-calendar-picker-indicator]:my-auto
-                         [&::-webkit-calendar-picker-indicator]:h-5
-                         [&::-webkit-calendar-picker-indicator]:w-5"
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  value={editForm.deadline}
+                  onChange={(e) => setEditForm({...editForm, deadline: e.target.value})}
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
+                           dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
+                           appearance-none"
+                />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
             </div>
             <div className="flex gap-4">
               <button
