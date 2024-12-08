@@ -16,22 +16,21 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
   const formatDeadline = (deadline) => {
     if (!deadline) return '';
     
-    // Create date object and force it to be interpreted in local timezone
-    const date = new Date(deadline + 'T12:00:00');
+    // Create a date object from just the YYYY-MM-DD part to avoid timezone shifts
+    const [year, month, day] = deadline.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-based in Date constructor
     
-    // Format using local date string
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      timeZone: 'UTC'  
-    });
+    return date.toLocaleDateString();
   };
 
   const isOverdue = (deadline) => {
     if (!deadline) return false;
+    
+    // Parse the deadline string into year, month, day components
+    const [year, month, day] = deadline.split('-').map(Number);
+    const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
+    
     const now = new Date();
-    const deadlineDate = new Date(deadline + 'T23:59:59');
     return now > deadlineDate;
   };
 

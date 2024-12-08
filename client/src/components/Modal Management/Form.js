@@ -103,9 +103,13 @@ const TaskForm = ({ addTask }) => {
   };
 
   const handleDeadlineClick = (days, buttonType) => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    const formattedDate = date.toISOString().split('T')[0];
+    const now = new Date();
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days);
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
     
     if (isProjectView) {
       setProjectForm(prev => ({...prev, deadline: formattedDate}));
@@ -277,7 +281,7 @@ const TaskForm = ({ addTask }) => {
                       setProjectForm({...projectForm, deadline: e.target.value});  
                       setSelectedDeadline(null);  
                     }}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                     className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
                              rounded-lg text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent
                              cursor-pointer transition-colors duration-200
@@ -463,7 +467,7 @@ const TaskForm = ({ addTask }) => {
                       updateFormState('deadline', e.target.value);
                       setSelectedDeadline(null);  
                     }}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                     className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
                              rounded-lg text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent
                              cursor-pointer transition-colors duration-200

@@ -50,8 +50,14 @@ const useXPManager = (isAuthenticated) => {
 
   const calculateOverduePenalty = (deadline) => {
     if (!deadline) return 0;
+    
+    // Parse the deadline string into year, month, day components
+    const [year, month, day] = deadline.split('-').map(Number);
+    const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
+    
     const now = new Date();
-    const deadlineDate = new Date(deadline + 'T23:59:59');
+    
+    // Compare current time with deadline
     return now > deadlineDate ? -5 : 0;
   };
 
