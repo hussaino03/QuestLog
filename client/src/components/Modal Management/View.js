@@ -121,7 +121,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
               }}
               className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
             >
-              <span className="text-blue-600 dark:text-blue-400">🖉</span>
+              <span className="text-blue-600 dark:text-blue-400 transform -scale-x-100 inline-block">✎</span>
             </button>
           )}
           {!isCompleted && (!task.subtasks || areAllSubtasksCompleted) && (

@@ -85,7 +85,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
-                placeholder="Quick add (150 XP)"
+                placeholder="Quick add task..."
                 value={quickTaskInput}
                 onChange={(e) => setQuickTaskInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -98,7 +98,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
                        dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 
                        placeholder-gray-400 dark:placeholder-gray-500"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none hidden sm:block">
                 press ⏎
               </div>
             </div>
