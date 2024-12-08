@@ -34,7 +34,7 @@ const CalendarView = ({ tasks }) => {
 
   return (
     <div className="w-full max-w-5xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button 
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
           className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
@@ -52,9 +52,9 @@ const CalendarView = ({ tasks }) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-4">
+      <div className="grid grid-cols-7 gap-1 sm:gap-4">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+          <div key={day} className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center py-1 sm:py-2">
             {day}
           </div>
         ))}
@@ -69,24 +69,24 @@ const CalendarView = ({ tasks }) => {
               <div 
                 key={`${i}-${j}`} 
                 className={`
-                  min-h-[80px] p-2 border dark:border-gray-700 rounded-lg
+                  min-h-[50px] sm:min-h-[80px] p-1 sm:p-2 border dark:border-gray-700 rounded-lg
                   ${!day ? 'invisible' : ''}
                   ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
                 `}
               >
                 {day && (
                   <>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">{day}</div>
-                    <div className="space-y-1">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">{day}</div>
+                    <div className="space-y-0.5 sm:space-y-1">
                       {dayTasks.map(task => (
                         <div 
                           key={task.id}
-                          className="text-xs p-1 bg-white dark:bg-gray-700 rounded border 
+                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 bg-white dark:bg-gray-700 rounded border 
                                    border-gray-200 dark:border-gray-600 truncate
                                    text-gray-900 dark:text-gray-100"
                           title={task.name}
                         >
-                          {task.name.length > 15 ? `${task.name.substring(0, 15)}...` : task.name}
+                          {task.name.length > 10 ? `${task.name.substring(0, 10)}...` : task.name}
                         </div>
                       ))}
                     </div>

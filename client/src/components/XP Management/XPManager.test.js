@@ -255,3 +255,101 @@ describe('XPManager Hook Tests', () => {
   });
 
 });
+
+describe('Timezone-aware Overdue Tests', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  test('Task becomes overdue at midnight local time', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Create a date that's "yesterday" in any timezone
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+    
+    const deadlineStr = yesterday.toISOString().split('T')[0];
+    
+    // Task completed today should get penalty
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(-5);
+    });
+  });
+
+  test('Task is not overdue when completed on deadline day', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Create today's date at start of day
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deadlineStr = today.toISOString().split('T')[0];
+    
+    // Task completed today should not get penalty
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(0);
+    });
+  });
+
+  test('Task is not overdue when deadline is tomorrow', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Create tomorrow's date
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const deadlineStr = tomorrow.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(0);
+    });
+  });
+
+  test('Overdue calculation works across month boundaries', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Create a date from last month
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    lastMonth.setHours(0, 0, 0, 0);
+    const deadlineStr = lastMonth.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(-5);
+    });
+  });
+
+  test('Overdue calculation works across year boundaries', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Create a date from last year
+    const lastYear = new Date();
+    lastYear.setFullYear(lastYear.getFullYear() - 1);
+    lastYear.setHours(0, 0, 0, 0);
+    const deadlineStr = lastYear.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(-5);
+    });
+  });
+  
+  test('Multiple days overdue still results in same penalty', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Create a date from 5 days ago
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    fiveDaysAgo.setHours(0, 0, 0, 0);
+    const deadlineStr = fiveDaysAgo.toISOString().split('T')[0];
+    
+    act(() => {
+      const xpResult = result.current.calculateXP(100, deadlineStr);
+      expect(xpResult.overduePenalty).toBe(-5); // Penalty should still be -5, not -25
+    });
+  });
+});

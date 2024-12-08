@@ -69,7 +69,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
       <div className="flex items-center justify-between w-full mb-6">
         {!isCompleted ? (
           <>
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <input
                 type="text"
                 placeholder="Quick add (150 XP)"
@@ -81,7 +81,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
                     handleQuickAdd(e);
                   }
                 }}
-                className="w-full px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 
+                className="w-full px-3 py-2 sm:py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 
                        dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 
                        placeholder-gray-400 dark:placeholder-gray-500"
               />
