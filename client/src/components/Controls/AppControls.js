@@ -1,6 +1,6 @@
 import React from 'react';
 import { Moon, Sun } from 'lucide-react';
-import IntegrationsDropdown from '../integrations';
+import IntegrationsDropdown from '../../integrations';
 
 const AppControls = ({ isDark, onToggle, addTask, isAuthenticated }) => {
   return (

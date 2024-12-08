@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Task from './Task';
-import CalendarView from './CalendarView';
+import CalendarView from '../../utils/CalendarView';
 import { LayoutList, Calendar } from 'lucide-react';
 
 const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updateTask }) => {
@@ -139,7 +139,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
           ))}
           {!isCompleted && sortedTasks.length === 0 && (
             <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-              Type above for quick task or use New Task for more options
+              Type above for quick task or use Create + for more options
             </div>
           )}
         </div>
