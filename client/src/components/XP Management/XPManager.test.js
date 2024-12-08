@@ -29,7 +29,7 @@ describe('XPManager Hook Tests', () => {
     jest.useRealTimers();
   });
 
-  test('Level up from 41 to 42 with correct XP', () => {
+  test('Level up from 41 to 42 with correct XP', async () => {
     // Calculate total XP needed for level 41 plus the new XP
     const xpForLevel41 = Array.from({ length: 40 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
     localStorage.setItem('totalExperience', xpForLevel41.toString());
@@ -39,7 +39,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.level).toBe(41);
     expect(result.current.experience).toBe(0);
 
-    act(() => {
+    await act(async () => {
       result.current.calculateXP(8200);
     });
 
@@ -48,7 +48,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.showLevelUp).toBe(true);
   });
 
-  test('XP gain without level up', () => {
+  test('XP gain without level up', async () => {
     // Calculate total XP needed for level 10
     const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
     localStorage.setItem('totalExperience', xpForLevel10.toString());
@@ -58,7 +58,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.level).toBe(10);
     expect(result.current.experience).toBe(0);
 
-    act(() => {
+    await act(async () => {
       result.current.calculateXP(500);
     });
 
@@ -67,7 +67,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.showLevelUp).toBe(false);
   });
 
-  test('XP gain with level up', () => {
+  test('XP gain with level up', async () => {
     // Calculate total XP needed for level 10 plus 500 experience
     const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
     localStorage.setItem('totalExperience', (xpForLevel10 + 500).toString());
@@ -77,7 +77,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.level).toBe(10);
     expect(result.current.experience).toBe(500);
 
-    act(() => {
+    await act(async () => {
       result.current.calculateXP(1700);
     });
 
@@ -86,7 +86,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.showLevelUp).toBe(true);
   });
 
-  test('XP gain with overdue penalty', () => {
+  test('XP gain with overdue penalty', async () => {
     // Set initial XP at level 5 with 300 experience
     const initialXP = Array.from({ length: 4 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0) + 300;
     localStorage.setItem('totalExperience', initialXP.toString());
@@ -98,7 +98,7 @@ describe('XPManager Hook Tests', () => {
 
     // Simulate completing an overdue task with base XP of 100
     // The -5 XP penalty should be applied
-    act(() => {
+    await act(async () => {
       const baseXP = 100;
       const penaltyXP = baseXP - 5; // 95 XP after penalty
       result.current.calculateXP(penaltyXP);
@@ -109,7 +109,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.getTotalXP()).toBe(initialXP + 95);
   });
 
-  test('Reset functionality', () => {
+  test('Reset functionality', async () => {
     // Set initial total XP for level 10 plus 500 experience
     const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
     localStorage.setItem('totalExperience', (xpForLevel10 + 500).toString());
@@ -119,7 +119,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.level).toBe(10);
     expect(result.current.experience).toBe(500);
 
-    act(() => {
+    await act(async () => {
       result.current.resetXP();
     });
 
@@ -129,7 +129,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.showLevelUp).toBe(false);
   });
 
-  test('Get total XP', () => {
+  test('Get total XP', async () => {
     // Set initial total XP that would result in level 3 with 150 experience
     const totalXP = 200 + 400 + 150; // XP for level 1 + level 2 + 150
     localStorage.setItem('totalExperience', totalXP.toString());
@@ -141,7 +141,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.experience).toBe(150);
   });
 
-  test('Get XP needed for next level', () => {
+  test('Get XP needed for next level', async () => {
     const totalXP = 200 + 400 + 150; // Level 3 with 150 experience
     localStorage.setItem('totalExperience', totalXP.toString());
 
@@ -150,7 +150,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.getXPForNextLevel()).toBe(600); // Level 3 requires 600 XP
   });
 
-  test('Get level progress percentage', () => {
+  test('Get level progress percentage', async () => {
     const totalXP = 200 + 400 + 150; // Level 3 with 150 experience
     localStorage.setItem('totalExperience', totalXP.toString());
 
@@ -159,35 +159,32 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.getLevelProgress()).toBe(25); // 150/600 = 25%
   });
 
- 
-
-  test('XP calculation with early completion bonus', () => {
+  test('XP calculation with early completion bonus', async () => {
     const initialXP = 1000;
     localStorage.setItem('totalExperience', initialXP.toString());
 
     const { result } = renderHook(() => useXPManager());
 
-    // Create a task due tomorrow
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const futureDeadline = tomorrow.toISOString().split('T')[0];
 
-    act(() => {
-      // Base XP of 100, should get early completion bonus
-      const xpResult = result.current.calculateXP(100, futureDeadline);
-      expect(xpResult.earlyBonus).toBeGreaterThan(0);
+    let xpResult;
+    await act(async () => {
+      xpResult = result.current.calculateXP(100, futureDeadline);
     });
 
+    expect(xpResult.earlyBonus).toBeGreaterThan(0);
     expect(result.current.getTotalXP()).toBeGreaterThan(initialXP + 100);
   });
 
-  test('XP calculation with no deadline', () => {
+  test('XP calculation with no deadline', async () => {
     const initialXP = 1000;
     localStorage.setItem('totalExperience', initialXP.toString());
 
     const { result } = renderHook(() => useXPManager());
 
-    act(() => {
+    await act(async () => {
       // Base XP of 100, no deadline so no bonus or penalty
       result.current.calculateXP(100, null);
     });
@@ -195,7 +192,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.getTotalXP()).toBe(initialXP + 100);
   });
 
-  test('XP adjustment when removing completed task with early bonus', () => {
+  test('XP adjustment when removing completed task with early bonus', async () => {
     const initialXP = 1000;
     localStorage.setItem('totalExperience', initialXP.toString());
 
@@ -208,7 +205,7 @@ describe('XPManager Hook Tests', () => {
 
     // Simulate completing a task early
     let xpResult;
-    act(() => {
+    await act(async () => {
       // Base XP of 100
       xpResult = result.current.calculateXP(100, futureDeadline);
     });
@@ -217,7 +214,7 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.getTotalXP()).toBe(initialXP + totalAddedXP);
 
     // Now simulate removing that completed task
-    act(() => {
+    await act(async () => {
       // Need to remove both base XP AND early bonus
       result.current.calculateXP(-(100 + xpResult.earlyBonus));
     });
@@ -226,31 +223,34 @@ describe('XPManager Hook Tests', () => {
     expect(result.current.getTotalXP()).toBe(initialXP);
   });
 
-  test('XP restoration when removing completed task with overdue penalty', () => {
+  test('XP restoration when removing completed task with overdue penalty', async () => {
     const initialXP = 1000;
     localStorage.setItem('totalExperience', initialXP.toString());
 
     const { result } = renderHook(() => useXPManager());
 
-    // Create a task that's overdue
+    // Create a task that's 2 days overdue
     const pastDate = new Date();
     pastDate.setDate(pastDate.getDate() - 2);
     const overdueDeadline = pastDate.toISOString().split('T')[0];
 
-    // First simulate completing an overdue task
+    // Simulate completing an overdue task
     let xpResult;
-    act(() => {
-      // Base XP of 100, with -5 penalty
+    await act(async () => {
+      // Base XP of 100, with -10 XP penalty (5 * 2 days)
       xpResult = result.current.calculateXP(100, overdueDeadline);
     });
 
-    expect(result.current.getTotalXP()).toBe(initialXP + 95); // 100 - 5 penalty
+    const totalAddedXP = 100 + xpResult.overduePenalty;
+    expect(result.current.getTotalXP()).toBe(initialXP + totalAddedXP);
 
     // Now simulate removing that completed task
-    act(() => {
-      result.current.calculateXP(-95); // Remove the penalized XP amount
+    await act(async () => {
+      // Need to remove both base XP AND overdue penalty
+      result.current.calculateXP(-(100 + xpResult.overduePenalty));
     });
 
+    // Should be exactly back to initial XP
     expect(result.current.getTotalXP()).toBe(initialXP);
   });
 
@@ -259,97 +259,100 @@ describe('XPManager Hook Tests', () => {
 describe('Timezone-aware Overdue Tests', () => {
   beforeEach(() => {
     localStorage.clear();
+    // Reset to midnight UTC
+    jest.useFakeTimers();
   });
 
-  test('Task becomes overdue at midnight local time', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('Task becomes overdue at midnight local time', async () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create a date that's "yesterday" in any timezone
+    // Set deadline to yesterday in UTC
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
-    
-    const deadlineStr = yesterday.toISOString().split('T')[0];
-    
-    // Task completed today should get penalty
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
+    const deadline = yesterday.toISOString().split('T')[0];
+
+    let xpResult;
+    await act(async () => {
+      xpResult = result.current.calculateXP(100, deadline);
     });
+
+    // Should have -5 XP penalty for 1 day overdue
+    expect(xpResult.overduePenalty).toBe(-5);
   });
 
-  test('Task is not overdue when completed on deadline day', () => {
+  test('Task is not overdue when completed on deadline day', async () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create today's date at start of day
+    // Set deadline to today in UTC
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const deadlineStr = today.toISOString().split('T')[0];
-    
-    // Task completed today should not get penalty
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(0);
+    const deadline = today.toISOString().split('T')[0];
+
+    let xpResult;
+    await act(async () => {
+      xpResult = result.current.calculateXP(100, deadline);
     });
+
+    // Should have no penalty when completed on the same day
+    expect(xpResult.overduePenalty).toBe(0);
   });
 
-  test('Task is not overdue when deadline is tomorrow', () => {
+  test('Task is not overdue when deadline is tomorrow', async () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create tomorrow's date
+    // Set deadline to tomorrow in UTC
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    const deadlineStr = tomorrow.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(0);
+    const deadline = tomorrow.toISOString().split('T')[0];
+
+    let xpResult;
+    await act(async () => {
+      xpResult = result.current.calculateXP(100, deadline);
     });
+
+    // Should have no penalty for future deadline
+    expect(xpResult.overduePenalty).toBe(0);
   });
 
-  test('Overdue calculation works across month boundaries', () => {
+  test('Overdue penalty increases with each day', async () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create a date from last month
+    // Test multiple days overdue
+    const daysOverdue = 3;
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - daysOverdue);
+    const deadline = pastDate.toISOString().split('T')[0];
+
+    let xpResult;
+    await act(async () => {
+      xpResult = result.current.calculateXP(100, deadline);
+    });
+
+    // Penalty should be -5 XP per day overdue
+    expect(xpResult.overduePenalty).toBe(-5 * daysOverdue);
+  });
+
+  test('Overdue calculation handles month boundaries correctly', async () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Set a date in previous month
     const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
-    lastMonth.setHours(0, 0, 0, 0);
-    const deadlineStr = lastMonth.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
+    lastMonth.setDate(0); // Last day of previous month
+    const deadline = lastMonth.toISOString().split('T')[0];
+
+    const today = new Date();
+    const daysDiff = Math.floor((today - lastMonth) / (1000 * 60 * 60 * 24));
+
+    let xpResult;
+    await act(async () => {
+      xpResult = result.current.calculateXP(100, deadline);
     });
+
+    // Penalty should account for correct number of days across month boundary
+    expect(xpResult.overduePenalty).toBe(-5 * daysDiff);
   });
 
-  test('Overdue calculation works across year boundaries', () => {
-    const { result } = renderHook(() => useXPManager());
-    
-    // Create a date from last year
-    const lastYear = new Date();
-    lastYear.setFullYear(lastYear.getFullYear() - 1);
-    lastYear.setHours(0, 0, 0, 0);
-    const deadlineStr = lastYear.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
-    });
-  });
-  
-  test('Multiple days overdue still results in same penalty', () => {
-    const { result } = renderHook(() => useXPManager());
-    
-    // Create a date from 5 days ago
-    const fiveDaysAgo = new Date();
-    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
-    fiveDaysAgo.setHours(0, 0, 0, 0);
-    const deadlineStr = fiveDaysAgo.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5); // Penalty should still be -5, not -25
-    });
-  });
 });

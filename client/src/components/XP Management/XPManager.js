@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 
 const useXPManager = (isAuthenticated) => {
   const [totalExperience, setTotalExperience] = useState(() => {
-    if (!isAuthenticated) {
-      const savedTotalXP = localStorage.getItem('totalExperience');
-      return savedTotalXP ? parseInt(savedTotalXP) : 0;
-    }
-    return 0;
+    // Don't immediately reset to 0 when authenticated
+    const savedTotalXP = localStorage.getItem('totalExperience');
+    return savedTotalXP ? parseInt(savedTotalXP) : 0;
   });
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -51,14 +49,15 @@ const useXPManager = (isAuthenticated) => {
   const calculateOverduePenalty = (deadline) => {
     if (!deadline) return 0;
     
-    // Parse the deadline string into year, month, day components
     const [year, month, day] = deadline.split('-').map(Number);
-    const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
-    
     const now = new Date();
     
-    // Compare current time with deadline
-    return now > deadlineDate ? -5 : 0;
+    // Use UTC to avoid timezone issues
+    const normalizedDeadline = Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
+    const normalizedNow = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / (1000 * 60 * 60 * 24);
+    
+    const daysOverdue = Math.floor(normalizedNow - normalizedDeadline);
+    return daysOverdue > 0 ? (-5 * daysOverdue) : 0;
   };
 
   const calculateXP = (taskExperience, deadline = null) => {
