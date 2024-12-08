@@ -16,6 +16,7 @@ QuestLog is a gamified productivity platform that turns your tasks and projects 
   - Local storage fallback for guests
   - Cross-device accessibility
   - Privacy-focused leaderboard participation
+- Toggle between List View & Calendar View
  
 ## ⚙️ Integrations
 
@@ -244,7 +245,3 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## 📝 License
 This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-- Thanks to all contributors
-- Inspired by productivity apps and RPG games
