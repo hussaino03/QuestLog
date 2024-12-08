@@ -168,7 +168,11 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
                          dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
                          [&::-webkit-calendar-picker-indicator]:dark:filter 
-                         [&::-webkit-calendar-picker-indicator]:dark:invert"
+                         [&::-webkit-calendar-picker-indicator]:dark:invert
+                         [&::-webkit-calendar-picker-indicator]:p-0
+                         [&::-webkit-calendar-picker-indicator]:my-auto
+                         [&::-webkit-calendar-picker-indicator]:h-5
+                         [&::-webkit-calendar-picker-indicator]:w-5"
               />
             </div>
             <div className="flex gap-4">
