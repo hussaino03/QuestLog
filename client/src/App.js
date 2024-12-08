@@ -60,30 +60,28 @@ const handleAuthChange = (id, isLogout = false) => {
 const handleUserDataLoad = (userData) => {
   if (!userData) return;
   
+  const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  const localCompletedTasks = JSON.parse(localStorage.getItem('completedtasks') || '[]');
+  const localXP = parseInt(localStorage.getItem('totalExperience')) || 0;
+  
+  // Always merge tasks
+  const mergedTasks = mergeTasks(localTasks, userData.tasks || []);
+  const mergedCompletedTasks = mergeTasks(localCompletedTasks, userData.completedTasks || []);
+  
+  // Always handle XP, with proper fallback
+  const serverXP = typeof userData.xp === 'number' ? userData.xp : 0;
+  const mergedXP = localXP + serverXP;
+  
+  // Clear localStorage after successful merge
+  localStorage.removeItem('totalExperience');
+  localStorage.removeItem('tasks');
+  localStorage.removeItem('completedtasks');
+  
+  setTotalExperience(mergedXP);
+  setTasks(mergedTasks);
+  setCompletedTasks(mergedCompletedTasks);
+  
   setUserName(userData.name || null);
-  
-  // Only clear localStorage if we have valid XP data from server
-  if (typeof userData.xp === 'number') {
-    const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const localCompletedTasks = JSON.parse(localStorage.getItem('completedtasks') || '[]');
-    const localXP = parseInt(localStorage.getItem('totalExperience')) || 0;
-
-    const mergedTasks = mergeTasks(localTasks, userData.tasks || []);
-    const mergedCompletedTasks = mergeTasks(localCompletedTasks, userData.completedTasks || []);
-    const mergedXP = localXP + userData.xp;
-
-    localStorage.removeItem('totalExperience');
-    localStorage.removeItem('tasks');
-    localStorage.removeItem('completedtasks');
-
-    setTotalExperience(mergedXP);
-    setTasks(mergedTasks);
-    setCompletedTasks(mergedCompletedTasks);
-  } else{
-    setTasks(userData.tasks || []);
-    setCompletedTasks(userData.completedTasks || []);
-  }
-  
   setUnlockedBadges(userData.unlockedBadges || []);
 };
 
@@ -518,5 +516,4 @@ const clearAllData = async () => {
     </GoogleOAuthProvider>
   );
 };
-
 export default App;

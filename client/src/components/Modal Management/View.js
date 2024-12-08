@@ -34,6 +34,20 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
     return now > deadlineDate;
   };
 
+  const calculateOverduePenalty = (deadline) => {
+    if (!deadline) return 0;
+    
+    const [year, month, day] = deadline.split('-').map(Number);
+    const now = new Date();
+    
+    // Use UTC to avoid timezone issues
+    const normalizedDeadline = Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
+    const normalizedNow = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / (1000 * 60 * 60 * 24);
+    
+    const daysOverdue = Math.floor(normalizedNow - normalizedDeadline);
+    return daysOverdue > 0 ? (-5 * daysOverdue) : 0;
+  };
+
   const handleEdit = (e) => {
     e.preventDefault();
     updateTask(task.id, {
@@ -106,7 +120,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
             )}
             {!isCompleted && task.deadline && isOverdue(task.deadline) && (
               <span className="ml-2 text-red-500 text-sm">
-                OVERDUE (-5 XP)
+                OVERDUE ({calculateOverduePenalty(task.deadline)} XP)
               </span>
             )}
           </span>
@@ -237,7 +251,9 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
                   </span>
                 )}
                 {task.deadline && isOverdue(task.deadline) && (
-                  <span className="text-red-500">{` - 5xp`}</span>
+                  <span className="text-red-500">
+                    {` ${calculateOverduePenalty(task.deadline)}xp`}
+                  </span>
                 )}
               </p>
             </>
@@ -288,7 +304,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
                 )}
                 {task.deadline && isOverdue(task.deadline) && (
                   <span className="text-red-500">
-                    {` - 5xp`}
+                    {` ${calculateOverduePenalty(task.deadline)}xp`}
                   </span>
                 )}
               </p>

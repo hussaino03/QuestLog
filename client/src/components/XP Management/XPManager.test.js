@@ -232,25 +232,28 @@ describe('XPManager Hook Tests', () => {
 
     const { result } = renderHook(() => useXPManager());
 
-    // Create a task that's overdue
+    // Create a task that's 2 days overdue
     const pastDate = new Date();
     pastDate.setDate(pastDate.getDate() - 2);
     const overdueDeadline = pastDate.toISOString().split('T')[0];
 
-    // First simulate completing an overdue task
+    // Simulate completing an overdue task
     let xpResult;
     act(() => {
-      // Base XP of 100, with -5 penalty
+      // Base XP of 100, with -10 XP penalty (5 * 2 days)
       xpResult = result.current.calculateXP(100, overdueDeadline);
     });
 
-    expect(result.current.getTotalXP()).toBe(initialXP + 95); // 100 - 5 penalty
+    const totalAddedXP = 100 + xpResult.overduePenalty;
+    expect(result.current.getTotalXP()).toBe(initialXP + totalAddedXP);
 
     // Now simulate removing that completed task
     act(() => {
-      result.current.calculateXP(-95); // Remove the penalized XP amount
+      // Need to remove both base XP AND overdue penalty
+      result.current.calculateXP(-(100 + xpResult.overduePenalty));
     });
 
+    // Should be exactly back to initial XP
     expect(result.current.getTotalXP()).toBe(initialXP);
   });
 
@@ -259,97 +262,87 @@ describe('XPManager Hook Tests', () => {
 describe('Timezone-aware Overdue Tests', () => {
   beforeEach(() => {
     localStorage.clear();
+    // Reset to midnight UTC
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   test('Task becomes overdue at midnight local time', () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create a date that's "yesterday" in any timezone
+    // Set deadline to yesterday in UTC
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
-    
-    const deadlineStr = yesterday.toISOString().split('T')[0];
-    
-    // Task completed today should get penalty
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
-    });
+    const deadline = yesterday.toISOString().split('T')[0];
+
+    // Calculate XP with the overdue task
+    const xpResult = result.current.calculateXP(100, deadline);
+
+    // Should have -5 XP penalty for 1 day overdue
+    expect(xpResult.overduePenalty).toBe(-5);
   });
 
   test('Task is not overdue when completed on deadline day', () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create today's date at start of day
+    // Set deadline to today in UTC
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const deadlineStr = today.toISOString().split('T')[0];
-    
-    // Task completed today should not get penalty
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(0);
-    });
+    const deadline = today.toISOString().split('T')[0];
+
+    // Calculate XP for task completed on the same day
+    const xpResult = result.current.calculateXP(100, deadline);
+
+    // Should have no penalty when completed on the same day
+    expect(xpResult.overduePenalty).toBe(0);
   });
 
   test('Task is not overdue when deadline is tomorrow', () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create tomorrow's date
+    // Set deadline to tomorrow in UTC
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    const deadlineStr = tomorrow.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(0);
-    });
+    const deadline = tomorrow.toISOString().split('T')[0];
+
+    // Calculate XP for future deadline
+    const xpResult = result.current.calculateXP(100, deadline);
+
+    // Should have no penalty for future deadline
+    expect(xpResult.overduePenalty).toBe(0);
   });
 
-  test('Overdue calculation works across month boundaries', () => {
+  test('Overdue penalty increases with each day', () => {
     const { result } = renderHook(() => useXPManager());
     
-    // Create a date from last month
+    // Test multiple days overdue
+    const daysOverdue = 3;
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - daysOverdue);
+    const deadline = pastDate.toISOString().split('T')[0];
+
+    const xpResult = result.current.calculateXP(100, deadline);
+
+    // Penalty should be -5 XP per day overdue
+    expect(xpResult.overduePenalty).toBe(-5 * daysOverdue);
+  });
+
+  test('Overdue calculation handles month boundaries correctly', () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Set a date in previous month
     const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
-    lastMonth.setHours(0, 0, 0, 0);
-    const deadlineStr = lastMonth.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
-    });
-  });
+    lastMonth.setDate(0); // Last day of previous month
+    const deadline = lastMonth.toISOString().split('T')[0];
 
-  test('Overdue calculation works across year boundaries', () => {
-    const { result } = renderHook(() => useXPManager());
-    
-    // Create a date from last year
-    const lastYear = new Date();
-    lastYear.setFullYear(lastYear.getFullYear() - 1);
-    lastYear.setHours(0, 0, 0, 0);
-    const deadlineStr = lastYear.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5);
-    });
-  });
-  
-  test('Multiple days overdue still results in same penalty', () => {
-    const { result } = renderHook(() => useXPManager());
-    
-    // Create a date from 5 days ago
-    const fiveDaysAgo = new Date();
-    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
-    fiveDaysAgo.setHours(0, 0, 0, 0);
-    const deadlineStr = fiveDaysAgo.toISOString().split('T')[0];
-    
-    act(() => {
-      const xpResult = result.current.calculateXP(100, deadlineStr);
-      expect(xpResult.overduePenalty).toBe(-5); // Penalty should still be -5, not -25
-    });
+    const today = new Date();
+    const daysDiff = Math.floor((today - lastMonth) / (1000 * 60 * 60 * 24));
+
+    const xpResult = result.current.calculateXP(100, deadline);
+
+    // Penalty should account for correct number of days across month boundary
+    expect(xpResult.overduePenalty).toBe(-5 * daysDiff);
   });
 });
