@@ -3,10 +3,10 @@
 ![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-151-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-229,893-red?logo=zap&logoColor=white)
 <!-- These values update automatically every 1st and 15th of the month -->
 
-QuestLog is a gamified task management web application that transforms your daily tasks into rewarding quests. Built with React and MongoDB, it combines productivity with engaging game mechanics to make task completion more enjoyable.
+QuestLog is a gamified productivity platform that turns your tasks and projects into achievement-driven experiences. Built with React and MongoDB, it enhances work management through XP points, levels, and badges while integrating seamlessly with different app integrations!
 
 ## ✨ Key Features
-- Transform tasks into rewarding quests
+- Transform tasks/projects into rewarding quests
 - Track progress with experience points and levels
 - Earn bonuses for early completion
 - Badge system to unlock different achievements
@@ -41,16 +41,14 @@ _Tasks will be imported with default XP settings_
   - Rate limiting protection
 
 ## 📈 XP System
-When creating tasks, you control your rewards through:
-- Task Difficulty (Easy, Medium, Hard)
-- Task Importance (Low, Medium, High)
+When creating tasks/projects, you control your rewards through:
+- Difficulty Level (Easy, Medium, Hard)
+- Importance Level (Low, Medium, High)
 - Completion Time (Early completion bonuses)
-- Task Type (Solo/Team tasks - Team tasks provide bonus XP)
-- There is also an overdue penalty on tasks that are past the deadline
+- _For Tasks:_ Task Type (Solo/Team tasks - Team tasks provide bonus XP)
+- Overdue Penalty on tasks that are past the deadline
 
 _Default XP settings are given for Quick Task creation_
-
-Watch your progress bar fill as you complete tasks and celebrate as you reach new levels!
 
 ## 🛠️ Technical Overview
 Built with:
@@ -76,7 +74,7 @@ graph TB
         direction TB
         App[App.js]
         Auth[Authentication]
-        TaskManager[Task Management]
+        ModalManager[Task/Project Management]
         GameSystem[Game Systems]
         ClientStore[(Local Storage)]
     end
@@ -86,7 +84,7 @@ graph TB
         direction TB
         Server[Server.js]
         AuthService[Auth Service]
-        TaskService[Task Service]
+        ItemService[Task/Project Service]
         GameService[Game Service]
         IntegrationService[Integration Service]
         Passport[Passport.js]
@@ -107,18 +105,18 @@ graph TB
 
     %% Detailed Connections
     Auth --> AuthService
-    TaskManager --> TaskService
-    TaskManager --> IntegrationService
+    ModalManager --> ItemService
+    ModalManager --> IntegrationService
     GameSystem --> GameService
     AuthService --> OAuth
     IntegrationService --> AppIntegrations
     Session --> SessionStore
     
     %% Frontend Flow
-    App --> Auth & TaskManager & GameSystem & ClientStore
+    App --> Auth & ModalManager & GameSystem & ClientStore
     
     %% Backend Flow
-    Server --> AuthService & TaskService & GameService & IntegrationService & Session
+    Server --> AuthService & ItemService & GameService & IntegrationService & Session
     AuthService --> Passport
 
 classDef frontend fill:#42b883,stroke:#333,stroke-width:2px
@@ -206,28 +204,25 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 - Customize your theme preference (light/dark)
 
 ### Task Management
-- Create new tasks via the "+" button
-- Configure each task with:
-  - Title and optional description
-  - Difficulty (Easy/Medium/Hard)
-  - Importance (Low/Medium/High)
-  - Optional deadline for bonus XP
-- Mark tasks complete with the checkmark icon
-- Filter between active and completed tasks
+- Create new tasks/projects via the "Create +" button
+- Toggle between task view and project view
+- Configure each with:
+  - Title, description, deadline & XP settings
+- Filter between active and completed items
 
 ### Progress Tracking
 - Monitor your XP bar and level progression
-- Earn bonus XP for early task completion
-- View your position on the leaderboard (optional)
+- Earn bonus XP for early completion
+- View your position on the leaderboard 
 - Track daily completion streaks
 
 ## 🔧 API Endpoints
 - `POST /api/users`: Create or retrieve a user
 - `GET /api/users/:id`: Get user data
-- `PUT /api/users/:id`: Update user data (XP, level, tasks completed)
+- `PUT /api/users/:id`: Update user data (XP, level, tasks/projects completed)
 - `GET /api/leaderboard`: Retrieve leaderboard data
 - `POST /api/auth/google`: Handle Google OAuth authentication
-- `GET /api/auth/todoist` : Todoist OAuth import
+- `GET /api/auth/<integrations>` : integrations OAuth import
 
 ## 💾 Data Persistence
 - **Authenticated Users**: 

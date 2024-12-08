@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Task from './Task';
+import Task from './View';
 import CalendarView from '../../utils/CalendarView';
 import { LayoutList, Calendar } from 'lucide-react';
 
