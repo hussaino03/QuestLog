@@ -2,3 +2,4 @@ node_modules
 .vercel
 server/reset-db.js
 .env
+.DS_Store

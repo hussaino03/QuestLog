@@ -5,13 +5,12 @@ async function sendFeedback(req, res) {
   
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD
       }
     });
 
@@ -23,8 +22,8 @@ async function sendFeedback(req, res) {
       .join('\n');
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
+      from: process.env.SMTP_FROM,
+      to: process.env.SMTP_TO,
       subject: 'QuestLog Feedback',
       text: `Ratings:\n${ratingsSummary}\n\nFeedback:\n${feedback}`
     };
