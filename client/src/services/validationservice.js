@@ -1,3 +1,8 @@
+/**
+ * Validates MongoDB ObjectId format user ID
+ * @param {string} userId - The user ID to validate
+ * @throws {Error} If user ID is invalid
+ */
 export const validateUserId = (userId) => {
     try {
       if (!userId || typeof userId !== 'string' || userId.length !== 24) {
