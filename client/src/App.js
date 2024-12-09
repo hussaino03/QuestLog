@@ -19,6 +19,7 @@ import { validateUserId } from './utils/validation';
 import { mergeTasks } from './utils/TaskMergerUtility';
 import BadgeGrid from './components/Badge/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
+import { v4 as uuidv4 } from 'uuid';
 import Footer from './components/Layout/Footer';
 import { addTask, completeTask, removeTask, updateTask, clearAllData } from './services/userDataService';
 
@@ -185,8 +186,17 @@ useEffect(() => {
 
 const handleAddTask = async (taskData) => {
   try {
-    const updatedTasks = await addTask(taskData, tasks, userId, getTotalXP, level, completedTasks);
+    const tasksToAdd = Array.isArray(taskData) ? taskData : [taskData];
+    const newTasks = tasksToAdd.map(task => ({
+      ...task,
+      id: uuidv4(),
+      createdAt: new Date().toISOString()
+    }));
+    
+    const updatedTasks = [...tasks, ...newTasks];
     setTasks(updatedTasks);
+
+    await addTask(taskData, updatedTasks, userId, getTotalXP, level, completedTasks);
   } catch (error) {
     console.error('Error adding task:', error);
     setError(error.message);
@@ -195,11 +205,29 @@ const handleAddTask = async (taskData) => {
 
 const handleCompleteTask = async (task) => {
   try {
-    const { updatedTasks, updatedCompletedTasks } = await completeTask(
-      task, tasks, completedTasks, userId, getTotalXP, level, calculateXP
-    );
+    const updatedTasks = tasks.filter(t => t.id !== task.id);
+    const completedTask = {
+      ...task,
+      completedAt: new Date().toISOString()
+    };
+    
+    const xpResult = calculateXP(task.experience, task.deadline);
+    completedTask.earlyBonus = xpResult.earlyBonus;
+    completedTask.overduePenalty = xpResult.overduePenalty;
+    
     setTasks(updatedTasks);
-    setCompletedTasks(updatedCompletedTasks);
+    setCompletedTasks([...completedTasks, completedTask]);
+
+    // Then make API call
+    await completeTask(
+      task, 
+      updatedTasks, 
+      [...completedTasks, completedTask], 
+      userId, 
+      getTotalXP, 
+      level, 
+      calculateXP
+    );
   } catch (error) {
     console.error('Error completing task:', error);
     setError(error.message);
@@ -208,11 +236,26 @@ const handleCompleteTask = async (task) => {
 
 const handleRemoveTask = async (taskId, isCompleted) => {
   try {
-    const { updatedTasks, updatedCompletedTasks } = await removeTask(
-      taskId, isCompleted, tasks, completedTasks, userId, getTotalXP, level, calculateXP
-    );
-    setTasks(updatedTasks);
-    setCompletedTasks(updatedCompletedTasks);
+    let updatedTasks = tasks;
+    let updatedCompletedTasks = completedTasks;
+
+    if (isCompleted) {
+      const taskToRemove = completedTasks.find(t => t.id === taskId);
+      if (taskToRemove) {
+        let totalXPToRemove = taskToRemove.experience;
+        if (taskToRemove.earlyBonus) totalXPToRemove += taskToRemove.earlyBonus;
+        if (taskToRemove.overduePenalty) totalXPToRemove += taskToRemove.overduePenalty;
+        calculateXP(-totalXPToRemove);
+      }
+      
+      updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
+      setCompletedTasks(updatedCompletedTasks);
+    } else {
+      updatedTasks = tasks.filter(t => t.id !== taskId);
+      setTasks(updatedTasks);
+    }
+
+    await removeTask(taskId, isCompleted, updatedTasks, updatedCompletedTasks, userId, getTotalXP, level, calculateXP);
   } catch (error) {
     console.error('Error removing task:', error);
     setError(error.message);
