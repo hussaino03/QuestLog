@@ -16,7 +16,7 @@ import AppControls from './components/Controls/AppControls';
 import Auth from './components/Auth/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/XP Management/ClearDataModal';
-import { validateUserId } from './utils/validation';
+import { validateUserId } from './services/validationservice';
 import { mergeTasks } from './utils/TaskMergerUtility';
 import BadgeGrid from './components/Badge/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
