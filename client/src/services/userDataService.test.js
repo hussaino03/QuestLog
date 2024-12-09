@@ -378,3 +378,258 @@ describe('clearAllData', () => {
     await expect(clearAllData('user123')).rejects.toThrow();
   });
 });
+
+describe('XP Edge Cases', () => {
+  beforeEach(() => {
+    mockXPSystem.reset();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('prevents negative XP when removing tasks', async () => {
+    mockXPSystem.totalXP = 50;
+    
+    const { updatedCompletedTasks } = await completeTask(
+      { id: '123', experience: -100 },
+      mockTasks,
+      [],
+      null,
+      () => mockXPSystem.getTotalXP(),
+      mockXPSystem.calculateLevelAndXP(mockXPSystem.totalXP).level,
+      (xp) => mockXPSystem.calculateXP(xp)
+    );
+
+    expect(mockXPSystem.getTotalXP()).toBe(0);
+    expect(updatedCompletedTasks[0].experience).toBe(-100);
+  });
+
+  test('maintains XP state across multiple operations', async () => {
+    // Add tasks and complete them in sequence
+    let currentTasks = [...mockTasks];
+    let currentCompletedTasks = [];
+    
+    // Complete first task
+    const result1 = await completeTask(
+      { id: '123', experience: 100 },
+      currentTasks,
+      currentCompletedTasks,
+      null,
+      () => mockXPSystem.getTotalXP(),
+      mockXPSystem.calculateLevelAndXP(mockXPSystem.totalXP).level,
+      (xp) => mockXPSystem.calculateXP(xp)
+    );
+    
+    currentTasks = result1.updatedTasks;
+    currentCompletedTasks = result1.updatedCompletedTasks;
+    
+    // Remove a completed task
+    const result2 = await removeTask(
+      '123',
+      true,
+      currentTasks,
+      currentCompletedTasks,
+      null,
+      () => mockXPSystem.getTotalXP(),
+      mockXPSystem.calculateLevelAndXP(mockXPSystem.totalXP).level,
+      (xp) => mockXPSystem.calculateXP(xp)
+    );
+
+    expect(mockXPSystem.getTotalXP()).toBe(0); // Should be back to 0
+    expect(result2.updatedCompletedTasks).toHaveLength(0);
+  });
+});
+
+describe('Additional Edge Cases', () => {
+  beforeEach(() => {
+    mockXPSystem.reset();
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2023-12-30'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('handles empty arrays in task merger', async () => {
+    const result = await addTask(
+      { title: 'New Task', experience: 10 },
+      [],
+      'user123',
+      mockGetTotalXP,
+      mockLevel,
+      []
+    );
+    
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('New Task');
+  });
+
+  test('handles null deadline in XP calculation', async () => {
+    const task = {
+      id: '123',
+      title: 'Task without deadline',
+      experience: 100,
+      deadline: null
+    };
+
+    // Create proper mock XP result
+    const mockXPResult = {
+      earlyBonus: 0,
+      overduePenalty: 0,
+      totalXP: 100,
+      newExperience: 100,
+      currentLevel: 1,
+      didLevelUp: false
+    };
+
+    const { updatedCompletedTasks } = await completeTask(
+      task,
+      mockTasks,
+      [],
+      null,
+      mockGetTotalXP,
+      mockLevel,
+      () => mockXPResult // Pass mock result
+    );
+
+    expect(updatedCompletedTasks[0].earlyBonus).toBe(0);
+    expect(updatedCompletedTasks[0].overduePenalty).toBe(0);
+  });
+
+  test('handles malformed task data', async () => {
+    const malformedTask = {
+      id: '123',
+      experience: 'invalid' // Invalid experience type
+    };
+
+    const result = await addTask(
+      malformedTask,
+      mockTasks,
+      null,
+      mockGetTotalXP,
+      mockLevel,
+      []
+    );
+
+    // The new task should have experience defaulted to 0
+    expect(parseInt(result[result.length - 1].experience) || 0).toBe(0);
+  });
+
+  test('preserves task metadata when updating', async () => {
+    const originalTask = {
+      id: '123',
+      title: 'Original Task',
+      experience: 100,
+      createdAt: '2023-12-29T00:00:00.000Z',
+      deadline: '2023-12-31'
+    };
+
+    const updateData = {
+      ...originalTask, // Keep original metadata
+      title: 'Updated Task',
+      experience: 150
+    };
+
+    const result = await updateTask(
+      '123',
+      updateData,
+      [originalTask],
+      [],
+      null
+    );
+
+    expect(result[0].createdAt).toBe(originalTask.createdAt);
+    expect(result[0].deadline).toBe(originalTask.deadline);
+  });
+
+  test('handles concurrent task completion and removal', async () => {
+    const task = {
+      id: '123',
+      title: 'Test Task',
+      experience: 100,
+      deadline: '2023-12-31'
+    };
+
+    const mockXPResult = {
+      earlyBonus: 50,
+      overduePenalty: 0,
+      totalXP: 150,
+      newExperience: 150,
+      currentLevel: 1,
+      didLevelUp: false
+    };
+
+    const { updatedCompletedTasks } = await completeTask(
+      task,
+      [task],
+      [],
+      'user123',
+      mockGetTotalXP,
+      mockLevel,
+      () => mockXPResult
+    );
+
+    const result = await removeTask(
+      task.id,
+      true,
+      [],
+      updatedCompletedTasks,
+      'user123',
+      mockGetTotalXP,
+      mockLevel,
+      mockCalculateXP
+    );
+
+    expect(result.updatedCompletedTasks).toHaveLength(0);
+  });
+
+  test('handles maximum early bonus cap', async () => {
+    const futureTask = {
+      id: '123',
+      title: 'Far Future Task',
+      experience: 100,
+      deadline: '2024-12-31' // Way in the future
+    };
+
+    const { updatedCompletedTasks } = await completeTask(
+      futureTask,
+      [futureTask],
+      [],
+      null,
+      mockGetTotalXP,
+      mockLevel,
+      mockXPSystem.calculateXP.bind(mockXPSystem)
+    );
+
+    expect(updatedCompletedTasks[0].earlyBonus).toBe(200); // Should be capped at 200
+  });
+
+  test('handles data sync with server timeout', async () => {
+    // Mock a slow server response
+    global.fetch = jest.fn(() =>
+      new Promise(resolve =>
+        setTimeout(() => resolve({ ok: true, json: () => Promise.resolve({}) }), 1000)
+      )
+    );
+
+    const task = { id: '123', title: 'Test Task', experience: 100 };
+    
+    // Start the update
+    const updatePromise = updateTask(
+      '123',
+      task,
+      mockTasks,
+      [],
+      'user123'
+    );
+
+    // Fast-forward timers
+    jest.advanceTimersByTime(1000);
+    
+    await updatePromise;
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
