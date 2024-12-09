@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coffee, Github } from 'lucide-react';
+import { Heart, Github } from 'lucide-react';
 import Feedback from './Feedback';
 
 const Footer = () => {
@@ -23,14 +23,14 @@ const Footer = () => {
           </span>
           <span>•</span>
           <a
-            href="https://ko-fi.com/hsz_11"
+            href="https://paypal.me/hussaino03"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-[#77AAF7] dark:hover:text-[#77AAF7] transition-colors"
-            aria-label="Support on Ko-fi"
+            aria-label="Support on PayPal"
           >
-            <Coffee className="w-4 h-4" />
-            <span>Like QuestLog?</span>
+            <Heart className="w-4 h-4" />
+            <span>PayPal.me</span>
           </a>
         </div>
       </div>
