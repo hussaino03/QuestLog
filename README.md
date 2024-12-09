@@ -135,68 +135,42 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 
 ### Installation
 
-1. Clone and setup the repository:
+1. Clone the repository:
    ```bash
    git clone https://github.com/hussaino03/QuestLog.git
    cd QuestLog
    ```
 
-2. Install dependencies:
+2. Set up environment variables:
    ```bash
-   # Install root dependencies
-   npm install
+   # Copy the example environment file
+   cp example.env .env
 
-   # Install server dependencies
-   cd server && npm install
-
-   # Install client dependencies
-   cd ../client && npm install
+   # Open .env and update all the required variables with your values
+   # Make sure to set:
+   # - MONGODB_URI for your database
+   # - Google OAuth credentials
+   # - Integration API keys
+   # - Other required variables
    ```
 
-3. Configure environment variables:
-
-   Create `.env` in the server directory:
-   ```
-   MONGODB_URI=your_connection_string
-   CLIENT=your_client_app_url
-   EMAIL_USER=your_email@gmail.com for feedback form
-   EMAIL_APP_PASSWORD=your_app_specific_password
-   SESSION_SECRET=your session secret
-   
-   # Auth & Google APIs
-   GOOGLE_CLIENT_ID=your client id from google cloud console
-   GOOGLE_CLIENT_SECRET=your oauth password
-
-   # Other Integrations
-   TODOIST_CLIENT_ID=your client id
-   TODOIST_CLIENT_SECRET=your client secret
-   TODOIST_REDIRECT_URL=http://localhost:3001/api/auth/todoist/callback or your prod url
-
-   TICKTICK_CLIENT_ID=your client id
-   TICKTICK_CLIENT_SECRET=your client secret
-   TICKTICK_REDIRECT_URL=http://localhost:3001/api/auth/todoist/callback or your prod url
-   ```
-
-   Create `.env` in the client directory:
-   ```
-   REACT_APP_GOOGLE_CLIENT_ID=your_google_oauth_client_id
-   REACT_APP_PROD=your_production_api_url
-   ```
-
-4. Setup MongoDB:
-  
-5. Setup Google OAuth:
-   
-6. Start the application:
+3. Build and start with Docker:
    ```bash
-   # Start the server (from server directory)
-   npm start
+   # Build and start all services
+   docker-compose up --build
 
-   # In a new terminal, start the client (from client directory)
-   npm start
+   # Or run in detached mode
+   docker-compose up -d
    ```
 
-7. Access the application at `http://localhost:3000`
+4. Access the application:
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:3001`
+
+5. To stop the application:
+   ```bash
+   docker-compose down
+   ```
 
 ## 💻 Usage
 ### Account Setup
@@ -235,10 +209,10 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
   - Limited to current browser/device
   - Not visible on leaderboard
 
-## ☕ Support
+## 💳 Support
 If you find QuestLog helpful and would like to support its development:
 
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Development-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/hsz_11)
+[![PayPal](https://img.shields.io/badge/PayPal-Support%20Development-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/hussaino03)
 
 ## 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
