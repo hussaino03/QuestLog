@@ -3,10 +3,11 @@ import Task from './View';
 import CalendarView from '../../utils/CalendarView';
 import { LayoutList, Calendar, PlusCircle, FolderPlus } from 'lucide-react';
 
-const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updateTask }) => {
+const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, updateTask }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks'); 
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
 
   const handleQuickAdd = (e) => {
     if (e.key === 'Enter' && quickTaskInput.trim()) {
@@ -24,7 +25,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
   };
 
   // Separate tasks and projects
-  const { regularTasks, projects } = tasks.reduce((acc, task) => {
+  const { regularTasks, projects } = (tasks || []).reduce((acc, task) => {
     if (task.subtasks) {
       acc.projects.push(task);
     } else {
@@ -77,6 +78,23 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
     return 0;
   });
 
+  const COMPLETED_TASKS_LIMIT = 3;
+  const limitedGroups = isCompleted ? 
+    sortedGroups.reduce((acc, [date, tasks]) => {
+      const totalTasksSoFar = acc.length > 0 ? 
+        acc.reduce((sum, [_, groupTasks]) => sum + (groupTasks?.length || 0), 0) : 0;
+        
+      if (totalTasksSoFar < COMPLETED_TASKS_LIMIT) {
+        const remainingSlots = COMPLETED_TASKS_LIMIT - totalTasksSoFar;
+        const limitedTasks = tasks?.slice(0, remainingSlots) || [];
+        if (limitedTasks.length > 0) {
+          acc.push([date, limitedTasks]);
+        }
+      }
+      return acc;
+    }, []) : 
+    sortedGroups;
+
   return (
     <div className="flex flex-col items-center w-full bg-white dark:bg-gray-800 rounded-lg p-6 transition-colors duration-200 min-h-[500px]">
       {!isCompleted ? (
@@ -122,44 +140,44 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
             <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5 sm:p-1">
               <button
                 onClick={() => setActiveTab('tasks')}
-                className={`px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md transition-all duration-200 min-w-[90px] sm:min-w-[80px] ${
+                className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
                   activeTab === 'tasks'
                     ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
-                Tasks ({regularTasks.length})
+                <span>Tasks ({regularTasks.length})</span>
               </button>
               <button
                 onClick={() => setActiveTab('projects')}
-                className={`px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md transition-all duration-200 min-w-[90px] sm:min-w-[80px] ${
+                className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
                   activeTab === 'projects'
                     ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
-                Projects ({projects.length})
+                <span>Projects ({projects.length})</span>
               </button>
             </div>
 
             <button
               onClick={() => setIsCalendarView(!isCalendarView)}
-              className="px-3 sm:px-2 py-2 sm:py-1.5 rounded-lg
+              className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
                        bg-gray-100 dark:bg-gray-700
-                       text-gray-600 dark:text-gray-300 
-                       hover:bg-gray-200 dark:hover:bg-gray-600
+                       text-gray-600 dark:text-gray-400 
+                       hover:text-gray-900 dark:hover:text-gray-200
                        transition-all duration-200 ease-in-out
-                       flex items-center gap-2 sm:gap-1.5"
+                       flex items-center gap-1.5 sm:gap-2"
             >
               {isCalendarView ? (
                 <>
                   <LayoutList className="w-4 h-4" />
-                  <span className="text-sm">List</span>
+                  <span className="hidden xs:inline text-xs sm:text-sm">List</span>
                 </>
               ) : (
                 <>
                   <Calendar className="w-4 h-4" />
-                  <span className="text-sm">Calendar</span>
+                  <span className="hidden xs:inline text-xs sm:text-sm">Calendar</span>
                 </>
               )}
             </button>
@@ -175,7 +193,7 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
         <CalendarView tasks={tasks} />
       ) : (
         <div className="space-y-8 w-full flex flex-col items-center">
-          {sortedGroups.map(([date, dateTasks]) => (
+          {(showAllCompleted ? sortedGroups : limitedGroups).map(([date, dateTasks]) => (
             <div key={date} className="w-full flex flex-col items-center space-y-2">
               <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
                 {date}
@@ -194,6 +212,55 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
               </ul>
             </div>
           ))}
+
+          {isCompleted && !showAllCompleted && (tasks || []).length > COMPLETED_TASKS_LIMIT && (
+            <button
+              onClick={() => setShowAllCompleted(true)}
+              className="mt-4 p-1.5 sm:p-2 rounded-lg bg-white dark:bg-gray-800 font-bold text-base sm:text-lg 
+                        bordV2 border-gray-800 text-gray-800 dark:text-gray-200 
+                        shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                        hover:translate-y-0.5 transition-all duration-200"
+            >
+              See All ({(tasks || []).length})
+            </button>
+          )}
+
+          {showAllCompleted && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+                <div className="sticky top-0 flex justify-end items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setShowAllCompleted(false)}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="p-4">
+                  {sortedGroups.map(([date, dateTasks]) => (
+                    <div key={date} className="w-full flex flex-col items-center space-y-2">
+                      <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                        {date}
+                      </div>
+                      <ul className="w-full flex flex-col items-center">
+                        {dateTasks.map((task) => (
+                          <Task
+                            key={task.id}
+                            task={task}
+                            removeTask={removeTask}
+                            completeTask={completeTask}
+                            isCompleted={isCompleted}
+                            updateTask={updateTask}
+                          />
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {!isCompleted && sortedTasks.length === 0 && (
             <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 py-16 flex-grow">
               {activeTab === 'tasks' ? (
