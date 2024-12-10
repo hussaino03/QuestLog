@@ -193,7 +193,8 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
         <CalendarView tasks={tasks} />
       ) : (
         <div className="space-y-8 w-full flex flex-col items-center">
-          {(showAllCompleted ? sortedGroups : limitedGroups).map(([date, dateTasks]) => (
+          {/* Always show limited tasks in the background */}
+          {limitedGroups.map(([date, dateTasks]) => (
             <div key={date} className="w-full flex flex-col items-center space-y-2">
               <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
                 {date}
@@ -213,6 +214,43 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
             </div>
           ))}
 
+          {/* Modal for showing all tasks */}
+          {showAllCompleted && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-end items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setShowAllCompleted(false)}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="p-4">
+                  {sortedGroups.map(([date, dateTasks]) => (
+                    <div key={date} className="w-full flex flex-col items-center space-y-2">
+                      <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                        {date}
+                      </div>
+                      <ul className="w-full flex flex-col items-center">
+                        {dateTasks.map((task) => (
+                          <Task
+                            key={task.id}
+                            task={task}
+                            removeTask={removeTask}
+                            completeTask={completeTask}
+                            isCompleted={isCompleted}
+                            updateTask={updateTask}
+                          />
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {isCompleted && !showAllCompleted && (tasks || []).length > COMPLETED_TASKS_LIMIT && (
             <button
               onClick={() => setShowAllCompleted(true)}
@@ -228,7 +266,7 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
           {showAllCompleted && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
               <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                <div className="sticky top-0 flex justify-end items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex justify-end items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => setShowAllCompleted(false)}
                     className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
