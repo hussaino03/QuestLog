@@ -59,6 +59,7 @@ Built with:
 - [Vercel](https://vercel.com/) - Hosting platform
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2) - Authentication
+- [Passport.js](https://www.passportjs.org/concepts/authentication/middleware/) - Auth Middleware
 - [Docker](https://www.docker.com/) - Container Orchestration
 
 ## 🏗️ Architecture
