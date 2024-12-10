@@ -11,7 +11,7 @@ import TaskList from './components/Modal Management/List';
 import LevelUpNoti from './components/XP Management/LevelUp';
 import StreakTracker from './components/Streak Management/StreakTracker';
 import Leaderboard from './components/Leaderboard/Leaderboard';
-import useXPManager from './components/XP Management/XPManager';
+import useXPManager from './services/xp/XPManager';
 import AppControls from './components/Controls/AppControls';
 import Auth from './components/Auth/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
