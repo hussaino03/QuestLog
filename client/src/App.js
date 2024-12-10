@@ -17,7 +17,7 @@ import Auth from './components/Auth/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/XP Management/ClearDataModal';
 import { validateUserId } from './services/validationservice';
-import { mergeTasks } from './utils/TaskMergerUtility';
+import { mergeTasks } from './services/syncservice';
 import BadgeGrid from './components/Badge/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
 import Footer from './components/Layout/Footer';
