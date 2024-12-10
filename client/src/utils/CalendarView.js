@@ -69,7 +69,7 @@ const CalendarView = ({ tasks }) => {
               <div 
                 key={`${i}-${j}`} 
                 className={`
-                  min-h-[50px] sm:min-h-[80px] p-1 sm:p-2 border dark:border-gray-700 rounded-lg
+                  min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border dark:border-gray-700 rounded-lg
                   ${!day ? 'invisible' : ''}
                   ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
                 `}

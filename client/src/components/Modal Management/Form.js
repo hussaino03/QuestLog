@@ -367,13 +367,13 @@ const TaskForm = ({ addTask }) => {
                   ))}
                 </div>
 
-                {/* Submit Button */}
+                {/* Project Submit Button */}
                 <button
                   type="submit"
-                  className="w-full px-3 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 
-                           font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
-                           shadow-[4px_4px_#77dd77] hover:shadow-none 
-                           hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
+                  className="w-full p-1.5 sm:p-2 rounded-lg bg-white dark:bg-gray-800 font-bold text-base sm:text-lg 
+                           border-2 border-gray-800 text-gray-800 dark:text-gray-200 
+                           shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                           hover:translate-y-0.5 transition-all duration-200"
                 >
                   <div className="flex items-center justify-center gap-3">
                     <span>✨</span>
@@ -545,14 +545,14 @@ const TaskForm = ({ addTask }) => {
                   </div>
                 </div>
                 
-                {/* Submit Button */}
+                {/* Task Submit Button */}
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full px-3 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 
-                             font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
-                             shadow-[4px_4px_#77dd77] hover:shadow-none 
-                             hover:translate-x-1 hover:translate-y-1 transition-all duration-200 rounded-none"
+                    className="w-full p-1.5 sm:p-2 rounded-lg bg-white dark:bg-gray-800 font-bold text-base sm:text-lg 
+                             border-2 border-gray-800 text-gray-800 dark:text-gray-200 
+                             shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                             hover:translate-y-0.5 transition-all duration-200"
                   >
                     <div className="flex items-center justify-center gap-3">
                       <span>✨</span>

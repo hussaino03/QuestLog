@@ -30,13 +30,13 @@ const App = () => {
   const [completedTasks, setCompletedTasks] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [userId, setUserId] = useState(null);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('todo');
   const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [userName, setUserName] = useState(null);
   const [unlockedBadges, setUnlockedBadges] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);  
 
 const handleAuthChange = (id, isLogout = false) => {
   setUserId(id);
@@ -48,7 +48,6 @@ const handleAuthChange = (id, isLogout = false) => {
     setCompletedTasks([]);
     resetXP();
     setError(null);
-    setShowLeaderboard(false);
     setCurrentView('todo');
   }
 };
@@ -119,7 +118,6 @@ const handleUserDataLoad = (userData) => {
 
   const toggleView = () => {
     setShowCompleted(!showCompleted);
-    setShowLeaderboard(false);
     setCurrentView(!showCompleted ? 'completed' : 'todo');
   };
 
@@ -382,15 +380,6 @@ const clearAllData = async () => {
   }
 };
 
-  const toggleLeaderboard = () => {
-    setShowLeaderboard(!showLeaderboard);
-    // Reset showCompleted state when toggling leaderboard
-    if (!showLeaderboard) {
-      setShowCompleted(false);
-    }
-    setCurrentView(showLeaderboard ? 'todo' : 'leaderboard');
-  };
-
   const handleClearDataClick = () => {
     setShowClearDataModal(true);
   };
@@ -426,80 +415,114 @@ const clearAllData = async () => {
           Error: {error}
         </div>
       )}
-      <div className="relative max-w-4xl mx-auto px-4 py-6 space-y-6">
-        <ProgressBar level={level} experience={experience} userName={userName} />
-        <div className="flex gap-4 flex-col md:flex-row">
-          <div className="flex-1 min-w-0">
-            <StreakTracker completedTasks={completedTasks} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <BadgeGrid 
-              unlockedBadges={unlockedBadges} 
-            />
-          </div>
-        </div>
-        <CSSTransition
-          in={!showLeaderboard}
-          timeout={300}
-          classNames="fade"
-          unmountOnExit
-        >
-          <div>
-            <TaskButtons 
-              showCompleted={showCompleted} 
-              toggleView={toggleView}
-              onClearDataClick={handleClearDataClick}
-            />
-            <TaskForm addTask={addTask} />
-          </div>
-        </CSSTransition>
-
-        <div className="flex justify-between gap-4">
-          <button 
-            onClick={toggleLeaderboard}
-            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 font-bold text-lg border-3 border-gray-800 dark:border-gray-200 
-                     text-gray-800 dark:text-gray-200 shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 
-                     hover:translate-y-1 transition-all duration-200 rounded-none"
-          >
-            {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
-          </button>
-        </div>
-        
-        <div className="relative z-0 overflow-hidden">
-          <SwitchTransition mode="out-in">
-            <CSSTransition
-              key={currentView}
-              classNames="slide"
-              timeout={300}
-              unmountOnExit
-            >
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200">
-                {currentView === 'leaderboard' && <Leaderboard />}
-                {currentView === 'todo' && (
-                  <TaskList 
-                    tasks={tasks} 
-                    removeTask={removeTask}
-                    completeTask={completeTask}
-                    isCompleted={false}
-                    addTask={addTask}  
-                    updateTask={updateTask}  
-                  />
-                )}
-                {currentView === 'completed' && (
-                  <TaskList 
-                    tasks={completedTasks} 
-                    removeTask={removeTask}
-                    completeTask={completeTask}
-                    isCompleted={true}
-                  />
-                )}
+      
+      {/* Main Layout Container */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid lg:grid-cols-[1fr,320px] gap-6"> 
+          {/* Main Content Column */}
+          <div className="flex flex-col min-w-0"> 
+            <ProgressBar level={level} experience={experience} userName={userName} />
+            
+            <div className="mt-6 flex-shrink-0">
+              <div className="space-y-4">
+                <TaskButtons 
+                  showCompleted={showCompleted} 
+                  toggleView={toggleView}
+                  onClearDataClick={handleClearDataClick}
+                />
+                <TaskForm addTask={addTask} />
               </div>
-            </CSSTransition>
-          </SwitchTransition>
+            </div>
+
+            {/* Task List Container with Gradient */}
+            <div className="mt-6 relative">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200 overflow-hidden">
+                <SwitchTransition mode="out-in">
+                  <CSSTransition
+                    key={currentView}
+                    classNames="slide"
+                    timeout={300}
+                    unmountOnExit
+                  >
+                    <div className="min-h-[300px]"> 
+                      {currentView === 'todo' && (
+                        <TaskList 
+                          tasks={tasks} 
+                          removeTask={removeTask}
+                          completeTask={completeTask}
+                          isCompleted={false}
+                          addTask={addTask}  
+                          updateTask={updateTask}  
+                        />
+                      )}
+                      {currentView === 'completed' && (
+                        <TaskList 
+                          tasks={completedTasks} 
+                          removeTask={removeTask}
+                          completeTask={completeTask}
+                          isCompleted={true}
+                        />
+                      )}
+                    </div>
+                  </CSSTransition>
+                </SwitchTransition>
+              </div>
+              {/* Gradient Overlay */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b 
+                from-transparent via-transparent to-gray-50/80 dark:to-gray-900/80 pointer-events-none"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          {/* Side Panel - Desktop */}
+          <div className="hidden lg:flex lg:flex-col space-y-6 flex-shrink-0 pt-[102px]">
+            <BadgeGrid unlockedBadges={unlockedBadges} />
+            <StreakTracker completedTasks={completedTasks} />
+            <Leaderboard 
+              limit={3} 
+              className="overflow-hidden" 
+              onShowFull={() => setShowFullLeaderboard(true)}
+              authState={isAuthenticated}
+            />
+          </div>
+
+          {/* Side Panel - Mobile */}
+          <div className="lg:hidden mt-4"> 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
+              <BadgeGrid unlockedBadges={unlockedBadges} />
+              <StreakTracker completedTasks={completedTasks} />
+              <Leaderboard 
+                limit={3} 
+                className="overflow-hidden" 
+                onShowFull={() => setShowFullLeaderboard(true)}
+                authState={isAuthenticated}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {}
+      {/* Full Leaderboard Modal */}
+      {showFullLeaderboard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full flex flex-col max-h-[80vh]">
+            <div className="shrink-0 flex justify-end items-center py-2 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-lg">
+              <button
+                onClick={() => setShowFullLeaderboard(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 flex flex-col min-h-0">
+              <Leaderboard scrollUsers={true} authState={isAuthenticated} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <LevelUpNoti 
         show={showLevelUp}
         onClose={() => setShowLevelUp(false)} 
