@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Task from './View';
 import CalendarView from '../../utils/CalendarView';
-import { LayoutList, Calendar } from 'lucide-react';
+import { LayoutList, Calendar, PlusCircle, FolderPlus } from 'lucide-react';
 
 const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updateTask }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
@@ -78,80 +78,97 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
   });
 
   return (
-    <div className="flex flex-col items-center w-full bg-white dark:bg-gray-800 rounded-lg p-6 transition-colors duration-200">
-      <div className="flex items-center justify-between w-full mb-6">
-        {!isCompleted ? (
-          <>
-            <div className="relative w-full sm:w-64">
-              <input
-                type="text"
-                placeholder="Quick add task..."
-                value={quickTaskInput}
-                onChange={(e) => setQuickTaskInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleQuickAdd(e);
-                  }
-                }}
-                className="w-full px-3 py-2 sm:py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 
-                       dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 
-                       placeholder-gray-400 dark:placeholder-gray-500"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none hidden sm:block">
-                press ⏎
-              </div>
+    <div className="flex flex-col items-center w-full bg-white dark:bg-gray-800 rounded-lg p-6 transition-colors duration-200 min-h-[500px]">
+      {!isCompleted ? (
+        <>
+          {/* Quick Task Input */}
+          <div className="relative w-full mb-6 group">
+            <input
+              type="text"
+              placeholder="Quick add task..."
+              value={quickTaskInput}
+              onChange={(e) => setQuickTaskInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleQuickAdd(e);
+                }
+              }}
+              className="w-full px-4 py-3 text-sm bg-gray-50/80 dark:bg-gray-700/80 
+                     border border-gray-200 dark:border-gray-600 rounded-lg 
+                     text-gray-900 dark:text-gray-100 backdrop-blur-sm
+                     placeholder-gray-400 dark:placeholder-gray-500 
+                     transition-all duration-200 ease-in-out
+                     focus:bg-white dark:focus:bg-gray-700
+                     focus:border-blue-500/50 dark:focus:border-blue-400/50 
+                     focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10
+                     focus:outline-none
+                     hover:border-gray-300 dark:hover:border-gray-500"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 
+                        px-1.5 py-0.5 rounded-md 
+                        bg-gray-100 dark:bg-gray-600
+                        text-[10px] font-medium tracking-wide uppercase
+                        text-gray-400 dark:text-gray-400
+                        opacity-0 group-hover:opacity-100 
+                        transition-all duration-200 ease-in-out
+                        transform group-hover:translate-x-0 translate-x-2">
+              enter ↵
             </div>
+          </div>
+
+          {/* Combined Toggle Controls */}
+          <div className="w-full flex justify-between items-center mb-6">
+            <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5 sm:p-1">
+              <button
+                onClick={() => setActiveTab('tasks')}
+                className={`px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md transition-all duration-200 min-w-[90px] sm:min-w-[80px] ${
+                  activeTab === 'tasks'
+                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                Tasks ({regularTasks.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('projects')}
+                className={`px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md transition-all duration-200 min-w-[90px] sm:min-w-[80px] ${
+                  activeTab === 'projects'
+                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                Projects ({projects.length})
+              </button>
+            </div>
+
             <button
               onClick={() => setIsCalendarView(!isCalendarView)}
-              className="ml-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg 
-                       text-gray-600 dark:text-gray-400 flex items-center gap-2"
+              className="px-3 sm:px-2 py-2 sm:py-1.5 rounded-lg
+                       bg-gray-100 dark:bg-gray-700
+                       text-gray-600 dark:text-gray-300 
+                       hover:bg-gray-200 dark:hover:bg-gray-600
+                       transition-all duration-200 ease-in-out
+                       flex items-center gap-2 sm:gap-1.5"
             >
               {isCalendarView ? (
                 <>
-                  <LayoutList className="w-5 h-5" />
-                  <span className="text-sm">List View</span>
+                  <LayoutList className="w-4 h-4" />
+                  <span className="text-sm">List</span>
                 </>
               ) : (
                 <>
-                  <Calendar className="w-5 h-5" />
-                  <span className="text-sm">Calendar View</span>
+                  <Calendar className="w-4 h-4" />
+                  <span className="text-sm">Calendar</span>
                 </>
               )}
             </button>
-          </>
-        ) : (
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 w-full text-center">
-            Completed
-          </h2>
-        )}
-      </div>
-
-      {!isCompleted && !isCalendarView && (
-        <div className="w-full flex justify-center mb-6">
-          <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${
-                activeTab === 'tasks'
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              Tasks ({regularTasks.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('projects')}
-              className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${
-                activeTab === 'projects'
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              Projects ({projects.length})
-            </button>
           </div>
-        </div>
+        </>
+      ) : (
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 w-full text-center mb-6">
+          Completed
+        </h2>
       )}
 
       {!isCompleted && isCalendarView ? (
@@ -178,11 +195,24 @@ const TaskList = ({ tasks, removeTask, completeTask, isCompleted, addTask, updat
             </div>
           ))}
           {!isCompleted && sortedTasks.length === 0 && (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-              {activeTab === 'tasks' 
-                ? "Type above for quick task or use Create + for more options"
-                : "Use Create + to add a new project with subtasks"
-              }
+            <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 py-16 flex-grow">
+              {activeTab === 'tasks' ? (
+                <>
+                  <PlusCircle className="w-20 h-20 mb-6 text-gray-400 dark:text-gray-600" />
+                  <p className="text-2xl font-semibold mb-3">No tasks yet</p>
+                  <p className="text-base text-center max-w-sm">
+                    Type above for a quick task or use the Create+ button for more options
+                  </p>
+                </>
+              ) : (
+                <>
+                  <FolderPlus className="w-20 h-20 mb-6 text-gray-400 dark:text-gray-600" />
+                  <p className="text-2xl font-semibold mb-3">No projects yet</p>
+                  <p className="text-base text-center max-w-sm">
+                    Use the Create+ button to add a new project with subtasks
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>

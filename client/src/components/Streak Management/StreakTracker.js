@@ -78,18 +78,14 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
   }, [completedTasks, today]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 h-[160px] transition-colors duration-200">
-      <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
-        <span className="mr-2">🔥</span>
-        Streak
-      </h3>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200">
       <div className="grid grid-cols-2 gap-4">
         <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg transition-colors duration-200">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Streak</p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{currentStreak}</p>
         </div>
         <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg transition-color duration-200">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest Streak</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">{longestStreak}</p>
         </div>
       </div>

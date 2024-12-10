@@ -80,7 +80,7 @@ const LeaderboardEntry = ({ user }) => {
   );
 };
 
-const Leaderboard = () => {
+const Leaderboard = ({ limit, className, scrollUsers = false, onShowFull, authState }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [error, setError] = useState(null);
   const [isOptedIn, setIsOptedIn] = useState(false);
@@ -168,10 +168,15 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    checkOptInStatus();
-    fetchLeaderboard();
-    fetchCommunityXP();  
-  }, []);
+    if (authState === true) {
+      setError(null);  // Clear any existing error
+      checkOptInStatus();
+      fetchLeaderboard();
+      fetchCommunityXP();
+    } else {
+      setError('Please sign in to view the leaderboard');
+    }
+  }, [authState]); 
 
 
   if (error) {
@@ -188,8 +193,8 @@ const Leaderboard = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-visible transition-colors duration-200">
-      <div className="relative z-20 flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-visible transition-colors duration-200 ${className || ''} ${scrollUsers ? 'flex flex-col min-h-0' : ''}`}>
+      <div className="relative z-20 flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 shrink-0">
         <div className="flex flex-col">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             Leaderboard
@@ -198,30 +203,42 @@ const Leaderboard = () => {
             Total User XP: {communityXP.toLocaleString()}
           </div>
         </div>
-        <div className="relative">
+        {scrollUsers ? (
+          <div className="relative">
+            <button
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              onClick={handleOptInToggle}
+              className="p-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-800 
+                       shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                       hover:translate-y-0.5 transition-all duration-200 
+                       text-gray-800 dark:text-white"
+            >
+              {isOptedIn ? 'Opt Out' : 'Opt In'}
+            </button>
+            {showTooltip && (
+              <div className="absolute right-0 mt-2 p-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-[100] w-48">
+                {isOptedIn 
+                  ? 'Click to remove your name and stats from the leaderboard'
+                  : 'Click to share your name and stats publicly on the leaderboard (can opt-out anytime!)'
+                }
+              </div>
+            )}
+          </div>
+        ) : (
           <button
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-            onClick={handleOptInToggle}
-            className="p-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-800 
-                     shadow-[2px_2px_#77dd77] hover:shadow-none hover:translate-x-0.5 
-                     hover:translate-y-0.5 transition-all duration-200 
-                     text-gray-800 dark:text-white"
+            onClick={onShowFull}
+            className="p-1.5 sm:p-2 rounded-lg bg-white dark:bg-gray-800 font-bold text-base sm:text-lg 
+                     border-2 border-gray-800 text-gray-800 dark:text-gray-200 
+                     shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                     hover:translate-y-0.5 transition-all duration-200"
           >
-            {isOptedIn ? 'Opt Out' : 'Opt In'}
+            View All
           </button>
-          {showTooltip && (
-            <div className="absolute right-0 mt-2 p-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-[100] w-48">
-              {isOptedIn 
-                ? 'Click to remove your name and stats from the leaderboard'
-                : 'Click to share your name and stats publicly on the leaderboard (can opt-out anytime!)'
-              }
-            </div>
-          )}
-        </div>
+        )}
       </div>
-      <ul className="divide-y divide-gray-200 dark:divide-gray-700 min-h-[100px] relative z-10">
-        {leaderboard.map((user) => (
+      <ul className={`divide-y divide-gray-200 dark:divide-gray-700 min-h-[100px] relative z-10 ${scrollUsers ? 'overflow-y-auto flex-1' : ''}`}>
+        {leaderboard.slice(0, limit || leaderboard.length).map((user) => (
           <LeaderboardEntry key={user._id} user={user} />
         ))}
         {leaderboard.length === 0 && (
