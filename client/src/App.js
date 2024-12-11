@@ -21,6 +21,9 @@ import { mergeTasks } from './services/syncservice';
 import BadgeGrid from './components/Badge/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
 import Footer from './components/Layout/Footer';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import PrivacyPolicy from './legal/PrivacyPolicy';
+import TermsOfService from './legal/TermsOfService';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
@@ -391,151 +394,159 @@ const clearAllData = async () => {
 
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-      <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <Header 
-          authComponent={
-            <Auth 
-              isAuthenticated={isAuthenticated}
-              onAuthChange={handleAuthChange} 
-              onLogout={handleLogout}
-              handleUserDataLoad={handleUserDataLoad}
-            />
-          }
-          AppControls={
-            <AppControls 
-              isDark={isDark} 
-              onToggle={toggleTheme}
-              addTask={addTask}
-              isAuthenticated={!!userId}  
-            />
-          }
-        />
-        {error && (
-        <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
-          Error: {error}
-        </div>
-      )}
-      
-      {/* Main Layout Container */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-[1fr,320px] gap-6"> 
-          {/* Main Content Column */}
-          <div className="flex flex-col min-w-0"> 
-            <ProgressBar level={level} experience={experience} userName={userName} />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+          <Route path="/legal/terms" element={<TermsOfService />} />
+          <Route path="/" element={
+            <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+              <Header 
+                authComponent={
+                  <Auth 
+                    isAuthenticated={isAuthenticated}
+                    onAuthChange={handleAuthChange} 
+                    onLogout={handleLogout}
+                    handleUserDataLoad={handleUserDataLoad}
+                  />
+                }
+                AppControls={
+                  <AppControls 
+                    isDark={isDark} 
+                    onToggle={toggleTheme}
+                    addTask={addTask}
+                    isAuthenticated={!!userId}  
+                  />
+                }
+              />
+              {error && (
+              <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
+                Error: {error}
+              </div>
+            )}
             
-            <div className="mt-6 flex-shrink-0">
-              <div className="space-y-4">
-                <TaskButtons 
-                  showCompleted={showCompleted} 
-                  toggleView={toggleView}
-                  onClearDataClick={handleClearDataClick}
-                />
-                <TaskForm addTask={addTask} />
-              </div>
-            </div>
-
-            {/* Task List Container with Gradient */}
-            <div className="mt-6 relative">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200 overflow-hidden">
-                <SwitchTransition mode="out-in">
-                  <CSSTransition
-                    key={currentView}
-                    classNames="slide"
-                    timeout={300}
-                    unmountOnExit
-                  >
-                    <div className="min-h-[300px]"> 
-                      {currentView === 'todo' && (
-                        <TaskList 
-                          tasks={tasks} 
-                          removeTask={removeTask}
-                          completeTask={completeTask}
-                          isCompleted={false}
-                          addTask={addTask}  
-                          updateTask={updateTask}  
-                        />
-                      )}
-                      {currentView === 'completed' && (
-                        <TaskList 
-                          tasks={completedTasks} 
-                          removeTask={removeTask}
-                          completeTask={completeTask}
-                          isCompleted={true}
-                        />
-                      )}
+            {/* Main Layout Container */}
+            <div className="max-w-7xl mx-auto px-4 py-6">
+              <div className="grid lg:grid-cols-[1fr,320px] gap-6"> 
+                {/* Main Content Column */}
+                <div className="flex flex-col min-w-0"> 
+                  <ProgressBar level={level} experience={experience} userName={userName} />
+                  
+                  <div className="mt-6 flex-shrink-0">
+                    <div className="space-y-4">
+                      <TaskButtons 
+                        showCompleted={showCompleted} 
+                        toggleView={toggleView}
+                        onClearDataClick={handleClearDataClick}
+                      />
+                      <TaskForm addTask={addTask} />
                     </div>
-                  </CSSTransition>
-                </SwitchTransition>
+                  </div>
+
+                  {/* Task List Container with Gradient */}
+                  <div className="mt-6 relative">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200 overflow-hidden">
+                      <SwitchTransition mode="out-in">
+                        <CSSTransition
+                          key={currentView}
+                          classNames="slide"
+                          timeout={300}
+                          unmountOnExit
+                        >
+                          <div className="min-h-[300px]"> 
+                            {currentView === 'todo' && (
+                              <TaskList 
+                                tasks={tasks} 
+                                removeTask={removeTask}
+                                completeTask={completeTask}
+                                isCompleted={false}
+                                addTask={addTask}  
+                                updateTask={updateTask}  
+                              />
+                            )}
+                            {currentView === 'completed' && (
+                              <TaskList 
+                                tasks={completedTasks} 
+                                removeTask={removeTask}
+                                completeTask={completeTask}
+                                isCompleted={true}
+                              />
+                            )}
+                          </div>
+                        </CSSTransition>
+                      </SwitchTransition>
+                    </div>
+                    {/* Gradient Overlay */}
+                    <div 
+                      className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b 
+                      from-transparent via-transparent to-gray-50/80 dark:to-gray-900/80 pointer-events-none"
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+
+                {/* Side Panel - Desktop */}
+                <div className="hidden lg:flex lg:flex-col space-y-6 flex-shrink-0 pt-[102px]">
+                  <BadgeGrid unlockedBadges={unlockedBadges} />
+                  <StreakTracker completedTasks={completedTasks} />
+                  <Leaderboard 
+                    limit={3} 
+                    className="overflow-hidden" 
+                    onShowFull={() => setShowFullLeaderboard(true)}
+                    authState={isAuthenticated}
+                  />
+                </div>
+
+                {/* Side Panel - Mobile */}
+                <div className="lg:hidden mt-4"> 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
+                    <BadgeGrid unlockedBadges={unlockedBadges} />
+                    <StreakTracker completedTasks={completedTasks} />
+                    <Leaderboard 
+                      limit={3} 
+                      className="overflow-hidden" 
+                      onShowFull={() => setShowFullLeaderboard(true)}
+                      authState={isAuthenticated}
+                    />
+                  </div>
+                </div>
               </div>
-              {/* Gradient Overlay */}
-              <div 
-                className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b 
-                from-transparent via-transparent to-gray-50/80 dark:to-gray-900/80 pointer-events-none"
-                aria-hidden="true"
-              />
             </div>
-          </div>
 
-          {/* Side Panel - Desktop */}
-          <div className="hidden lg:flex lg:flex-col space-y-6 flex-shrink-0 pt-[102px]">
-            <BadgeGrid unlockedBadges={unlockedBadges} />
-            <StreakTracker completedTasks={completedTasks} />
-            <Leaderboard 
-              limit={3} 
-              className="overflow-hidden" 
-              onShowFull={() => setShowFullLeaderboard(true)}
-              authState={isAuthenticated}
+            {/* Full Leaderboard Modal */}
+            {showFullLeaderboard && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full flex flex-col max-h-[80vh]">
+                  <div className="shrink-0 flex justify-end items-center py-2 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-lg">
+                    <button
+                      onClick={() => setShowFullLeaderboard(false)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="flex-1 flex flex-col min-h-0">
+                    <Leaderboard scrollUsers={true} authState={isAuthenticated} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <LevelUpNoti 
+              show={showLevelUp}
+              onClose={() => setShowLevelUp(false)} 
+              level={newLevel}
             />
+            <ClearDataModal
+              show={showClearDataModal}
+              onConfirm={handleConfirmClear}
+              onCancel={() => setShowClearDataModal(false)}
+            />
+            <Analytics />
+            <Footer />
           </div>
-
-          {/* Side Panel - Mobile */}
-          <div className="lg:hidden mt-4"> 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
-              <BadgeGrid unlockedBadges={unlockedBadges} />
-              <StreakTracker completedTasks={completedTasks} />
-              <Leaderboard 
-                limit={3} 
-                className="overflow-hidden" 
-                onShowFull={() => setShowFullLeaderboard(true)}
-                authState={isAuthenticated}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Full Leaderboard Modal */}
-      {showFullLeaderboard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full flex flex-col max-h-[80vh]">
-            <div className="shrink-0 flex justify-end items-center py-2 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-lg">
-              <button
-                onClick={() => setShowFullLeaderboard(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 flex flex-col min-h-0">
-              <Leaderboard scrollUsers={true} authState={isAuthenticated} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <LevelUpNoti 
-        show={showLevelUp}
-        onClose={() => setShowLevelUp(false)} 
-        level={newLevel}
-      />
-      <ClearDataModal
-        show={showClearDataModal}
-        onConfirm={handleConfirmClear}
-        onCancel={() => setShowClearDataModal(false)}
-      />
-      <Analytics />
-      <Footer />
-    </div>
+          } />
+        </Routes>
+      </BrowserRouter>
     </GoogleOAuthProvider>
   );
 };
