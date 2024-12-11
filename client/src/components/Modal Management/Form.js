@@ -140,7 +140,8 @@ const TaskForm = ({ addTask }) => {
   return (
     <div 
       id="newtask-form" 
-      className="hidden fixed inset-0 overflow-y-auto overflow-x-hidden bg-black/50"
+      className="hidden fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto overflow-x-hidden
+                 animate-fadeIn"
       style={{ 
         display: 'none',
         zIndex: 9999
@@ -150,7 +151,8 @@ const TaskForm = ({ addTask }) => {
       <div className="flex min-h-screen items-center justify-center p-4">
         <form 
           onSubmit={isProjectView ? handleProjectSubmit : handleSubmit}
-          className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl"
+          className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl
+                    transform scale-100 animate-modalSlide"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 space-y-6">
