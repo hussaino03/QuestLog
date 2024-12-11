@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ClipboardList, FolderTree } from 'lucide-react';
 import CustomSlider from './CustomSlider';
 
@@ -137,10 +138,19 @@ const TaskForm = ({ addTask }) => {
     setSubTasks(updatedTasks);
   };
 
-  return (
+  useEffect(() => {
+    const modalContainer = document.createElement('div');
+    document.body.appendChild(modalContainer);
+
+    return () => {
+      document.body.removeChild(modalContainer);
+    };
+  }, []);
+
+  const modalContent = (
     <div 
       id="newtask-form" 
-      className="hidden fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto overflow-x-hidden
+      className="hidden fixed inset-0 bg-black/50 backdrop-blur-sm
                  animate-fadeIn"
       style={{ 
         display: 'none',
@@ -148,11 +158,11 @@ const TaskForm = ({ addTask }) => {
       }}
       onClick={handleOutsideClick}
     >
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 min-h-screen">
         <form 
           onSubmit={isProjectView ? handleProjectSubmit : handleSubmit}
           className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl
-                    transform scale-100 animate-modalSlide"
+                    transform scale-100 animate-modalSlide max-h-[calc(100vh-2rem)] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 space-y-6">
@@ -570,6 +580,8 @@ const TaskForm = ({ addTask }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default TaskForm;
