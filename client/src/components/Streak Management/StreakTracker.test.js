@@ -3,6 +3,32 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import StreakTracker from './StreakTracker';
 
+// Add required test setup
+window.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
+// Mock Chart.js
+jest.mock('chart.js', () => ({
+  Chart: { register: jest.fn() },
+  CategoryScale: jest.fn(),
+  LinearScale: jest.fn(),
+  PointElement: jest.fn(),
+  LineElement: jest.fn(),
+  Title: jest.fn(),
+  Tooltip: jest.fn(),
+  Legend: jest.fn(),
+}));
+
+// Mock the chart component
+jest.mock('../../user analytics/graph/XPProgressionChart', () => {
+  return function MockXPProgressionChart({ xpData }) {
+    return <div data-testid="xp-chart">{xpData ? 'Chart Data Available' : 'No XP data'}</div>;
+  };
+});
+
 describe('StreakTracker Component', () => {
   const mockToday = new Date('2023-05-15T12:00:00Z');
 
