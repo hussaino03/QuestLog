@@ -100,13 +100,22 @@ const Feedback = () => {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white text-left">
-              Feedback
-            </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md animate-modalSlide">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Feedback
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+              >
+                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+              </button>
+            </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="space-y-4 text-left">
                 <RatingCategory 
                   title="Design & Visual Appeal"
@@ -145,22 +154,12 @@ const Feedback = () => {
                 />
               </div>
 
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 bg-white dark:bg-gray-800 
-                           border-2 border-gray-800 shadow-[2px_2px_#ff6b6b] 
-                           hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 
-                           transition-all duration-200 text-gray-800 dark:text-white"
-                >
-                  Cancel
-                </button>
+              <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={isSubmitting || !feedback}
                   className="px-4 py-2 bg-white dark:bg-gray-800 
-                           border-2 border-gray-800 shadow-[2px_2px_#77dd77] 
+                           border-2 border-gray-800 shadow-[2px_2px_#2563EB] 
                            hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 
                            transition-all duration-200 disabled:opacity-50 
                            disabled:cursor-not-allowed text-gray-800 dark:text-white"

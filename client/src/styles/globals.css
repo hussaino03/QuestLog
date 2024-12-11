@@ -73,4 +73,27 @@ body {
     transition: opacity 200ms ease-in, transform 200ms ease-in;
   }
 
-  
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlide {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-modalSlide {
+  animation: modalSlide 0.3s ease-out;
+}
+
