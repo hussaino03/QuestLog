@@ -1,25 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import XPProgressionChart from '../../user analytics/graph/XPProgressionChart';
 
 const StreakTracker = ({ completedTasks, today = new Date() }) => {
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -134,44 +114,6 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
     });
   }, [completedTasks]);
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: '#1F2937',
-        titleColor: '#F3F4F6',
-        bodyColor: '#F3F4F6',
-        displayColors: false,
-        callbacks: {
-          label: (context) => `${context.parsed.y} XP`
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          color: '#6B7280'
-        },
-        grid: {
-          display: false
-        }
-      },
-      x: {
-        ticks: {
-          color: '#6B7280'
-        },
-        grid: {
-          display: false
-        }
-      }
-    }
-  };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200">
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -190,15 +132,7 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">
           XP Progression
         </h3>
-        <div className="h-48">
-          {xpData ? (
-            <Line data={xpData} options={chartOptions} />
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-              No XP data available
-            </div>
-          )}
-        </div>
+        <XPProgressionChart xpData={xpData} />
       </div>
     </div>
   );
