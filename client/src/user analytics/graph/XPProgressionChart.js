@@ -73,5 +73,4 @@ const XPProgressionChart = ({ xpData }) => {
   );
 };
 
-// Make sure we export default the component
 export default XPProgressionChart;
