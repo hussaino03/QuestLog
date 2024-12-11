@@ -1,8 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const StreakTracker = ({ completedTasks, today = new Date() }) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
+  const [xpData, setXpData] = useState(null);
 
   useEffect(() => {
     const calculateStreak = () => {
@@ -77,9 +99,82 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
     calculateStreak();
   }, [completedTasks, today]);
 
+  // Calculate XP data for the graph
+  useEffect(() => {
+    if (!completedTasks.length) {
+      setXpData(null);
+      return;
+    }
+
+    // Group tasks by date and sum XP
+    const xpByDate = completedTasks.reduce((acc, task) => {
+      if (!task.completedAt) return acc;
+      
+      const date = new Date(task.completedAt).toLocaleDateString();
+      const xp = (task.experience || 0) + (task.earlyBonus || 0) + (task.overduePenalty || 0);
+      
+      acc[date] = (acc[date] || 0) + xp;
+      return acc;
+    }, {});
+
+    // Get last 7 days of data
+    const dates = Object.keys(xpByDate).sort().slice(-7);
+    const xpValues = dates.map(date => xpByDate[date]);
+
+    setXpData({
+      labels: dates.map(date => new Date(date).toLocaleDateString('en-US', { weekday: 'short' })),
+      datasets: [{
+        label: 'XP Gained',
+        data: xpValues,
+        fill: false,
+        borderColor: '#60A5FA',
+        tension: 0.3,
+        pointBackgroundColor: '#60A5FA'
+      }]
+    });
+  }, [completedTasks]);
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        backgroundColor: '#1F2937',
+        titleColor: '#F3F4F6',
+        bodyColor: '#F3F4F6',
+        displayColors: false,
+        callbacks: {
+          label: (context) => `${context.parsed.y} XP`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: '#6B7280'
+        },
+        grid: {
+          display: false
+        }
+      },
+      x: {
+        ticks: {
+          color: '#6B7280'
+        },
+        grid: {
+          display: false
+        }
+      }
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg transition-colors duration-200">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Streak</p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{currentStreak}</p>
@@ -87,6 +182,22 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
         <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg transition-color duration-200">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest Streak</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">{longestStreak}</p>
+        </div>
+      </div>
+      
+      {/* XP Graph Section */}
+      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">
+          XP Progression
+        </h3>
+        <div className="h-48">
+          {xpData ? (
+            <Line data={xpData} options={chartOptions} />
+          ) : (
+            <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
+              No XP data available
+            </div>
+          )}
         </div>
       </div>
     </div>
