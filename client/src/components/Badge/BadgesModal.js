@@ -1,11 +1,12 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import Badge from './Badge';
 import { Trophy } from 'lucide-react';
 
 const BadgesModal = ({ isOpen, onClose, badges, unlockedBadges }) => {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div 
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 
                  flex items-center justify-center p-4 animate-fadeIn"
@@ -42,7 +43,8 @@ const BadgesModal = ({ isOpen, onClose, badges, unlockedBadges }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
