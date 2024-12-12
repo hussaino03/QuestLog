@@ -4,9 +4,9 @@ const Badge = ({ badge, isUnlocked }) => {
   return (
     <div className="relative group flex flex-col items-center">
       <div className={`w-14 h-14 flex items-center justify-center rounded-full 
-                      border-3 ${isUnlocked 
-                        ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30' 
-                        : 'border-gray-300 bg-gray-100 dark:bg-gray-700'} 
+                      border-2 ${isUnlocked 
+                        ? 'border-gray-800 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5' 
+                        : 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700'} 
                       transition-all duration-200`}>
         <span className={`text-2xl ${isUnlocked ? 'opacity-100' : 'opacity-40'}`}>
           {badge.icon}

@@ -126,7 +126,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
         )}
 
         <div className="flex gap-1 flex-shrink-0">
-          {!isCompleted && (
+          {!isCompleted ? (
             isEditing ? (
               <>
                 <button
@@ -169,6 +169,13 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
                 </button>
               </>
             )
+          ) : (
+            <button
+              onClick={() => removeTask(task.id, isCompleted)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+            >
+              <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+            </button>
           )}
         </div>
       </div>

@@ -49,7 +49,7 @@ describe('StreakTracker Component', () => {
       { completedAt: '2023-05-11T10:00:00Z' }, // 4 days ago (break in streak)
     ];
 
-    render(<StreakTracker completedTasks={completedTasks} today={mockToday} />);
+    render(<StreakTracker completedTasks={completedTasks} today={mockToday} onStreakChange={() => {}} />);
     
     const currentStreakElement = screen.getByText('Current Streak').nextElementSibling;
     expect(currentStreakElement).toHaveTextContent('3');
@@ -61,14 +61,14 @@ describe('StreakTracker Component', () => {
       { completedAt: '2023-05-12T10:00:00Z' }, // 3 days ago
     ];
 
-    render(<StreakTracker completedTasks={completedTasks} today={mockToday} />);
+    render(<StreakTracker completedTasks={completedTasks} today={mockToday} onStreakChange={() => {}} />);
     
     const currentStreakElement = screen.getByText('Current Streak').nextElementSibling;
     expect(currentStreakElement).toHaveTextContent('0');
   });
 
   test('handles empty completedTasks array', () => {
-    render(<StreakTracker completedTasks={[]} />);
+    render(<StreakTracker completedTasks={[]} onStreakChange={() => {}} />);
     
     const currentStreakElement = screen.getByText('Current Streak').nextElementSibling;
     const longestStreakElement = screen.getByText('Longest Streak').nextElementSibling;
@@ -84,7 +84,7 @@ describe('StreakTracker Component', () => {
       { completedAt: '2023-05-14T11:00:00Z' }, // Yesterday
     ];
 
-    render(<StreakTracker completedTasks={completedTasks} />);
+    render(<StreakTracker completedTasks={completedTasks} onStreakChange={() => {}} />);
     
     const currentStreakElement = screen.getByText('Current Streak').nextElementSibling;
     expect(currentStreakElement).toHaveTextContent('2');
@@ -101,7 +101,7 @@ describe('StreakTracker Component', () => {
       { completedAt: '2023-05-07T10:00:00Z' }, // 8 days ago
     ];
 
-    render(<StreakTracker completedTasks={completedTasks} today={mockToday} />);
+    render(<StreakTracker completedTasks={completedTasks} today={mockToday} onStreakChange={() => {}} />);
     
     const longestStreakElement = screen.getByText('Longest Streak').nextElementSibling;
     expect(longestStreakElement).toHaveTextContent('4');
@@ -120,7 +120,7 @@ describe('StreakTracker Component', () => {
       { completedAt: '2023-05-06T10:00:00Z' }
     ];
 
-    const { rerender } = render(<StreakTracker completedTasks={oldTasks} today={mockPastDate} />);
+    const { rerender } = render(<StreakTracker completedTasks={oldTasks} today={mockPastDate} onStreakChange={() => {}} />);
     
     // Verify the longest streak was recorded
     expect(screen.getByText('Longest Streak').nextElementSibling).toHaveTextContent('5');
@@ -133,7 +133,7 @@ describe('StreakTracker Component', () => {
       { completedAt: '2023-05-15T10:00:00Z' } // New task after a break
     ];
 
-    rerender(<StreakTracker completedTasks={tasksAfterBreak} today={mockToday} />);
+    rerender(<StreakTracker completedTasks={tasksAfterBreak} today={mockToday} onStreakChange={() => {}} />);
 
     // Verify the current streak is 1, not 6
     expect(screen.getByText('Current Streak').nextElementSibling).toHaveTextContent('1');
