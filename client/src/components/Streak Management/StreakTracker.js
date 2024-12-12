@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import XPProgressionChart from '../../user analytics/graph/XPProgressionChart';
 
-const StreakTracker = ({ completedTasks, today = new Date() }) => {
+const StreakTracker = ({ completedTasks, today = new Date(), onStreakChange = () => {} }) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [xpData, setXpData] = useState(null);
@@ -74,10 +74,11 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
 
       setCurrentStreak(current);
       setLongestStreak(max);
+      onStreakChange(current); 
     };
 
     calculateStreak();
-  }, [completedTasks, today]);
+  }, [completedTasks, today, onStreakChange]);
 
   // Calculate XP data for the graph
   useEffect(() => {

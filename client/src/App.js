@@ -40,6 +40,7 @@ const App = () => {
   const [unlockedBadges, setUnlockedBadges] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);  
+  const [currentStreak, setCurrentStreak] = useState(0);
 
 const handleAuthChange = (id, isLogout = false) => {
   setUserId(id);
@@ -177,12 +178,16 @@ useEffect(() => {
 }, [userId, tasks, completedTasks, experience, level, unlockedBadges]); // eslint-disable-line react-hooks/exhaustive-deps
 
 useEffect(() => {
-  const newUnlockedBadges = checkBadgeUnlocks(level);
+  const newUnlockedBadges = checkBadgeUnlocks(level, currentStreak, completedTasks.length);
   
   if (JSON.stringify(newUnlockedBadges) !== JSON.stringify(unlockedBadges)) {
     setUnlockedBadges(newUnlockedBadges);
   }
-}, [level, unlockedBadges]);
+}, [level, currentStreak, completedTasks.length, unlockedBadges]);
+
+const handleStreakChange = (streak) => {
+  setCurrentStreak(streak);
+};
 
 const addTask = async (taskData) => {
   try {
@@ -487,7 +492,7 @@ const clearAllData = async () => {
                 {/* Side Panel - Desktop */}
                 <div className="hidden lg:flex lg:flex-col space-y-6 flex-shrink-0 pt-[102px]">
                   <BadgeGrid unlockedBadges={unlockedBadges} />
-                  <StreakTracker completedTasks={completedTasks} />
+                  <StreakTracker completedTasks={completedTasks} onStreakChange={handleStreakChange} />
                   <Leaderboard 
                     limit={3} 
                     className="overflow-hidden" 
@@ -500,7 +505,7 @@ const clearAllData = async () => {
                 <div className="lg:hidden mt-4"> 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
                     <BadgeGrid unlockedBadges={unlockedBadges} />
-                    <StreakTracker completedTasks={completedTasks} />
+                    <StreakTracker completedTasks={completedTasks} onStreakChange={handleStreakChange} />
                     <Leaderboard 
                       limit={3} 
                       className="overflow-hidden" 

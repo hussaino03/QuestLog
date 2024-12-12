@@ -7,8 +7,8 @@ const Integrations = ({ addTask, isAuthenticated }) => {
 
   if (!isAuthenticated) {
     return (
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Sign in to connect with external services
+      <div className="text-sm text-red-600 dark:text-red-400">
+        Please sign in to connect with other apps
       </div>
     );
   }
