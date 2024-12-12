@@ -130,7 +130,7 @@ const StreakTracker = ({ completedTasks, today = new Date() }) => {
       {/* XP Graph Section */}
       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">
-          XP Progression
+          XP Progression (Last 7 Days)
         </h3>
         <XPProgressionChart xpData={xpData} />
       </div>
