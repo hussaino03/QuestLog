@@ -129,16 +129,17 @@ const Auth = ({ isAuthenticated, onAuthChange, onLogout, handleUserDataLoad}) =>
   return (
     <>
       {showCookieWarning && (
-        <div className="fixed top-0 left-0 right-0 bg-red-100 dark:bg-red-900 p-4 text-center z-50 shadow-md">
+        <div className="fixed top-0 left-0 right-0 bg-gray-100/90 dark:bg-gray-800/90 p-3 text-center z-[100] shadow-sm border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <p className="text-red-800 dark:text-red-200">
-              ⚠️ Please enable third-party cookies in your browser settings to use all features. The app requires cookies for authentication.
+            <p className="text-gray-900 dark:text-white text-sm pr-2">
+              🔐 Having trouble logging in? Cookies might be blocked. Please check your browser settings if login issues persist.
             </p>
             <button 
               onClick={() => setShowCookieWarning(false)}
-              className="ml-4 text-red-900 dark:text-red-100 hover:opacity-75"
+              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+              aria-label="Dismiss message"
             >
-              ✕
+              <span className="text-red-600 dark:text-red-400 text-lg">×</span>
             </button>
           </div>
         </div>
