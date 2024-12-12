@@ -17,6 +17,7 @@ QuestLog is a gamified productivity platform that turns your tasks and projects 
   - Cross-device accessibility
   - Privacy-focused leaderboard participation
 - Toggle between List View & Calendar View
+- Displays XP Progression chart, & other key analytics for authenticated users
  
 ## ⚙️ Integrations
 
