@@ -16,7 +16,6 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
   const formatDeadline = (deadline) => {
     if (!deadline) return '';
     
-    // Create a date object from just the YYYY-MM-DD part to avoid timezone shifts
     const [year, month, day] = deadline.split('-').map(Number);
     const date = new Date(year, month - 1, day); // month is 0-based in Date constructor
     
@@ -127,37 +126,56 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
         )}
 
         <div className="flex gap-1 flex-shrink-0">
-          {!isCompleted && !isEditing && (
-            <button
-              onClick={() => {
-                setIsEditing(true);
-                setShowDetails(true);  
-              }}
-              className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
-            >
-              <span className="text-blue-600 dark:text-blue-400 transform -scale-x-100 inline-block">✎</span>
-            </button>
+          {!isCompleted && (
+            isEditing ? (
+              <>
+                <button
+                  onClick={handleEdit}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
+                >
+                  <span className="text-blue-600 dark:text-blue-400">💾</span>
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+                >
+                  <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                    setShowDetails(true);  
+                  }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
+                >
+                  <span className="text-blue-600 dark:text-blue-400 transform -scale-x-100 inline-block">✎</span>
+                </button>
+                {(!task.subtasks || areAllSubtasksCompleted) && (
+                  <button
+                    onClick={() => completeTask(task)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500/10 hover:bg-green-500/20 transition-colors"
+                  >
+                    <span className="text-green-600 dark:text-green-400 text-lg">✓</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => removeTask(task.id, isCompleted)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+                >
+                  <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                </button>
+              </>
+            )
           )}
-          {!isCompleted && (!task.subtasks || areAllSubtasksCompleted) && (
-            <button
-              onClick={() => completeTask(task)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500/10 hover:bg-green-500/20 transition-colors"
-            >
-              <span className="text-green-600 dark:text-green-400 text-lg">✓</span>
-            </button>
-          )}
-          <button
-            onClick={() => removeTask(task.id, isCompleted)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
-          >
-            <span className="text-red-600 dark:text-red-400 text-lg">×</span>
-          </button>
         </div>
       </div>
 
       {isEditing && showDetails && (
         <div className="p-4 bg-gray-50 dark:bg-gray-900">
-          <form onSubmit={handleEdit} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
                 Description
@@ -175,44 +193,19 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
                 Deadline
               </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={editForm.deadline}
-                  onChange={(e) => setEditForm({...editForm, deadline: e.target.value})}
-                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
-                           dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
-                           appearance-none"
-                />
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
-                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              </div>
+              <input
+                type="date"
+                value={editForm.deadline}
+                onChange={(e) => setEditForm({...editForm, deadline: e.target.value})}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
+                         dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200
+                         cursor-pointer transition-colors duration-200
+                         [&::-webkit-calendar-picker-indicator]:cursor-pointer
+                         [&::-webkit-calendar-picker-indicator]:dark:filter 
+                         [&::-webkit-calendar-picker-indicator]:dark:invert"
+              />
             </div>
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 font-bold text-lg 
-                         border-3 border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200 
-                         shadow-[4px_4px_#77dd77] hover:shadow-none hover:translate-x-1 
-                         hover:translate-y-1 transition-all duration-200 rounded-none"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 font-bold text-lg 
-                         border-3 border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200 
-                         shadow-[4px_4px_#ff6b6b] hover:shadow-none hover:translate-x-1 
-                         hover:translate-y-1 transition-all duration-200 rounded-none"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
 
