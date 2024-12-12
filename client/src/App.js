@@ -434,7 +434,12 @@ const clearAllData = async () => {
               <div className="grid lg:grid-cols-[1fr,320px] gap-6"> 
                 {/* Main Content Column */}
                 <div className="flex flex-col min-w-0"> 
-                  <ProgressBar level={level} experience={experience} userName={userName} />
+                  <ProgressBar 
+                    level={level} 
+                    experience={experience} 
+                    userName={userName}
+                    isAuthenticated={isAuthenticated}
+                  />
                   
                   <div className="mt-6 flex-shrink-0">
                     <div className="space-y-4">
@@ -492,7 +497,11 @@ const clearAllData = async () => {
                 {/* Side Panel - Desktop */}
                 <div className="hidden lg:flex lg:flex-col space-y-6 flex-shrink-0 pt-[102px]">
                   <BadgeGrid unlockedBadges={unlockedBadges} />
-                  <StreakTracker completedTasks={completedTasks} onStreakChange={handleStreakChange} />
+                  <StreakTracker 
+                    completedTasks={completedTasks} 
+                    onStreakChange={handleStreakChange} 
+                    isAuthenticated={isAuthenticated}
+                  />
                   <Leaderboard 
                     limit={3} 
                     className="overflow-hidden" 
@@ -505,7 +514,11 @@ const clearAllData = async () => {
                 <div className="lg:hidden mt-4"> 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
                     <BadgeGrid unlockedBadges={unlockedBadges} />
-                    <StreakTracker completedTasks={completedTasks} onStreakChange={handleStreakChange} />
+                    <StreakTracker 
+                      completedTasks={completedTasks} 
+                      onStreakChange={handleStreakChange} 
+                      isAuthenticated={isAuthenticated}
+                    />
                     <Leaderboard 
                       limit={3} 
                       className="overflow-hidden" 
