@@ -185,8 +185,10 @@ const Leaderboard = ({ limit, className, scrollUsers = false, onShowFull, authSt
         <h2 className="text-xl font-bold p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
           Leaderboard
         </h2>
-        <div className="p-4 text-red-600 dark:text-red-400">
-          {error}
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg m-4">
+          <p className="p-4 text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
         </div>
       </div>
     );

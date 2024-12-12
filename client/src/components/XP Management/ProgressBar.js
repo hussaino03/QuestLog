@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ProgressBar = ({ level, experience, userName }) => {
+const ProgressBar = ({ level, experience, userName, isAuthenticated }) => {
   let experienceNeededToLevel = level * 200;
   let barWidth = (experience / experienceNeededToLevel) * 100;
   const remainingXP = experienceNeededToLevel - experience;
@@ -10,7 +10,9 @@ const ProgressBar = ({ level, experience, userName }) => {
       <div className="w-full max-w-2xl p-4">
         <div className="mb-2 flex justify-between items-center">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {userName ? `Welcome ${userName.charAt(0).toUpperCase() + userName.slice(1)}!` : 'Welcome!'} - Level {level}
+            {isAuthenticated && userName ? 
+              `Welcome ${userName.charAt(0).toUpperCase() + userName.slice(1)}!` : 
+              'Welcome!'} - Level {level}
           </span>
           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
             {remainingXP}xp to go!
