@@ -196,7 +196,8 @@ const addTask = async (taskData) => {
     const newTasks = tasksToAdd.map(task => ({
       ...task,
       id: uuidv4(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      label: task.label || null 
     }));
     
     const updatedTasks = [...tasks, ...newTasks];
