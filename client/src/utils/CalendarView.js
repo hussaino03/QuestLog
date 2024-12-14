@@ -122,9 +122,9 @@ const CalendarView = ({ tasks }) => {
               </h3>
               <button
                 onClick={() => setSelectedDay(null)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
               </button>
             </div>
             <div className="p-4">
