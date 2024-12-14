@@ -47,7 +47,8 @@ app.use(cors({
   origin: process.env.CLIENT || 'http://localhost:3000',  
   credentials: true,  // Allow credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization']  // Allowed headers
+  allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
+  exposedHeaders: ['Content-Type', 'Authorization']  // Exposed headers
 }));
 
 // Require passport setup
@@ -58,6 +59,9 @@ const authRoutes = require('./routes/auth/auth.routes');
 const analyticsRoutes = require('./routes/analytics/analytics.routes');
 const todoistRoutes = require('./routes/integrations/todoist/todoist.routes');
 const ticktickRoutes = require('./routes/integrations/ticktick/ticktick.routes');
+
+// Move this before other route handlers
+app.use('/api/ai', require('./routes/ai/ai.routes'));
 
 app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
