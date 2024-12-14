@@ -131,9 +131,17 @@ const Auth = ({ isAuthenticated, onAuthChange, onLogout, handleUserDataLoad}) =>
       {showCookieWarning && (
         <div className="fixed top-0 left-0 right-0 bg-gray-100/90 dark:bg-gray-800/90 p-3 text-center z-[100] shadow-sm border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <p className="text-gray-900 dark:text-white text-sm pr-2">
-              🔐 Having trouble logging in? Cookies might be blocked. Please check your browser settings if login issues persist.
-            </p>
+            <div className="flex flex-col items-start">
+              <p className="text-gray-900 dark:text-white text-sm pr-2">
+                🔐 Having trouble logging in? Cookies might be blocked. Please check your browser settings if login issues persist.
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                By using our service, you agree to our{' '}
+                <a href="/legal/privacy" className="underline hover:text-gray-700 dark:hover:text-gray-300">Privacy Policy</a>
+                {' '}and{' '}
+                <a href="/legal/terms" className="underline hover:text-gray-700 dark:hover:text-gray-300">Terms of Service</a>
+              </p>
+            </div>
             <button 
               onClick={() => setShowCookieWarning(false)}
               className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
