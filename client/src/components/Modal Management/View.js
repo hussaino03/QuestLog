@@ -10,7 +10,8 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
     deadline: task.deadline || '',
     difficulty: task.difficulty,
     importance: task.importance,
-    collaborative: task.collaborative
+    collaborative: task.collaborative,
+    label: task.label || ''  // Add label to edit form
   });
 
   const formatDeadline = (deadline) => {
@@ -203,6 +204,21 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
       {isEditing && showDetails && (
         <div className="p-4 bg-gray-50 dark:bg-gray-900">
           <div className="space-y-4">
+            {/* Label field edit */}
+            <div>
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
+                Label
+              </label>
+              <input
+                type="text"
+                value={editForm.label}
+                onChange={(e) => setEditForm({...editForm, label: e.target.value})}
+                maxLength={15}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
+                         dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
+                         placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
             <div>
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
                 Description

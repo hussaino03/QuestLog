@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CalendarView = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
