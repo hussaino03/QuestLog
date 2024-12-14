@@ -124,7 +124,7 @@ const StreakTracker = ({ completedTasks, today = new Date(), onStreakChange = ()
         </div>
         <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg transition-color duration-200">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest Streak</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">{longestStreak}</p>
+          <p className="text-2xl font-bold" style={{ color: '#77dd77' }}>{longestStreak}</p>
         </div>
       </div>
       

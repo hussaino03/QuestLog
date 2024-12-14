@@ -110,7 +110,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
         ) : (
           <span className="flex-1 min-w-0 text-center text-gray-700 dark:text-gray-200 mx-2 flex items-center justify-center gap-2 flex-wrap">
             <span className="truncate max-w-[200px] sm:max-w-none">{task.name}</span>
-            <div className="inline-flex items-center gap-1.5 flex-shrink-0">
+            <div className="inline-flex items-center justify-center w-full xs:w-auto gap-1.5 flex-wrap xs:flex-nowrap gap-y-2 xs:gap-y-0">
               {task.subtasks && (
                 <span className="inline-flex text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
                              text-blue-600 dark:text-blue-400 rounded-full border 
@@ -126,10 +126,19 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
                 </span>
               )}
               {!isCompleted && task.deadline && isOverdue(task.deadline) && (
-                <span className="inline-flex text-xs px-1.5 py-0.5 bg-red-50 dark:bg-red-500/10 
-                             text-red-600 dark:text-red-400 rounded-full border 
-                             border-red-200 dark:border-red-800 whitespace-nowrap">
+                <span className="inline-flex text-[10px] xs:text-xs px-1 xs:px-1.5 py-0.5 
+                               bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 
+                               rounded-full border border-red-200 dark:border-red-800 
+                               whitespace-nowrap shrink-0">
                   OVERDUE ({calculateOverduePenalty(task.deadline)} XP)
+                </span>
+              )}
+              {isCompleted && task.earlyBonus > 0 && (
+                <span className="inline-flex text-[10px] xs:text-xs px-1 xs:px-1.5 py-0.5 
+                               bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 
+                               rounded-full border border-green-200 dark:border-green-800 
+                               whitespace-nowrap shrink-0">
+                  BONUS (+{task.earlyBonus} XP)
                 </span>
               )}
             </div>

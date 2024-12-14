@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 const CalendarView = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDayTasks, setSelectedDayTasks] = useState([]);
   const tasksWithDeadlines = tasks.filter(task => task.deadline);
 
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -30,6 +32,14 @@ const CalendarView = ({ tasks }) => {
     if (!day) return [];
     const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0];
     return tasksWithDeadlines.filter(task => task.deadline === dateStr);
+  };
+
+  const handleDayClick = (day) => {
+    if (!day) return;
+    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0];
+    const tasksForDay = tasksWithDeadlines.filter(task => task.deadline === dateStr);
+    setSelectedDay(day);
+    setSelectedDayTasks(tasksForDay);
   };
 
   return (
@@ -68,10 +78,13 @@ const CalendarView = ({ tasks }) => {
             return (
               <div 
                 key={`${i}-${j}`} 
+                onClick={() => day && handleDayClick(day)}
                 className={`
                   min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border dark:border-gray-700 rounded-lg
-                  ${!day ? 'invisible' : ''}
+                  ${!day ? 'invisible' : 'cursor-pointer'}
                   ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
+                  ${day ? 'hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-sm transition-all duration-200' : ''}
+                  ${dayTasks.length > 0 ? 'hover:scale-[1.02]' : ''}
                 `}
               >
                 {day && (
@@ -97,6 +110,45 @@ const CalendarView = ({ tasks }) => {
           })
         ))}
       </div>
+
+      {/* Day Detail Modal */}
+      {selectedDay && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {new Date(currentDate.getFullYear(), currentDate.getMonth(), selectedDay)
+                  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              </h3>
+              <button
+                onClick={() => setSelectedDay(null)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+            <div className="p-4">
+              {selectedDayTasks.length > 0 ? (
+                <div className="space-y-3">
+                  {selectedDayTasks.map(task => (
+                    <div 
+                      key={task.id}
+                      className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    >
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">{task.name}</h4>
+                      {task.desc && (
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{task.desc}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 dark:text-gray-400">No tasks due on this day</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
