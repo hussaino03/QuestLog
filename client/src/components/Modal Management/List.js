@@ -3,7 +3,7 @@ import Task from './View';
 import CalendarView from '../../utils/CalendarView';
 import { LayoutList, Calendar, PlusCircle, FolderPlus, ArrowUpDown } from 'lucide-react';
 
-const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, updateTask }) => {
+const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, updateTask, isAuthenticated }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks'); 
@@ -259,6 +259,7 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                       completeTask={completeTask}
                       isCompleted={isCompleted}
                       updateTask={updateTask}
+                      isAuthenticated={isAuthenticated}
                     />
                   ))}
                 </ul>
@@ -329,6 +330,7 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                         completeTask={completeTask}
                         isCompleted={isCompleted}
                         updateTask={updateTask}
+                        isAuthenticated={isAuthenticated}
                       />
                     ))}
                   </ul>
