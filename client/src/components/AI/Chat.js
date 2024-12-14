@@ -63,7 +63,7 @@ const Chat = ({ isOpen, onClose, isAuthenticated }) => {
       .slice(-2);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/ai/chat`, {
+      const response = await fetch(`${process.env.REACT_APP_PROD || 'http://localhost:3001'}/api/ai/chat`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
