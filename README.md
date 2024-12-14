@@ -19,6 +19,7 @@ QuestLog is a gamified productivity platform that turns your tasks and projects 
 - Toggle between List View & Calendar View
 - Displays XP Progression chart, & other key analytics for authenticated users
 - Add labels to your tasks/projects so you can easily sort them by labels. Another sorting option is due date
+- Built-in Pomodoro feature for specific tasks/projects, currently only for authenticated users
  
 ## ⚙️ Integrations
 
