@@ -25,6 +25,8 @@ const PrivacyPolicy = () => {
               <li>Task data: Your tasks, deadlines, and completion status</li>
               <li>Game data: XP, levels, badges, and achievements</li>
               <li>Usage data: Task completion patterns and activity metrics</li>
+              <li>AI Assistant Data: Task completion patterns and productivity metrics for personalized insights</li>
+              <li>Chat History: Conversations with the AI productivity assistant</li>
             </ul>
           </div>
         </section>
@@ -74,14 +76,28 @@ const PrivacyPolicy = () => {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4">5. Contact</h2>
+          <h2 className="text-xl font-semibold mb-4">5. AI Assistant & Data Processing</h2>
+          <div className="legal-content pl-4">
+            <p className="mb-4">Our AI productivity assistant:</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Uses Google's Gemini Pro LLM to process your productivity data</li>
+              <li>Only receives anonymized task completion statistics</li>
+              <li>Does not store conversation history permanently</li>
+              <li>Processes data in compliance with Google's AI principles</li>
+              <li>Cannot access personal task details or sensitive information</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-4">6. Contact</h2>
           <div className="legal-content pl-4">
             <p className="mb-4">For privacy concerns or questions, please contact us through our GitHub repository.</p>
           </div>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4">6. Data Protection Rights</h2>
+          <h2 className="text-xl font-semibold mb-4">7. Data Protection Rights</h2>
           <div className="legal-content pl-4">
             <p className="mb-4">You have the following data protection rights:</p>
             <ul className="list-disc pl-6 space-y-2">
