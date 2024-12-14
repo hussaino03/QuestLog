@@ -475,6 +475,7 @@ const clearAllData = async () => {
                                 isCompleted={false}
                                 addTask={addTask}  
                                 updateTask={updateTask}  
+                                isAuthenticated={isAuthenticated}  
                               />
                             )}
                             {currentView === 'completed' && (

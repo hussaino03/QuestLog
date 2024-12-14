@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import PomodoroTimer from '../Timer/PomodoroTimer'; 
 
-const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
+const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthenticated }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -10,8 +11,10 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
     deadline: task.deadline || '',
     difficulty: task.difficulty,
     importance: task.importance,
-    collaborative: task.collaborative
+    collaborative: task.collaborative,
+    label: task.label || ''  
   });
+  const [showPomodoro, setShowPomodoro] = useState(false);
 
   const formatDeadline = (deadline) => {
     if (!deadline) return '';
@@ -25,7 +28,6 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
   const isOverdue = (deadline) => {
     if (!deadline) return false;
     
-    // Parse the deadline string into year, month, day components
     const [year, month, day] = deadline.split('-').map(Number);
     const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
     
@@ -203,6 +205,21 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
       {isEditing && showDetails && (
         <div className="p-4 bg-gray-50 dark:bg-gray-900">
           <div className="space-y-4">
+            {/* Label field edit */}
+            <div>
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
+                Label
+              </label>
+              <input
+                type="text"
+                value={editForm.label}
+                onChange={(e) => setEditForm({...editForm, label: e.target.value})}
+                maxLength={15}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
+                         dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
+                         placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
             <div>
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
                 Description
@@ -242,6 +259,37 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
         } overflow-hidden`}
       >
         <div className="px-4 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
+          {!isCompleted && (
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">
+              <button
+                onClick={() => setShowPomodoro(!showPomodoro)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg 
+                         text-gray-600 dark:text-gray-300 hover:bg-gray-100 
+                         dark:hover:bg-gray-800 transition-colors"
+              >
+                <span className="text-lg">⏱️</span>
+                <span className="text-sm font-medium">
+                  {showPomodoro ? 'Hide Timer' : 'Focus Timer'}
+                </span>
+              </button>
+            </div>
+          )}
+          
+          {showPomodoro && !isCompleted && (
+            <div className="mb-4 p-3 bg-white dark:bg-gray-800 rounded-lg border 
+                          border-gray-200 dark:border-gray-700">
+              {isAuthenticated ? (
+                <PomodoroTimer taskName={task.name} />
+              ) : (
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p className="p-4 text-sm text-red-600 dark:text-red-400">
+                    Please sign in to use Focus Timer
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {task.subtasks ? (
             // Project View Details
             <>
