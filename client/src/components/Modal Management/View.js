@@ -28,7 +28,6 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthe
   const isOverdue = (deadline) => {
     if (!deadline) return false;
     
-    // Parse the deadline string into year, month, day components
     const [year, month, day] = deadline.split('-').map(Number);
     const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
     
