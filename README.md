@@ -3,7 +3,7 @@
 ![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-170-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-268,838-red?logo=zap&logoColor=white)
 <!-- These values update automatically every 1st and 15th of the month -->
 
-QuestLog is a gamified productivity platform that turns your tasks and projects into achievement-driven experiences. Built with React and MongoDB, it enhances work management through XP points, levels, and badges while integrating seamlessly with different app integrations!
+QuestLog is a AI-powered gamified productivity platform that turns your tasks and projects into achievement-driven experiences. Built with React and MongoDB, it enhances work management through XP points, levels, and badges while integrating seamlessly with different app integrations!
 
 ## ✨ Key Features
 - Transform tasks/projects into rewarding quests
@@ -20,7 +20,21 @@ QuestLog is a gamified productivity platform that turns your tasks and projects 
 - Displays XP Progression chart, & other key analytics for authenticated users
 - Add labels to your tasks/projects so you can easily sort them by labels. Another sorting option is due date
 - Built-in Pomodoro feature for specific tasks/projects, currently only for authenticated users
- 
+
+## Productivity Assistant
+
+- Integrated with Google's Gemini Pro LLM
+- Provides personalized productivity insights
+- Analyzes task completion patterns
+- Offers contextual advice based on:
+  - Task completion rates
+  - Recent accomplishments
+  - XP progression
+  - Performance trends
+- Maintains conversation context
+- Privacy-focused task analysis
+- Accessible via chat interface
+
 ## ⚙️ Integrations
 
 _Tasks will be imported with default XP settings_
