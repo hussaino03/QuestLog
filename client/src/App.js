@@ -75,12 +75,15 @@ const handleUserDataLoad = (userData) => {
   const serverXP = typeof userData.xp === 'number' ? userData.xp : 0;
   const mergedXP = localXP + serverXP;
   
-  // Clear localStorage after successful merge
+  // Set authenticated state first
+  setIsAuthenticated(true);
+  
+  // Then update XP and clear storage
+  setTotalExperience(mergedXP);
   localStorage.removeItem('totalExperience');
   localStorage.removeItem('tasks');
   localStorage.removeItem('completedtasks');
-  
-  setTotalExperience(mergedXP);
+
   setTasks(mergedTasks);
   setCompletedTasks(mergedCompletedTasks);
   
