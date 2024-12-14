@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import Task from './View';
 import CalendarView from '../../utils/CalendarView';
-import { LayoutList, Calendar, PlusCircle, FolderPlus } from 'lucide-react';
+import { LayoutList, Calendar, PlusCircle, FolderPlus, ArrowUpDown } from 'lucide-react';
 
 const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, updateTask }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks'); 
   const [showAllCompleted, setShowAllCompleted] = useState(false);
+  const [sortMethod, setSortMethod] = useState('date'); // 'date' or 'label'
 
   const handleQuickAdd = (e) => {
     if (e.key === 'Enter' && quickTaskInput.trim()) {
@@ -34,48 +35,76 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
     return acc;
   }, { regularTasks: [], projects: [] });
 
+  const getSortedTasks = (tasksToSort) => {
+    if (sortMethod === 'label') {
+      // When sorting by label, only consider labels - ignore deadlines completely
+      return [...tasksToSort].sort((a, b) => {
+        if (a.label && !b.label) return -1;  // a has label, b doesn't -> a goes first
+        if (!a.label && b.label) return 1;   // b has label, a doesn't -> b goes first
+        if (a.label && b.label) return a.label.localeCompare(b.label); // both have labels -> alphabetical
+        return 0; // neither has labels -> keep original order
+      });
+    }
+    
+    return [...tasksToSort].sort((a, b) => {
+      if (!a.deadline && !b.deadline) return 0;
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return new Date(a.deadline) - new Date(b.deadline);
+    });
+  };
+
   // Sort tasks based on active tab
   const itemsToDisplay = activeTab === 'tasks' ? regularTasks : projects;
-  const sortedTasks = [...itemsToDisplay].sort((a, b) => {
-    // Tasks without deadlines go last
-    if (!a.deadline && !b.deadline) return 0;
-    if (!a.deadline) return 1;
-    if (!b.deadline) return -1;
-    return new Date(a.deadline) - new Date(b.deadline);
-  });
+  const sortedTasks = getSortedTasks(itemsToDisplay);
 
-  // Group tasks by date
+  // Group tasks by date OR label depending on sort method
   const groupedTasks = sortedTasks.reduce((groups, task) => {
-    if (!task.deadline) {
-      if (!groups['No due date']) groups['No due date'] = [];
-      groups['No due date'].push(task);
+    if (sortMethod === 'label') {
+      if (task.label) {
+        // Group labeled tasks by their label
+        const groupKey = task.label;
+        if (!groups[groupKey]) groups[groupKey] = [];
+        groups[groupKey].push(task);
+      } else {
+        // For unlabeled tasks, use "Unlabeled" as group key
+        if (!groups['Unlabeled']) groups['Unlabeled'] = [];
+        groups['Unlabeled'].push(task);
+      }
     } else {
-      const dateObj = new Date(task.deadline);
-      const userTimezoneOffset = dateObj.getTimezoneOffset() * 60000;
-      const adjustedDate = new Date(dateObj.getTime() + userTimezoneOffset);
-      
-      const date = adjustedDate.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(task);
+      if (!task.deadline) {
+        if (!groups['No due date']) groups['No due date'] = [];
+        groups['No due date'].push(task);
+      } else {
+        const dateObj = new Date(task.deadline);
+        const userTimezoneOffset = dateObj.getTimezoneOffset() * 60000;
+        const adjustedDate = new Date(dateObj.getTime() + userTimezoneOffset);
+        
+        const date = adjustedDate.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(task);
+      }
     }
     return groups;
   }, {});
 
-  const sortedGroups = Object.entries(groupedTasks).sort(([dateA], [dateB]) => {
-    if (dateA === 'No due date') return 1;
-    if (dateB === 'No due date') return -1;
-    if (dateA !== 'No due date' && dateB !== 'No due date') {
-      // Convert the formatted dates back to timestamps for comparison
-      const dateAObj = new Date(dateA);
-      const dateBObj = new Date(dateB);
-      return dateAObj - dateBObj;
+  const sortedGroups = Object.entries(groupedTasks).sort(([keyA], [keyB]) => {
+    if (sortMethod === 'label') {
+      // Put "Unlabeled" group last, sort other labels alphabetically
+      if (keyA === 'Unlabeled') return 1;
+      if (keyB === 'Unlabeled') return -1;
+      return keyA.localeCompare(keyB);
+    } else {
+      // Original date sorting logic
+      if (keyA === 'No due date') return 1;
+      if (keyB === 'No due date') return -1;
+      return new Date(keyA) - new Date(keyB);
     }
-    return 0;
   });
 
   const COMPLETED_TASKS_LIMIT = 3;
@@ -161,27 +190,48 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                 </button>
               </div>
 
-              <button
-                onClick={() => setIsCalendarView(!isCalendarView)}
-                className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
-                         bg-gray-100 dark:bg-gray-700
-                         text-gray-600 dark:text-gray-400 
-                         hover:text-gray-900 dark:hover:text-gray-200
-                         transition-all duration-200 ease-in-out
-                         flex items-center gap-1.5 sm:gap-2"
-              >
-                {isCalendarView ? (
-                  <>
-                    <LayoutList className="w-4 h-4" />
-                    <span className="hidden xs:inline text-xs sm:text-sm">List</span>
-                  </>
-                ) : (
-                  <>
-                    <Calendar className="w-4 h-4" />
-                    <span className="hidden xs:inline text-xs sm:text-sm">Calendar</span>
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setSortMethod(sortMethod === 'date' ? 'label' : 'date')}
+                    className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
+                             bg-gray-100 dark:bg-gray-700
+                             text-gray-600 dark:text-gray-400 
+                             hover:text-gray-900 dark:hover:text-gray-200
+                             transition-all duration-200 ease-in-out
+                             flex items-center gap-1.5 sm:gap-2"
+                  >
+                    <ArrowUpDown className="w-4 h-4" />
+                    <span className="hidden xs:inline">
+                      Sort by {sortMethod === 'date' ? 'Label' : 'Due Date'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Calendar/List View Toggle */}
+                <button
+                  onClick={() => setIsCalendarView(!isCalendarView)}
+                  className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
+                           bg-gray-100 dark:bg-gray-700
+                           text-gray-600 dark:text-gray-400 
+                           hover:text-gray-900 dark:hover:text-gray-200
+                           transition-all duration-200 ease-in-out
+                           flex items-center gap-1.5 sm:gap-2"
+                >
+                  {isCalendarView ? (
+                    <>
+                      <LayoutList className="w-4 h-4" />
+                      <span className="hidden xs:inline text-xs sm:text-sm">List</span>
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-4 h-4" />
+                      <span className="hidden xs:inline text-xs sm:text-sm">Calendar</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </>
         ) : (

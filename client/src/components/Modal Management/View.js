@@ -108,20 +108,31 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
             />
           </form>
         ) : (
-          <span className="flex-1 min-w-0 text-center text-gray-700 dark:text-gray-200 mx-2 break-words">
-            {task.name}
-            {task.subtasks && (
-              <span className="ml-2 text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
+          <span className="flex-1 min-w-0 text-center text-gray-700 dark:text-gray-200 mx-2 flex items-center justify-center gap-2 flex-wrap">
+            <span className="truncate max-w-[200px] sm:max-w-none">{task.name}</span>
+            <div className="inline-flex items-center gap-1.5 flex-shrink-0">
+              {task.subtasks && (
+                <span className="inline-flex text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
                              text-blue-600 dark:text-blue-400 rounded-full border 
-                             border-blue-200 dark:border-blue-800">
-                Project
-              </span>
-            )}
-            {!isCompleted && task.deadline && isOverdue(task.deadline) && (
-              <span className="ml-2 text-red-500 text-sm">
-                OVERDUE ({calculateOverduePenalty(task.deadline)} XP)
-              </span>
-            )}
+                             border-blue-200 dark:border-blue-800 whitespace-nowrap">
+                  Project
+                </span>
+              )}
+              {task.label && (
+                <span className="inline-flex text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
+                             text-blue-600 dark:text-blue-400 rounded-full border 
+                             border-blue-200 dark:border-blue-800 whitespace-nowrap">
+                  {task.label}
+                </span>
+              )}
+              {!isCompleted && task.deadline && isOverdue(task.deadline) && (
+                <span className="inline-flex text-xs px-1.5 py-0.5 bg-red-50 dark:bg-red-500/10 
+                             text-red-600 dark:text-red-400 rounded-full border 
+                             border-red-200 dark:border-red-800 whitespace-nowrap">
+                  OVERDUE ({calculateOverduePenalty(task.deadline)} XP)
+                </span>
+              )}
+            </div>
           </span>
         )}
 

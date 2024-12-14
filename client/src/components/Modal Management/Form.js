@@ -10,8 +10,11 @@ const TaskForm = ({ addTask }) => {
     difficulty: 50,
     importance: 50,
     deadline: '',
-    collaborative: false
+    collaborative: false,
+    label: '' 
   };
+
+  const MAX_LABEL_LENGTH = 15; 
 
   const [formState, setFormState] = useState(defaultFormState);
   const [selectedDeadline, setSelectedDeadline] = useState(null); 
@@ -43,6 +46,7 @@ const TaskForm = ({ addTask }) => {
       importance: formState.importance,
       deadline: formState.deadline || null,
       collaborative: formState.collaborative,  
+      label: formState.label || null,  
       experience: (
         (parseInt(formState.difficulty) + parseInt(formState.importance) + 20) * 5 + 
         parseInt(parseInt(formState.difficulty) * parseInt(formState.importance) / 20) +
@@ -413,6 +417,37 @@ const TaskForm = ({ addTask }) => {
                   />
                 </div>
                 
+                {/* Label Input */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Label <span className="text-xs text-gray-400">{MAX_LABEL_LENGTH - formState.label.length} characters remaining</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Label your tasks for easy sorting"
+                      value={formState.label}
+                      onChange={(e) => {
+                        const newValue = e.target.value.slice(0, MAX_LABEL_LENGTH);
+                        updateFormState('label', newValue);
+                      }}
+                      maxLength={MAX_LABEL_LENGTH}
+                      className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 
+                               dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
+                               placeholder-gray-500 dark:placeholder-gray-400"
+                    />
+                    {formState.label && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
+                                     text-blue-600 dark:text-blue-400 rounded-full border 
+                                     border-blue-200 dark:border-blue-800 text-xs">
+                          {formState.label}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Description section */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
