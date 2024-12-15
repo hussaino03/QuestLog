@@ -24,6 +24,7 @@ import Footer from './components/Layout/Footer';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import PrivacyPolicy from './legal/PrivacyPolicy';
 import TermsOfService from './legal/TermsOfService';
+import { startConfetti } from './utils/confettiEffect';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
@@ -234,6 +235,7 @@ const addTask = async (taskData) => {
 
 const completeTask = async (task) => {
   try {
+    startConfetti();
     const updatedTasks = tasks.filter(t => t.id !== task.id);
     const completedTask = {
       ...task,
