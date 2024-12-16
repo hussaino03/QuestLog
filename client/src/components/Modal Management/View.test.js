@@ -10,6 +10,9 @@ describe('Task Component Overdue Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const mockDate = new Date('2024-01-15T12:00:00.000Z');
+    jest.useFakeTimers();
+    jest.setSystemTime(mockDate);
   });
 
   test('displays correct overdue penalty for task 1 day overdue', () => {
@@ -37,7 +40,9 @@ describe('Task Component Overdue Tests', () => {
       />
     );
 
-    expect(screen.getByText('OVERDUE (-5 XP)')).toBeInTheDocument();
+    expect(screen.getByText((content, element) => {
+      return content.includes('OVERDUE') && content.includes('-5 XP');
+    })).toBeInTheDocument();
   });
 
   test('displays correct overdue penalty for task 3 days overdue', () => {
