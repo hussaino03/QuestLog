@@ -259,8 +259,9 @@ describe('XPManager Hook Tests', () => {
 describe('Timezone-aware Overdue Tests', () => {
   beforeEach(() => {
     localStorage.clear();
-    // Reset to midnight UTC
+    const mockDate = new Date('2024-01-15T12:00:00.000Z');
     jest.useFakeTimers();
+    jest.setSystemTime(mockDate);
   });
 
   afterEach(() => {
