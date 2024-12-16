@@ -8,6 +8,18 @@ const Chat = ({ isOpen, onClose, isAuthenticated }) => {
   const messagesEndRef = useRef(null);
   const modalRef = useRef(null);
 
+  const commonPrompts = [
+    "How am I doing with my tasks today?",
+    "What's my productivity trend?",
+    "Tips to improve my task completion rate",
+    "Show me my recent achievements"
+  ];
+
+  const handlePromptClick = (prompt) => {
+    setMessage(prompt);
+    sendMessage(null, prompt);
+  };
+
   // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -47,13 +59,14 @@ const Chat = ({ isOpen, onClose, isAuthenticated }) => {
     };
   }, [isOpen, onClose]);
 
-  const sendMessage = async (e) => {
+  const sendMessage = async (e, promptOverride = null) => {
     e?.preventDefault();
     
-    if (!message.trim() || isLoading) return;
+    const messageToSend = promptOverride || message;
+    if (!messageToSend.trim() || isLoading) return;
     
     setIsLoading(true);
-    const userMessage = message.trim();
+    const userMessage = messageToSend.trim();
     setMessage('');
     setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
     
@@ -157,6 +170,26 @@ const Chat = ({ isOpen, onClose, isAuthenticated }) => {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length === 0 && (
+            <div className="space-y-4">
+              <p className="text-center text-gray-600 dark:text-gray-400">
+                Choose a prompt or type your own message
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                {commonPrompts.map((prompt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handlePromptClick(prompt)}
+                    className="text-left px-4 py-2 rounded-lg border border-gray-200 
+                             dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 
+                             transition-colors text-gray-800 dark:text-gray-200"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {messages.map((msg, idx) => (
             <div
               key={idx}
