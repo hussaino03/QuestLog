@@ -6,7 +6,7 @@ const { ObjectId } = require('mongodb');
 console.log('Initializing Gemini AI model...');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
-  model: "gemini-1.5-pro",  
+  model: "gemini-2.0-flash-exp",  
   safetySettings: [
     {
       category: "HARM_CATEGORY_HARASSMENT",
@@ -77,6 +77,7 @@ async function getUserStats(userId) {
           title: task.title || task.name || 'Untitled Task', 
           experience: task.experience || 0,
           completedAt: new Date(task.completedAt).toLocaleDateString(),
+          deadline: task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline',
           earlyBonus: task.earlyBonus || 0,
           overduePenalty: task.overduePenalty || 0
         };
@@ -165,7 +166,7 @@ async function chatWithAI(req, res) {
 
     Recent Task Completions:
     ${stats.recentCompletions.map(task => 
-      `- "${task.title}" completed on ${task.completedAt} (${task.experience}XP${
+      `- "${task.title}" completed on ${task.completedAt} (deadline: ${task.deadline}) (${task.experience}XP${
         task.earlyBonus ? ` +${task.earlyBonus} bonus` : ''}${
         task.overduePenalty ? ` ${task.overduePenalty} penalty` : ''
       })`
