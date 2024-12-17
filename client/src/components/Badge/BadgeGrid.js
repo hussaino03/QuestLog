@@ -37,6 +37,132 @@ export const BADGES = {
     icon: '✅',
     description: 'Complete 20 tasks',
     tasksRequired: 20
+  },
+  TASK_MASTER: {
+    id: 'task_master',
+    name: 'Task Master',
+    icon: '👑',
+    description: 'Complete 50 tasks',
+    tasksRequired: 50
+  },
+  DEDICATION: {
+    id: 'dedication',
+    name: 'Dedication',
+    icon: '💪',
+    description: 'Reach a 10-day streak',
+    streakRequired: 10
+  },
+  ELITE: {
+    id: 'elite',
+    name: 'Elite',
+    icon: '🏆',
+    description: 'Reach level 25',
+    level: 25
+  },
+  LEGENDARY: {
+    id: 'legendary',
+    name: 'Legendary',
+    icon: '⚡',
+    description: 'Complete 100 tasks',
+    tasksRequired: 100
+  },
+  UNSTOPPABLE: {
+    id: 'unstoppable',
+    name: 'Unstoppable',
+    icon: '🔱',
+    description: 'Reach a 30-day streak',
+    streakRequired: 30
+  },
+  EARLY_BIRD: {
+    id: 'early_bird',
+    name: 'Early Bird',
+    icon: '🌅',
+    description: 'Complete 5 tasks before their deadline',
+    earlyCompletions: 5
+  },
+  NIGHT_OWL: {
+    id: 'night_owl',
+    name: 'Night Owl',
+    icon: '🦉',
+    description: 'Complete 5 tasks between 10 PM and 4 AM',
+    nightCompletions: 5
+  },
+  MULTITASKER: {
+    id: 'multitasker',
+    name: 'Multitasker',
+    icon: '🎯',
+    description: 'Complete 3 tasks in one day',
+    tasksPerDay: 3
+  },
+  WEEKEND_WARRIOR: {
+    id: 'weekend_warrior',
+    name: 'Weekend Warrior',
+    icon: '⚔️',
+    description: 'Complete 10 tasks during weekends',
+    weekendCompletions: 10
+  },
+  PERFECTIONIST: {
+    id: 'perfectionist',
+    name: 'Perfectionist',
+    icon: '💎',
+    description: 'Complete 10 tasks exactly on their deadline',
+    exactDeadlines: 10
+  },
+  MASTER_OF_TIME: {
+    id: 'master_of_time',
+    name: 'Time Lord',
+    icon: '⌛',
+    description: 'Complete 25 tasks before their deadline',
+    earlyCompletions: 25
+  },
+  NIGHT_CHAMPION: {
+    id: 'night_champion',
+    name: 'Night Champion',
+    icon: '🌙',
+    description: 'Complete 15 tasks between 10 PM and 4 AM',
+    nightCompletions: 15
+  },
+  PRODUCTIVITY_KING: {
+    id: 'productivity_king',
+    name: 'Productivity King',
+    icon: '👨‍💼',
+    description: 'Complete 5 tasks in one day',
+    tasksPerDay: 5
+  },
+  WEEKEND_MASTER: {
+    id: 'weekend_master',
+    name: 'Weekend Master',
+    icon: '🎯',
+    description: 'Complete 50 tasks during weekends',
+    weekendCompletions: 50
+  },
+  GRANDMASTER: {
+    id: 'grandmaster',
+    name: 'Grandmaster',
+    icon: '🎭',
+    description: 'Reach level 100',
+    level: 100
+  },
+  MARATHON_RUNNER: {
+    id: 'marathon_runner',
+    name: 'Marathon Runner',
+    icon: '🏃',
+    description: 'Reach a 100-day streak',
+    streakRequired: 100
+  },
+  TASK_EMPEROR: {
+    id: 'task_emperor',
+    name: 'Task Emperor',
+    icon: '👑',
+    description: 'Complete 1000 tasks',
+    tasksRequired: 1000
+  },
+  ULTIMATE_CHAMPION: {
+    id: 'ultimate_champion',
+    name: 'Ultimate Champion',
+    icon: '🏅',
+    description: 'Complete 50 tasks before their deadline',
+    earlyCompletions: 50
   }
 };
 
