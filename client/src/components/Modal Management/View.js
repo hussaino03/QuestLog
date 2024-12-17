@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PomodoroTimer from '../Timer/PomodoroTimer'; 
 
 const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthenticated }) => {
@@ -15,6 +15,21 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthe
     label: task.label || ''  
   });
   const [showPomodoro, setShowPomodoro] = useState(false);
+  const [isTextTruncated, setIsTextTruncated] = useState(false);
+  const [showFullNameModal, setShowFullNameModal] = useState(false);
+  const textRef = useRef(null);
+
+  useEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTextTruncated(textRef.current.scrollWidth > textRef.current.offsetWidth);
+      }
+    };
+
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [task.name]);
 
   const formatDeadline = (deadline) => {
     if (!deadline) return '';
@@ -111,7 +126,26 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthe
           </form>
         ) : (
           <span className="flex-1 min-w-0 text-center text-gray-700 dark:text-gray-200 mx-2 flex items-center justify-center gap-2 flex-wrap">
-            <span className="truncate max-w-[200px] sm:max-w-none">{task.name}</span>
+            <span className="relative flex items-center max-w-full">
+              <span ref={textRef} className="truncate max-w-[150px] xs:max-w-[180px] sm:max-w-none">
+                {task.name}
+              </span>
+              {isTextTruncated && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFullNameModal(true);
+                  }}
+                     className="ml-0.5 inline-flex items-center justify-center text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex-shrink-0"
+                >
+                  <span className="sr-only">View full name</span>
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+              )}
+            </span>
             <div className="inline-flex items-center justify-center w-full xs:w-auto gap-1.5 flex-wrap xs:flex-nowrap gap-y-2 xs:gap-y-0">
               {task.subtasks && (
                 <span className="inline-flex text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
@@ -380,6 +414,35 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthe
           )}
         </div>
       </div>
+
+      {showFullNameModal && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 
+                     flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setShowFullNameModal(false)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full 
+                       shadow-2xl transform scale-100 animate-modalSlide"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Task Name</h2>
+              <button 
+                onClick={() => setShowFullNameModal(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+              >
+                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-700 dark:text-gray-300 break-words">{task.name}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </li>
   );
 };
