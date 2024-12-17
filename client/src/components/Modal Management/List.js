@@ -306,7 +306,9 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
       {/* Completed tasks modal */}
       {showAllCompleted && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto
+                      scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600
+                      scrollbar-track-transparent">
             <div className="flex justify-end items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowAllCompleted(false)}

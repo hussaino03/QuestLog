@@ -182,12 +182,17 @@ useEffect(() => {
 }, [userId, tasks, completedTasks, experience, level, unlockedBadges]); // eslint-disable-line react-hooks/exhaustive-deps
 
 useEffect(() => {
-  const newUnlockedBadges = checkBadgeUnlocks(level, currentStreak, completedTasks.length);
+  const newUnlockedBadges = checkBadgeUnlocks(
+    level, 
+    currentStreak, 
+    completedTasks.length,
+    completedTasks 
+  );
   
   if (JSON.stringify(newUnlockedBadges) !== JSON.stringify(unlockedBadges)) {
     setUnlockedBadges(newUnlockedBadges);
   }
-}, [level, currentStreak, completedTasks.length, unlockedBadges]);
+}, [level, currentStreak, completedTasks, unlockedBadges]);
 
 const handleStreakChange = (streak) => {
   setCurrentStreak(streak);
