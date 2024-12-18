@@ -255,26 +255,11 @@ const completeTask = async (task) => {
     completedTask.earlyBonus = xpResult.earlyBonus;
     completedTask.overduePenalty = xpResult.overduePenalty;
 
+    // Batch state update to be updated in a single render
     setTasks(updatedTasks);
     setCompletedTasks(updatedCompletedTasks);
 
-    if (userId) {
-      // For authenticated users, only update server
-      await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          xp: getTotalXP(),
-          level: level,
-          tasksCompleted: updatedCompletedTasks.length,
-          tasks: updatedTasks,
-          completedTasks: updatedCompletedTasks
-        }),
-      });
-    } else {
+    if(!userId) {
       // For unauthenticated users, use localStorage
       localStorage.setItem('tasks', JSON.stringify(updatedTasks));
       localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
