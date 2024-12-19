@@ -1,7 +1,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { getCommunityXP } = require('./analytics.controller');
+const { getCommunityXP } = require('../../controllers/analytics/analytics.controller');
 
 router.get('/', getCommunityXP);
 
