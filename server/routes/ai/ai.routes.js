@@ -1,7 +1,7 @@
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const router = express.Router();
-const { getProductivityInsights, chatWithAI } = require('./ai.controller');
+const { getProductivityInsights, chatWithAI } = require('../../controllers/ai/ai.controller');
 const { authenticateToken } = require('../../middleware/auth');
 
 // Add health check endpoint

@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import useXPManager from './XPManager';
+import useXPManager from '../XPManager';
 
 describe('XPManager Hook Tests', () => {
   test('Level up from 41 to 42 with correct XP', async () => {

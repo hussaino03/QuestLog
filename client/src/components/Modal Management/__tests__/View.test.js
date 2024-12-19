@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Task from './View';
+import Task from '../View';
 
 describe('Task Component Overdue Tests', () => {
   const mockRemoveTask = jest.fn();

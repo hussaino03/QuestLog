@@ -4,7 +4,7 @@ const {
   updateUser, 
   getUser, 
   updateOptInStatus 
-} = require('./users.controller');
+} = require('../../controllers/users/users.controller');
 const { authenticateToken, verifyOwnership } = require('../../middleware/auth');
 
 router.put('/:id', authenticateToken, verifyOwnership, updateUser);
