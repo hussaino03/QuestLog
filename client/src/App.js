@@ -1,8 +1,9 @@
 import './styles/globals.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
-import { v4 as uuidv4 } from 'uuid';
 import { Analytics } from '@vercel/analytics/react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Header from './components/Layout/Header';
 import ProgressBar from './components/XP Management/ProgressBar';
 import TaskButtons from './components/Modal Management/Buttons';
@@ -14,19 +15,18 @@ import Leaderboard from './components/Leaderboard/Leaderboard';
 import useXPManager from './services/xp/XPManager';
 import AppControls from './components/Controls/AppControls';
 import Auth from './components/Auth/Auth';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/XP Management/ClearDataModal';
-import { validateUserId } from './services/validationservice';
 import BadgeGrid from './components/Badge/BadgeGrid';
-import { checkBadgeUnlocks } from './utils/badgeManager';
 import Footer from './components/Layout/Footer';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PrivacyPolicy from './legal/PrivacyPolicy';
 import TermsOfService from './legal/TermsOfService';
-import { startConfetti } from './utils/confettiEffect';
 import Landing from './components/Landing/Landing';
-
-const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
+import TaskManager from './services/task/TaskManager';
+import DataManager from './services/user/DataManager';
+import ThemeManager from './services/theme/ThemeManager';
+import StreakManager from './services/streak/StreakManager';
+import ViewManager from './services/view/ViewManager';
+import BadgeManager from './services/badge/BadgeManager';
 
 const App = () => {
   const [isDark, setIsDark] = useState(false);
@@ -42,22 +42,7 @@ const App = () => {
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);  
   const [currentStreak, setCurrentStreak] = useState(0);
   const [loading, setLoading] = useState(true);
-
-const handleAuthChange = (id) => {
-  // sets userid when authentication is successful 
-  setUserId(id);
-};
-
-const handleUserDataLoad = (userData) => {
-  if (!userData) return;
-  
-  setUserId(userData.userId);
-  setTotalExperience(userData.xp || 0);
-  setTasks(userData.tasks || []);
-  setCompletedTasks(userData.completedTasks || []);
-  setUserName(userData.name || null);
-  setUnlockedBadges(userData.unlockedBadges || []);
-};
+  const [streakData, setStreakData] = useState({ current: 0, longest: 0 });
 
   const {
     level,
@@ -71,213 +56,74 @@ const handleUserDataLoad = (userData) => {
     setTotalExperience
   } = useXPManager();
 
+  const dataManager = new DataManager({
+    setUserId,
+    setTotalExperience,
+    setTasks,
+    setCompletedTasks,
+    setUserName,
+    setUnlockedBadges,
+    setError,
+    resetXP
+  });
+
+  const taskManager = new TaskManager(
+    calculateXP,
+    setTasks,
+    setCompletedTasks,
+    setError
+  );
+
+  const themeManager = useMemo(() => new ThemeManager(setIsDark), []);
+  const streakManager = useMemo(() => new StreakManager(setCurrentStreak), []);
+  const viewManager = useMemo(() => new ViewManager(setShowCompleted, setCurrentView), []);
+  const badgeManager = useMemo(() => new BadgeManager(setUnlockedBadges), []);
+
   useEffect(() => {
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
+    themeManager.initializeTheme();
+  }, [themeManager]);
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    if (!isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    themeManager.toggleTheme(isDark);
   };
 
-  const toggleView = () => {
-    setShowCompleted(!showCompleted);
-    setCurrentView(!showCompleted ? 'completed' : 'todo');
-  };
-
-
-useEffect(() => {
-  if (!userId) return;
-
-  const updateUserData = async () => {
-    try {
-      validateUserId(userId);
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          xp: getTotalXP(),
-          level: level,
-          tasksCompleted: completedTasks.length,
-          tasks: tasks,
-          completedTasks: completedTasks,
-          unlockedBadges
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update user data: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error updating user data:', error);
-      setError(`Failed to update user data: ${error.message}`);
+  useEffect(() => {
+    if (loading) {
+      dataManager.checkAndHandleAuth(setLoading);
     }
-  };
+  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  updateUserData();
-}, [userId, tasks, completedTasks, experience, level, unlockedBadges]); // eslint-disable-line react-hooks/exhaustive-deps
-
-useEffect(() => {
-  const newUnlockedBadges = checkBadgeUnlocks(
-    level, 
-    currentStreak, 
-    completedTasks.length,
-    completedTasks 
-  );
-  
-  if (JSON.stringify(newUnlockedBadges) !== JSON.stringify(unlockedBadges)) {
-    setUnlockedBadges(newUnlockedBadges);
-  }
-}, [level, currentStreak, completedTasks, unlockedBadges]);
-
-const handleStreakChange = (streak) => {
-  setCurrentStreak(streak);
-};
-
-const addTask = async (taskData) => {
-  try {
-    const tasksToAdd = Array.isArray(taskData) ? taskData : [taskData];
-    
-    const newTasks = tasksToAdd.map(task => ({
-      ...task,
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-      label: task.label || null 
-    }));
-    
-    setTasks(prevTasks => [...prevTasks, ...newTasks]);
-  } catch (error) {
-    console.error('Error adding task:', error);
-    setError(error.message); 
-  }
-};
-
-const completeTask = async (task) => {
-  try {
-    startConfetti();
-    const updatedTasks = tasks.filter(t => t.id !== task.id);
-    const completedTask = {
-      ...task,
-      completedAt: new Date().toISOString()
-    };
-    // Calculate XP with penalty handled internally by calculateXP
-    const xpResult = calculateXP(task.experience, task.deadline);
-    
-    // Store the early bonus and overdue penalty for record keeping
-    completedTask.earlyBonus = xpResult.earlyBonus;
-    completedTask.overduePenalty = xpResult.overduePenalty;
-
-    setTasks(updatedTasks);
-    setCompletedTasks(prev => [...prev, completedTask]);
-  } catch (error) {
-    console.error('Error completing task:', error);
-    setError(error.message);
-  }
-};
-
-const removeTask = (taskId, isCompleted) => {
-  try {
-    if (isCompleted) {
-      const taskToRemove = completedTasks.find(t => t.id === taskId);
-      if (taskToRemove) {
-        let totalXPToRemove = taskToRemove.experience;
-        if (taskToRemove.earlyBonus) totalXPToRemove += taskToRemove.earlyBonus;
-        if (taskToRemove.overduePenalty) totalXPToRemove += taskToRemove.overduePenalty;
-        calculateXP(-totalXPToRemove);
-      }
-      setCompletedTasks(prev => prev.filter(t => t.id !== taskId));
-    } else {
-      setTasks(prev => prev.filter(t => t.id !== taskId));
-    }
-  } catch (error) {
-    console.error('Error removing task:', error);
-    setError(error.message);
-  }
-};
-
-const updateTask = (taskId, updatedTask) => {
-  // used for editing purposes in TaskList
-  try {
-    const updatedTasks = tasks.map(task => 
-      task.id === taskId ? updatedTask : task
-    );
-    setTasks(updatedTasks);
-  } catch (error) {
-    console.error('Error updating task:', error);
-    setError(error.message);
-  }
-};
-
-const clearAllData = async () => {
-  try {
-    setTasks([]);
-    setCompletedTasks([]);
-    resetXP();
-
-    await fetch(`${API_BASE_URL}/users/${userId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        xp: 0,
-        level: 1,
-        tasks: [],
-        completedTasks: []
-      })
+  useEffect(() => {
+    dataManager.syncUserData({
+      userId,
+      getTotalXP,
+      level,
+      tasks,
+      completedTasks,
+      unlockedBadges
     });
-  } catch (error) {
-    console.error('Error clearing data:', error);
-    setError(error.message);
-  }
-};
+  }, [userId, tasks, completedTasks, experience, level, unlockedBadges]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    badgeManager.checkAndUpdateBadges(level, currentStreak, completedTasks, unlockedBadges);
+  }, [level, currentStreak, completedTasks, unlockedBadges, badgeManager]);
+
+  useEffect(() => {
+    const newStreakData = streakManager.calculateStreak(completedTasks);
+    setStreakData(newStreakData);
+  }, [completedTasks, streakManager]);
 
   const handleClearDataClick = () => {
     setShowClearDataModal(true);
   };
 
   const handleConfirmClear = async () => {
-    await clearAllData();
+    await dataManager.clearAllData(userId);
     setShowClearDataModal(false);
   };
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (loading) { // Only check if we're in loading state
-        try {
-          const response = await fetch(`${API_BASE_URL}/auth/current_user`, {
-            credentials: 'include'
-          });
-          const data = await response.json();
-          if (data && data.userId) {
-            setUserId(data.userId);
-            handleUserDataLoad(data);
-          }
-        } catch (error) {
-          console.error('Auth check failed:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    checkAuth();
-  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
-
   if (loading) {
+    // render everything once data is processed only (auth check, user data..etc)
     return null; 
   }
 
@@ -303,15 +149,15 @@ const clearAllData = async () => {
                   <Header 
                     authComponent={
                       <Auth 
-                        onAuthChange={handleAuthChange} 
-                        handleUserDataLoad={handleUserDataLoad}
+                        onAuthChange={dataManager.handleAuthChange} 
+                        handleUserDataLoad={dataManager.handleUserDataLoad}
                       />
                     }
                     AppControls={
                       <AppControls 
                         isDark={isDark} 
                         onToggle={toggleTheme}
-                        addTask={addTask}
+                        addTask={taskManager.addTask}
                       />
                     }
                   />
@@ -336,10 +182,10 @@ const clearAllData = async () => {
                         <div className="space-y-4">
                           <TaskButtons 
                             showCompleted={showCompleted} 
-                            toggleView={toggleView}
+                            toggleView={() => viewManager.toggleView(showCompleted)}
                             onClearDataClick={handleClearDataClick}
                           />
-                          <TaskForm addTask={addTask} />
+                          <TaskForm addTask={taskManager.addTask} />
                         </div>
                       </div>
 
@@ -357,18 +203,18 @@ const clearAllData = async () => {
                                 {currentView === 'todo' && (
                                   <TaskList 
                                     tasks={tasks} 
-                                    removeTask={removeTask}
-                                    completeTask={completeTask}
+                                    removeTask={taskManager.removeTask}
+                                    completeTask={taskManager.completeTask}
                                     isCompleted={false}
-                                    addTask={addTask}  
-                                    updateTask={updateTask}  
+                                    addTask={taskManager.addTask}  
+                                    updateTask={taskManager.updateTask}  
                                   />
                                 )}
                                 {currentView === 'completed' && (
                                   <TaskList 
                                     tasks={completedTasks} 
-                                    removeTask={removeTask}
-                                    completeTask={completeTask}
+                                    removeTask={taskManager.removeTask}
+                                    completeTask={taskManager.completeTask}
                                     isCompleted={true}
                                   />
                                 )}
@@ -390,7 +236,7 @@ const clearAllData = async () => {
                       <BadgeGrid unlockedBadges={unlockedBadges} />
                       <StreakTracker 
                         completedTasks={completedTasks} 
-                        onStreakChange={handleStreakChange} 
+                        streakData={streakData}
                       />
                       <Leaderboard 
                         limit={3} 
@@ -405,7 +251,7 @@ const clearAllData = async () => {
                         <BadgeGrid unlockedBadges={unlockedBadges} />
                         <StreakTracker 
                           completedTasks={completedTasks} 
-                          onStreakChange={handleStreakChange} 
+                          streakData={streakData}
                         />
                         <Leaderboard 
                           limit={3} 
