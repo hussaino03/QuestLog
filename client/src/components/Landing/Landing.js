@@ -33,9 +33,14 @@ const Landing = ({ isDark, onToggle }) => {
           }
         });
         
+        // Handle 401 and other error status codes
+        if (!response.ok) {
+          setShowCookieWarning(true);
+          return;
+        }
+
         const data = await response.json();
         
-        // Show warning if no user data or error
         setShowCookieWarning(!data || data === null);
       } catch (error) {
         setShowCookieWarning(true);
