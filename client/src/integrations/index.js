@@ -2,16 +2,8 @@ import React, { useState } from 'react';
 import { importFromTodoist } from './todoist/todoist';
 import { importFromTickTick } from './ticktick/ticktick';
 
-const Integrations = ({ addTask, isAuthenticated }) => {
+const Integrations = ({ addTask }) => {
   const [isLoading, setIsLoading] = useState(false);
-
-  if (!isAuthenticated) {
-    return (
-      <div className="text-sm text-red-600 dark:text-red-400">
-        Please sign in to connect with other apps
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-2">

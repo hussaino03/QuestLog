@@ -17,7 +17,6 @@ import Auth from './components/Auth/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ClearDataModal from './components/XP Management/ClearDataModal';
 import { validateUserId } from './services/validationservice';
-import { mergeTasks } from './services/syncservice';
 import BadgeGrid from './components/Badge/BadgeGrid';
 import { checkBadgeUnlocks } from './utils/badgeManager';
 import Footer from './components/Layout/Footer';
@@ -40,56 +39,22 @@ const App = () => {
   const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [userName, setUserName] = useState(null);
   const [unlockedBadges, setUnlockedBadges] = useState([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);  
   const [currentStreak, setCurrentStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
-const handleAuthChange = (id, isLogout = false) => {
+const handleAuthChange = (id) => {
+  // sets userid when authentication is successful 
   setUserId(id);
-  if (id) {
-    setIsAuthenticated(true);
-  } else if (isLogout) {
-    setIsAuthenticated(false);
-    setTasks([]);
-    setCompletedTasks([]);
-    resetXP();
-    setError(null);
-    setCurrentView('todo');
-  }
 };
-
-  const handleLogout = () => {
-    setCurrentView('todo');
-  };
 
 const handleUserDataLoad = (userData) => {
   if (!userData) return;
   
-  const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-  const localCompletedTasks = JSON.parse(localStorage.getItem('completedtasks') || '[]');
-  const localXP = parseInt(localStorage.getItem('totalExperience')) || 0;
-  
-  // Always merge tasks
-  const mergedTasks = mergeTasks(localTasks, userData.tasks || []);
-  const mergedCompletedTasks = mergeTasks(localCompletedTasks, userData.completedTasks || []);
-  
-  // Always handle XP, with proper fallback
-  const serverXP = typeof userData.xp === 'number' ? userData.xp : 0;
-  const mergedXP = localXP + serverXP;
-  
-  // Set authenticated state first
-  setIsAuthenticated(true);
-  
-  // Then update XP and clear storage
-  setTotalExperience(mergedXP);
-  localStorage.removeItem('totalExperience');
-  localStorage.removeItem('tasks');
-  localStorage.removeItem('completedtasks');
-
-  setTasks(mergedTasks);
-  setCompletedTasks(mergedCompletedTasks);
-  
+  setUserId(userData.userId);
+  setTotalExperience(userData.xp || 0);
+  setTasks(userData.tasks || []);
+  setCompletedTasks(userData.completedTasks || []);
   setUserName(userData.name || null);
   setUnlockedBadges(userData.unlockedBadges || []);
 };
@@ -104,7 +69,7 @@ const handleUserDataLoad = (userData) => {
     setShowLevelUp,
     getTotalXP,
     setTotalExperience
-  } = useXPManager(isAuthenticated);
+  } = useXPManager();
 
   useEffect(() => {
     // Check for saved theme preference
@@ -130,23 +95,6 @@ const handleUserDataLoad = (userData) => {
     setShowCompleted(!showCompleted);
     setCurrentView(!showCompleted ? 'completed' : 'todo');
   };
-
-  const initializeUser = () => {
-    if (!userId) {
-      // Load from localStorage for unauthenticated users only
-      const savedTasks = localStorage.getItem('tasks');
-      const savedCompletedTasks = localStorage.getItem('completedtasks');
-      const savedXP = localStorage.getItem('totalExperience');
-
-      if (savedTasks) setTasks(JSON.parse(savedTasks));
-      if (savedCompletedTasks) setCompletedTasks(JSON.parse(savedCompletedTasks));
-      if (savedXP) setTotalExperience(parseInt(savedXP));
-    }
-  };
-
-  useEffect(() => {
-    initializeUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 useEffect(() => {
@@ -211,29 +159,7 @@ const addTask = async (taskData) => {
       label: task.label || null 
     }));
     
-    const updatedTasks = [...tasks, ...newTasks];
-    setTasks(updatedTasks);
-
-    if (userId) {
-      // For authenticated users, only update server
-      await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include', 
-        body: JSON.stringify({
-          xp: getTotalXP(),
-          level: level,
-          tasksCompleted: completedTasks.length,
-          tasks: updatedTasks,
-          completedTasks: completedTasks
-        }),
-      });
-    } else {
-      // For unauthenticated users, use localStorage
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-    }
+    setTasks(prevTasks => [...prevTasks, ...newTasks]);
   } catch (error) {
     console.error('Error adding task:', error);
     setError(error.message); 
@@ -248,8 +174,6 @@ const completeTask = async (task) => {
       ...task,
       completedAt: new Date().toISOString()
     };
-    const updatedCompletedTasks = [...completedTasks, completedTask];
-    
     // Calculate XP with penalty handled internally by calculateXP
     const xpResult = calculateXP(task.experience, task.deadline);
     
@@ -258,40 +182,15 @@ const completeTask = async (task) => {
     completedTask.overduePenalty = xpResult.overduePenalty;
 
     setTasks(updatedTasks);
-    setCompletedTasks(updatedCompletedTasks);
-
-    if (userId) {
-      // For authenticated users, only update server
-      await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          xp: getTotalXP(),
-          level: level,
-          tasksCompleted: updatedCompletedTasks.length,
-          tasks: updatedTasks,
-          completedTasks: updatedCompletedTasks
-        }),
-      });
-    } else {
-      // For unauthenticated users, use localStorage
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-      localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
-    }
+    setCompletedTasks(prev => [...prev, completedTask]);
   } catch (error) {
     console.error('Error completing task:', error);
     setError(error.message);
   }
 };
 
-const removeTask = async (taskId, isCompleted) => {
+const removeTask = (taskId, isCompleted) => {
   try {
-    let updatedTasks = tasks;
-    let updatedCompletedTasks = completedTasks;
-
     if (isCompleted) {
       const taskToRemove = completedTasks.find(t => t.id === taskId);
       if (taskToRemove) {
@@ -300,37 +199,9 @@ const removeTask = async (taskId, isCompleted) => {
         if (taskToRemove.overduePenalty) totalXPToRemove += taskToRemove.overduePenalty;
         calculateXP(-totalXPToRemove);
       }
-      
-      updatedCompletedTasks = completedTasks.filter(t => t.id !== taskId);
-      setCompletedTasks(updatedCompletedTasks);
-      if (!userId) {
-        localStorage.setItem('completedtasks', JSON.stringify(updatedCompletedTasks));
-      }
+      setCompletedTasks(prev => prev.filter(t => t.id !== taskId));
     } else {
-      updatedTasks = tasks.filter(t => t.id !== taskId);
-      setTasks(updatedTasks);
-      if (!userId) {
-        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-      }
-    }
-
-    if (userId) {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          xp: getTotalXP(),
-          level,
-          tasksCompleted: updatedCompletedTasks.length,
-          tasks: updatedTasks,
-          completedTasks: updatedCompletedTasks
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update user data: ${response.status}`);
-      }
+      setTasks(prev => prev.filter(t => t.id !== taskId));
     }
   } catch (error) {
     console.error('Error removing task:', error);
@@ -338,27 +209,13 @@ const removeTask = async (taskId, isCompleted) => {
   }
 };
 
-const updateTask = async (taskId, updatedTask) => {
+const updateTask = (taskId, updatedTask) => {
+  // used for editing purposes in TaskList
   try {
     const updatedTasks = tasks.map(task => 
       task.id === taskId ? updatedTask : task
     );
-    
     setTasks(updatedTasks);
-    
-    if (!userId) {
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-    } else {
-      await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          tasks: updatedTasks,
-          completedTasks
-        }),
-      });
-    }
   } catch (error) {
     console.error('Error updating task:', error);
     setError(error.message);
@@ -366,38 +223,25 @@ const updateTask = async (taskId, updatedTask) => {
 };
 
 const clearAllData = async () => {
-  if (!userId) {
-    localStorage.removeItem('tasks');
-    localStorage.removeItem('completedtasks');
-    localStorage.removeItem('totalExperience');
-  }
-  
-  setTasks([]);
-  setCompletedTasks([]);
-  resetXP();  
+  try {
+    setTasks([]);
+    setCompletedTasks([]);
+    resetXP();
 
-  if (userId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          xp: 0,
-          level: 1,
-          tasksCompleted: 0,
-          tasks: [],
-          completedTasks: []
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to reset user data: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error clearing data:', error);
-      setError(error.message);
-    }
+    await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        xp: 0,
+        level: 1,
+        tasks: [],
+        completedTasks: []
+      })
+    });
+  } catch (error) {
+    console.error('Error clearing data:', error);
+    setError(error.message);
   }
 };
 
@@ -419,13 +263,11 @@ const clearAllData = async () => {
           });
           const data = await response.json();
           if (data && data.userId) {
-            setIsAuthenticated(true);
             setUserId(data.userId);
             handleUserDataLoad(data);
           }
         } catch (error) {
           console.error('Auth check failed:', error);
-          setIsAuthenticated(false);
         } finally {
           setLoading(false);
         }
@@ -446,7 +288,7 @@ const clearAllData = async () => {
           <Route 
             path="/" 
             element={
-              isAuthenticated ? (
+              userId ? (
                 <Navigate to="/app" replace />
               ) : (
                 <Landing isDark={isDark} onToggle={toggleTheme} />
@@ -456,14 +298,12 @@ const clearAllData = async () => {
           <Route 
             path="/app" 
             element={
-              isAuthenticated ? (
+              userId ? (
                 <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
                   <Header 
                     authComponent={
                       <Auth 
-                        isAuthenticated={isAuthenticated}
                         onAuthChange={handleAuthChange} 
-                        onLogout={handleLogout}
                         handleUserDataLoad={handleUserDataLoad}
                       />
                     }
@@ -472,7 +312,6 @@ const clearAllData = async () => {
                         isDark={isDark} 
                         onToggle={toggleTheme}
                         addTask={addTask}
-                        isAuthenticated={!!userId}  
                       />
                     }
                   />
@@ -491,7 +330,6 @@ const clearAllData = async () => {
                         level={level} 
                         experience={experience} 
                         userName={userName}
-                        isAuthenticated={isAuthenticated}
                       />
                       
                       <div className="mt-6 flex-shrink-0">
@@ -524,7 +362,6 @@ const clearAllData = async () => {
                                     isCompleted={false}
                                     addTask={addTask}  
                                     updateTask={updateTask}  
-                                    isAuthenticated={isAuthenticated}  
                                   />
                                 )}
                                 {currentView === 'completed' && (
@@ -554,13 +391,11 @@ const clearAllData = async () => {
                       <StreakTracker 
                         completedTasks={completedTasks} 
                         onStreakChange={handleStreakChange} 
-                        isAuthenticated={isAuthenticated}
                       />
                       <Leaderboard 
                         limit={3} 
                         className="overflow-hidden" 
                         onShowFull={() => setShowFullLeaderboard(true)}
-                        authState={isAuthenticated}
                       />
                     </div>
 
@@ -571,13 +406,11 @@ const clearAllData = async () => {
                         <StreakTracker 
                           completedTasks={completedTasks} 
                           onStreakChange={handleStreakChange} 
-                          isAuthenticated={isAuthenticated}
                         />
                         <Leaderboard 
                           limit={3} 
                           className="overflow-hidden" 
                           onShowFull={() => setShowFullLeaderboard(true)}
-                          authState={isAuthenticated}
                         />
                       </div>
                     </div>
@@ -597,7 +430,7 @@ const clearAllData = async () => {
                         </button>
                       </div>
                       <div className="flex-1 flex flex-col min-h-0">
-                        <Leaderboard scrollUsers={true} authState={isAuthenticated} />
+                        <Leaderboard scrollUsers={true} />
                       </div>
                     </div>
                   </div>

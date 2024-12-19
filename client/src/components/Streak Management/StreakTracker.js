@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import XPProgressionChart from '../../user analytics/graph/XPProgressionChart';
 
-const StreakTracker = ({ completedTasks, today = new Date(), onStreakChange = () => {}, isAuthenticated }) => {
+const StreakTracker = ({ completedTasks, today = new Date(), onStreakChange = () => {} }) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [xpData, setXpData] = useState(null);
@@ -130,20 +130,10 @@ const StreakTracker = ({ completedTasks, today = new Date(), onStreakChange = ()
       
       {/* XP Graph Section */}
       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-        {isAuthenticated ? (
-          <>
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">
-              XP Progression (Last 7 Days)
-            </h3>
-            <XPProgressionChart xpData={xpData} />
-          </>
-        ) : (
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-            <p className="text-sm text-red-600 dark:text-red-400">
-              Please sign in to view analytics and track your progress
-            </p>
-          </div>
-        )}
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">
+          XP Progression (Last 7 Days)
+        </h3>
+        <XPProgressionChart xpData={xpData} />
       </div>
     </div>
   );

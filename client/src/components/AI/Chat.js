@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const Chat = ({ isOpen, onClose, isAuthenticated }) => { 
+const Chat = ({ isOpen, onClose }) => { 
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -110,7 +110,7 @@ const Chat = ({ isOpen, onClose, isAuthenticated }) => {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
         type: 'error', 
-        content: 'Sorry, I had trouble processing that request. Please try again.'
+        content: 'Sorry, I had trouble processing that request. Please try again.' 
       }]);
     } finally {
       setIsLoading(false);
@@ -118,32 +118,6 @@ const Chat = ({ isOpen, onClose, isAuthenticated }) => {
   };
 
   if (!isOpen) return null;
-
-  // Add authentication check
-  if (!isAuthenticated) {
-    return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full shadow-2xl transform scale-100 animate-modalSlide">
-          <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Productivity Assistant
-            </h2>
-            <button 
-              onClick={onClose}
-              className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
-            >
-              <span className="text-red-600 dark:text-red-400 text-lg">×</span>
-            </button>
-          </div>
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg m-4">
-            <p className="p-4 text-sm text-red-600 dark:text-red-400">
-              Please sign in to chat with the AI assistant
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div 

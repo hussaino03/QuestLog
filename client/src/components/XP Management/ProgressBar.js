@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const ProgressBar = ({ level, experience, userName, isAuthenticated }) => {
+const ProgressBar = ({ level, experience, userName }) => {
   const [animatedWidth, setAnimatedWidth] = useState(0);
   const experienceNeededToLevel = level * 200;
   const barWidth = (experience / experienceNeededToLevel) * 100;
@@ -15,7 +15,7 @@ const ProgressBar = ({ level, experience, userName, isAuthenticated }) => {
       <div className="w-full max-w-2xl p-4">
         <div className="mb-2 flex justify-between items-center">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {isAuthenticated && userName ? 
+            {userName ? 
               `Welcome ${userName.charAt(0).toUpperCase() + userName.slice(1)}!` : 
               'Welcome!'} - Level {level}
           </span>

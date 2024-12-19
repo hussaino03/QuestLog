@@ -1,14 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('../../config/passport-setup');
-
-// Middleware to check if user is authenticated
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: 'Unauthorized' });
-};
+const { authenticateToken } = require('../../middleware/auth');
 
 router.get('/google', 
   passport.authenticate('google', { 
@@ -26,16 +19,14 @@ router.get('/google/callback',
   }
 );
 
-// Update logout route
 router.get('/logout', (req, res) => {
-  const userId = req.user?._id;  // Get user ID before destroying session
+  const userId = req.user?._id;
   req.session.destroy((err) => {
     if (err) {
       console.error('Session destruction error:', err);
       return res.status(500).json({ error: 'Logout failed' });
     }
     
-    // Clear the session cookie
     res.clearCookie('connect.sid', {
       path: '/',
       httpOnly: true,
@@ -43,7 +34,6 @@ router.get('/logout', (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     });
     
-    // Call passport logout
     req.logout(() => {
       if (userId) {
         console.log('User logged out successfully:', userId.toString());
@@ -53,12 +43,7 @@ router.get('/logout', (req, res) => {
   });
 });
 
-// handle unauthenticated users silently
-router.get('/current_user', (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.json(null);
-  }
-  
+router.get('/current_user', authenticateToken, (req, res) => {
   console.log('[Session] User verified:', {
     id: req.user._id,
     xp: req.user.xp || 0,
