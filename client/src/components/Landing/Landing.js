@@ -34,11 +34,11 @@ const Landing = ({ isDark, onToggle }) => {
         });
         
         const data = await response.json();
-        if (data === null) {
-          setShowCookieWarning(true);
-        }
+        
+        // Show warning if no user data or error
+        setShowCookieWarning(!data || data === null);
       } catch (error) {
-        console.error('Cookie check failed:', error);
+        setShowCookieWarning(true);
       }
     };
 
