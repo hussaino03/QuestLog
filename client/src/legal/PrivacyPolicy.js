@@ -40,6 +40,16 @@ const PrivacyPolicy = () => {
               <li><strong>Guest Users:</strong> Data stored locally in browser storage only</li>
             </ul>
           </div>
+          <div className="legal-content pl-4">
+            <p className="mb-4">User data is:</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Synced with MongoDB</li>
+              <li>Available across devices</li>
+              <li>Secured with Google OAuth</li>
+              <li>Protected by session management</li>
+              <li>Backed up regularly</li>
+            </ul>
+          </div>
         </section>
 
         <section>

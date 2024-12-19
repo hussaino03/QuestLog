@@ -25,7 +25,7 @@ const TermsOfService = () => (
             <li>Experience points (XP) and leveling system</li>
             <li>Achievement badges</li>
             <li>Optional leaderboard participation</li>
-            <li>Cloud synchronization for authenticated users</li>
+            <li>Cloud synchronization</li> 
           </ul>
         </div>
       </section>
