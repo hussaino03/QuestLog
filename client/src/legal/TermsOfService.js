@@ -39,7 +39,7 @@ const TermsOfService = () => (
             <li>Experience points (XP) and leveling system</li>
             <li>Achievement badges</li>
             <li>Optional leaderboard participation</li>
-            <li>Cloud synchronization for authenticated users</li>
+            <li>Cloud synchronization</li>
             <li>Task imports from Todoist and TickTick</li>
             <li>AI-powered productivity insights and recommendations</li>
             <li>Personalized task management assistance via Gemini Pro LLM</li>
@@ -85,6 +85,7 @@ const TermsOfService = () => (
         <h2 className="text-xl font-semibold mb-4">6. User Responsibilities</h2>
         <div className="legal-content pl-4">
           <ul className="list-disc pl-6 space-y-2">
+            <li>Sign in using Google authentication to access the service</li>
             <li>Maintain the security of your account</li>
             <li>Provide accurate information</li>
             <li>Use the service lawfully and responsibly</li>

@@ -21,7 +21,7 @@ const PrivacyPolicy = () => {
           <div className="legal-content pl-4">
             <p className="mb-4">We collect the following information:</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Google OAuth data: Name and email (for authenticated users only)</li>
+              <li>Google OAuth data: Name and email</li>
               <li>Task data: Your tasks, deadlines, and completion status</li>
               <li>Game data: XP, levels, badges, and achievements</li>
               <li>Usage data: Task completion patterns and activity metrics</li>
@@ -34,16 +34,9 @@ const PrivacyPolicy = () => {
         <section>
           <h2 className="text-xl font-semibold mb-4">2. Data Storage</h2>
           <div className="legal-content pl-4">
-            <p className="mb-4">Data storage varies by user type:</p>
+            <p className="mb-4">Your data is:</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Authenticated Users:</strong> Data stored in MongoDB, synced across devices</li>
-              <li><strong>Guest Users:</strong> Data stored locally in browser storage only</li>
-            </ul>
-          </div>
-          <div className="legal-content pl-4">
-            <p className="mb-4">User data is:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Synced with MongoDB</li>
+              <li>Stored in MongoDB</li>
               <li>Available across devices</li>
               <li>Secured with Google OAuth</li>
               <li>Protected by session management</li>
