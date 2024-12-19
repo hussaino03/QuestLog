@@ -80,7 +80,7 @@ const LeaderboardEntry = ({ user }) => {
   );
 };
 
-const Leaderboard = ({ limit, className, scrollUsers = false, onShowFull, authState }) => {
+const Leaderboard = ({ limit, className, scrollUsers = false, onShowFull }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [error, setError] = useState(null);
   const [isOptedIn, setIsOptedIn] = useState(false);
@@ -168,15 +168,10 @@ const Leaderboard = ({ limit, className, scrollUsers = false, onShowFull, authSt
   };
 
   useEffect(() => {
-    if (authState === true) {
-      setError(null);  // Clear any existing error
-      checkOptInStatus();
-      fetchLeaderboard();
-      fetchCommunityXP();
-    } else {
-      setError('Please sign in to view the leaderboard');
-    }
-  }, [authState]); 
+    checkOptInStatus();
+    fetchLeaderboard();
+    fetchCommunityXP();
+  }, []); 
 
 
   if (error) {

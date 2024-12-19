@@ -1,21 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-
-// Add authentication middleware
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: 'Unauthorized' });
-};
+const { authenticateToken } = require('../../../middleware/auth');  
 
 const TODOIST_CLIENT_ID = process.env.TODOIST_CLIENT_ID;
 const TODOIST_CLIENT_SECRET = process.env.TODOIST_CLIENT_SECRET;
 const TODOIST_REDIRECT_URI = process.env.TODOIST_REDIRECT_URI || 'http://localhost:3001/api/auth/todoist/callback';
 
-// Add auth check to routes
-router.get('/auth/todoist', isAuthenticated, (req, res) => {
+router.get('/auth/todoist', authenticateToken, (req, res) => {
   const authUrl = `https://todoist.com/oauth/authorize?` + 
     `client_id=${TODOIST_CLIENT_ID}&` +
     `scope=data:read_write&` +
@@ -25,8 +17,7 @@ router.get('/auth/todoist', isAuthenticated, (req, res) => {
   res.redirect(authUrl);
 });
 
-// Add auth check to routes
-router.get('/auth/todoist/callback', isAuthenticated, async (req, res) => {
+router.get('/auth/todoist/callback', authenticateToken, async (req, res) => {
   try {
     const response = await axios.post('https://todoist.com/oauth/access_token', {
       client_id: TODOIST_CLIENT_ID,

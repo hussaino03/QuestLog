@@ -1,210 +1,78 @@
 import React, { useEffect, useState } from 'react';
-import { debounce } from 'lodash';
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
-const Auth = ({ isAuthenticated, onAuthChange, onLogout, handleUserDataLoad}) => {
+const Auth = ({ onAuthChange }) => {
   const [user, setUser] = useState(null);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [sessionChecked, setSessionChecked] = useState(false);
-  const [showLegacyWarning, setShowLegacyWarning] = useState(false);
-  const [showCookieWarning, setShowCookieWarning] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);  
 
   useEffect(() => {
-    const checkCookies = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/current_user`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        // If response is null (401), cookies might be blocked
-        const data = await response.json();
-        if (data === null) {
-          setShowCookieWarning(true);
+    if (!user) {
+      fetch(`${API_BASE_URL}/auth/current_user`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('Cookie check failed:', error);
-      }
-    };
-
-    checkCookies();
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('oauth')) {
-      setSessionChecked(false); // Force session check after OAuth
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isLoggingOut) {
-      setUser(null);
-      setSessionChecked(true);
-      setIsLoggingOut(false); // Reset logout state
-      return;
-    }
-
-    const abortController = new AbortController();
-    let mounted = true;
-
-    const checkSession = debounce(async () => {
-      // Don't check if session is already checked or we just logged out
-      if (sessionChecked || isLoggingOut) return;  
-
-      const hasLegacyAuth = localStorage.getItem('authToken') || 
-                         localStorage.getItem('userId');
-      
-      if (hasLegacyAuth) {
-        setShowLegacyWarning(true);
-      }
-      
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/current_user`, {
-          credentials: 'include',
-          signal: abortController.signal,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-    
-        if (!response.ok) {
-          if (response.status === 401 && mounted) {
-            setUser(null);
-            onAuthChange(null);
-            setSessionChecked(true);
-            return;
-          }
-          throw new Error('Network response was not ok');
-        }
-    
-        const data = await response.json();
-        if (mounted) {
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data) {
           setUser(data);
           onAuthChange(data.userId);
-          setSessionChecked(true);
-          handleUserDataLoad(data);
         }
-      } catch (error) {
-        if (error.name !== 'AbortError' && mounted) {
-          setUser(null);
-          onAuthChange(null);
-          setSessionChecked(true);
-        }
-      }
-    }, 100);
-
-    checkSession();
-
-    return () => {
-      mounted = false;
-      abortController.abort();
-    };
-  }, [isLoggingOut, sessionChecked, onAuthChange, handleUserDataLoad, isAuthenticated]);
-
-  const login = () => {
-    window.location.href = `${API_BASE_URL}/auth/google`;
-  };
+        setIsLoading(false);  
+      })
+      .catch(error => {
+        console.error('Session check failed:', error);
+        setIsLoading(false);  // Set loading to false on error too
+      });
+    }
+  }, [user, onAuthChange]);
 
   const logout = async () => {
-    setIsLoggingOut(true);
     try {
       await fetch(`${API_BASE_URL}/auth/logout`, {
         credentials: 'include'
       });
-      localStorage.clear();
       setUser(null);
-      setSessionChecked(true); // Set session as checked
-      onAuthChange(null, true);  // Pass true to indicate active logout
-      if (onLogout) onLogout();
+      onAuthChange(null, true);
     } catch (error) {
       console.error('Logout failed:', error);
-    } finally {
-      setIsLoggingOut(false);
     }
   };
   
   return (
-    <>
-      {showCookieWarning && (
-        <div className="fixed top-0 left-0 right-0 bg-gray-100/90 dark:bg-gray-800/90 p-3 text-center z-[100] shadow-sm border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex flex-col items-start">
-              <p className="text-gray-900 dark:text-white text-sm pr-2">
-                🔐 Having trouble logging in? Cookies might be blocked. Please check your browser settings if login issues persist.
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                By using our service, you agree to our{' '}
-                <a href="/legal/privacy" className="underline hover:text-gray-700 dark:hover:text-gray-300">Privacy Policy</a>
-                {' '}and{' '}
-                <a href="/legal/terms" className="underline hover:text-gray-700 dark:hover:text-gray-300">Terms of Service</a>
-              </p>
-            </div>
-            <button 
-              onClick={() => setShowCookieWarning(false)}
-              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
-              aria-label="Dismiss message"
-            >
-              <span className="text-red-600 dark:text-red-400 text-lg">×</span>
-            </button>
-          </div>
-        </div>
-      )}
-      {showLegacyWarning && (
-        <div className="fixed top-0 left-0 right-0 bg-yellow-100 dark:bg-yellow-900 p-4 text-center z-50 shadow-md">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <p className="text-yellow-800 dark:text-yellow-200">
-              ⚠️ Please clear your browser data and sign in again to ensure the best experience. Your tasks and progress will not be affected.
-            </p>
-            <button 
-              onClick={() => setShowLegacyWarning(false)}
-              className="ml-4 text-yellow-900 dark:text-yellow-100 hover:opacity-75"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="flex items-center">
       <div className="flex items-center">
-        {user ? (
-          <div className="flex items-center">
+        <div className="relative w-8 h-8 mr-2">
+          {(imageLoading || isLoading) && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
+              <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          )}
+          {user?.picture && (
             <img 
               src={user.picture} 
               alt="Profile" 
-              className="w-8 h-8 rounded-full mr-2"
+              className={`w-8 h-8 rounded-full ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+              onLoad={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
             />
-            <button
-              onClick={logout}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-800 
-                       shadow-[2px_2px_#77dd77] hover:shadow-none hover:translate-x-0.5 
-                       hover:translate-y-0.5 transition-all duration-200 text-gray-800 dark:text-white"
-            >
-              Sign Out
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={login}
-            className="p-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-800 
-                     shadow-[2px_2px_#77dd77] hover:shadow-none hover:translate-x-0.5 
-                     hover:translate-y-0.5 transition-all duration-200 flex items-center gap-2 
-                     text-gray-800 dark:text-white"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
-                <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
-                <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
-                <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
-              </g>
-            </svg>
-            <span>Sign in</span>
-          </button>
-        )}
+          )}
+        </div>
+        <button
+          onClick={logout}
+          className="p-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-800 
+                   shadow-[2px_2px_#77dd77] hover:shadow-none hover:translate-x-0.5 
+                   hover:translate-y-0.5 transition-all duration-200 text-gray-800 dark:text-white"
+        >
+          Sign Out
+        </button>
       </div>
-    </>
+    </div>
   );
 };
 

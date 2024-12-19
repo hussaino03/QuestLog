@@ -18,7 +18,7 @@ const RatingCategory = ({ title, rating, onRatingChange }) => {
             onClick={() => onRatingChange(rating === value ? 0 : value)}
             className={`w-8 h-8 rounded-full ${
               rating === value
-                ? 'bg-[#77dd77] text-white'
+                ? 'bg-[#2563EB] text-white'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
             }`}
           >

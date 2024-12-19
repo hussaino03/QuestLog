@@ -12,14 +12,12 @@ QuestLog is a AI-powered gamified productivity platform that turns your tasks an
 - Badge system to unlock different achievements
 - Participate in optional leaderboards
 - Seamless data management:
-  - Cloud sync for authenticated users
-  - Local storage fallback for guests
-  - Cross-device accessibility
+  - Cloud sync
   - Privacy-focused leaderboard participation
 - Toggle between List View & Calendar View
-- Displays XP Progression chart, & other key analytics for authenticated users
-- Add labels to your tasks/projects so you can easily sort them by labels. Another sorting option is due date
-- Built-in Pomodoro feature for specific tasks/projects, currently only for authenticated users
+- Displays XP Progression chart, & other key analytics
+- Add labels to your tasks/projects so you can easily sort them by labels/due dates
+- Built-in Pomodoro feature for specific tasks/projects
 
 ## Productivity Assistant
 
@@ -96,7 +94,6 @@ graph TB
         Auth[Authentication]
         ModalManager[Task/Project Management]
         GameSystem[Game Systems]
-        ClientStore[(Local Storage)]
     end
 
     %% Backend Layer
@@ -133,7 +130,7 @@ graph TB
     Session --> SessionStore
     
     %% Frontend Flow
-    App --> Auth & ModalManager & GameSystem & ClientStore
+    App --> Auth & ModalManager & GameSystem
     
     %% Backend Flow
     Server --> AuthService & ItemService & GameService & IntegrationService & Session
@@ -194,8 +191,7 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 ## 💻 Usage
 ### Account Setup
 - Launch QuestLog in your browser
-- Choose between Google sign-in or guest mode
-- Customize your theme preference (light/dark)
+- Sign up via Google
 
 ### Task Management
 - Create new tasks/projects via the "Create +" button
@@ -209,6 +205,8 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 - Earn bonus XP for early completion
 - View your position on the leaderboard 
 - Track daily completion streaks
+- Import tasks from app integrations 
+- Chat with the AI Assistant for producitivty patterns & insights
 
 ## 🔧 API Endpoints
 - `POST /api/users`: Create or retrieve a user
@@ -223,10 +221,6 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
   - All data synced with MongoDB
   - Available across devices
   - Progress tracked on leaderboard
-- **Guest Users**:
-  - Data stored in local storage
-  - Limited to current browser/device
-  - Not visible on leaderboard
 
 ## 💳 Support
 If you find QuestLog helpful and would like to support its development:

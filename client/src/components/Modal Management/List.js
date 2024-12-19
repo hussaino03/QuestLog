@@ -3,7 +3,7 @@ import Task from './View';
 import CalendarView from '../../utils/CalendarView';
 import { LayoutList, Calendar, PlusCircle, FolderPlus, ArrowUpDown } from 'lucide-react';
 
-const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, updateTask, isAuthenticated }) => {
+const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, updateTask }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks'); 
@@ -25,12 +25,15 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
     }
   };
 
-  // Separate tasks and projects
   const { regularTasks, projects } = (tasks || []).reduce((acc, task) => {
-    if (task.subtasks) {
-      acc.projects.push(task);
-    } else {
+    if (isCompleted) {
       acc.regularTasks.push(task);
+    } else {
+      if (task.subtasks || task.isProject) {
+        acc.projects.push(task);
+      } else {
+        acc.regularTasks.push(task);
+      }
     }
     return acc;
   }, { regularTasks: [], projects: [] });
@@ -54,8 +57,8 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
     });
   };
 
-  // Sort tasks based on active tab
-  const itemsToDisplay = activeTab === 'tasks' ? regularTasks : projects;
+  // Only use the active tab separation for non-completed view
+  const itemsToDisplay = isCompleted ? tasks : (activeTab === 'tasks' ? regularTasks : projects);
   const sortedTasks = getSortedTasks(itemsToDisplay);
 
   // Group tasks by date OR label depending on sort method
@@ -259,7 +262,6 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                       completeTask={completeTask}
                       isCompleted={isCompleted}
                       updateTask={updateTask}
-                      isAuthenticated={isAuthenticated}
                     />
                   ))}
                 </ul>
@@ -332,7 +334,6 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                         completeTask={completeTask}
                         isCompleted={isCompleted}
                         updateTask={updateTask}
-                        isAuthenticated={isAuthenticated}
                       />
                     ))}
                   </ul>

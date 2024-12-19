@@ -2,7 +2,7 @@ import React from 'react';
 import { SunMoon, Link2, Moon, Sun } from 'lucide-react';
 import Integrations from '../../integrations';
 
-const SettingsModal = ({ isOpen, onClose, isDark, onToggleTheme, addTask, isAuthenticated }) => {
+const SettingsModal = ({ isOpen, onClose, isDark, onToggleTheme, addTask }) => {
   if (!isOpen) return null;
 
   return (
@@ -71,7 +71,7 @@ const SettingsModal = ({ isOpen, onClose, isDark, onToggleTheme, addTask, isAuth
               </h3>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-              <Integrations addTask={addTask} isAuthenticated={isAuthenticated} />
+              <Integrations addTask={addTask} />
             </div>
           </section>
 

@@ -3,7 +3,7 @@ import { Settings, Bot } from 'lucide-react';
 import SettingsModal from '../Settings/SettingsModal';
 import Chat from '../AI/Chat';
 
-const AppControls = ({ isDark, onToggle, addTask, isAuthenticated }) => {
+const AppControls = ({ isDark, onToggle, addTask }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -37,13 +37,11 @@ const AppControls = ({ isDark, onToggle, addTask, isAuthenticated }) => {
         isDark={isDark}
         onToggleTheme={onToggle}
         addTask={addTask}
-        isAuthenticated={isAuthenticated}
       />
 
       <Chat 
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)} 
-        isAuthenticated={isAuthenticated}
       />
     </div>
   );

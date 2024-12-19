@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-const useXPManager = (isAuthenticated) => {
-  const [totalExperience, setTotalExperience] = useState(() => {
-    // Only load from localStorage if not authenticated
-    if (!isAuthenticated) {
-      const savedTotalXP = localStorage.getItem('totalExperience');
-      return savedTotalXP ? parseInt(savedTotalXP) : 0;
-    }
-    return 0;
-  });
-
-  const [isInitialized, setIsInitialized] = useState(false);
+const useXPManager = () => {  
+  const [totalExperience, setTotalExperience] = useState(0);  
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newLevel, setNewLevel] = useState(1);
 
@@ -111,18 +102,6 @@ const useXPManager = (isAuthenticated) => {
     return (experience / xpNeeded) * 100;
   };
 
-  // Save to localStorage only if not authenticated and initialized
-  useEffect(() => {
-    if (!isAuthenticated && isInitialized) {  
-      localStorage.setItem('totalExperience', totalExperience.toString());
-    }
-  }, [totalExperience, isAuthenticated, isInitialized]);
-
-  // Mark as initialized after first render
-  useEffect(() => {
-    setIsInitialized(true);
-  }, []);
-
   return {
     level,
     experience,
@@ -137,7 +116,6 @@ const useXPManager = (isAuthenticated) => {
     getLevelProgress,
     setTotalExperience: (xp) => {
       setTotalExperience(xp);
-      setIsInitialized(true);
     }
   };
 };

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PomodoroTimer from '../Timer/PomodoroTimer'; 
 
-const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthenticated }) => {
+const Task = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -274,6 +274,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthe
               <input
                 type="date"
                 value={editForm.deadline}
+                min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                 onChange={(e) => setEditForm({...editForm, deadline: e.target.value})}
                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 
                          dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200
@@ -312,15 +313,7 @@ const Task = ({ task, removeTask, completeTask, isCompleted, updateTask, isAuthe
           {showPomodoro && !isCompleted && (
             <div className="mb-4 p-3 bg-white dark:bg-gray-800 rounded-lg border 
                           border-gray-200 dark:border-gray-700">
-              {isAuthenticated ? (
-                <PomodoroTimer taskName={task.name} />
-              ) : (
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <p className="p-4 text-sm text-red-600 dark:text-red-400">
-                    Please sign in to use Focus Timer
-                  </p>
-                </div>
-              )}
+              <PomodoroTimer taskName={task.name} />
             </div>
           )}
 

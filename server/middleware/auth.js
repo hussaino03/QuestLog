@@ -1,8 +1,10 @@
 const authenticateToken = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
+  if (!req.isAuthenticated()) {
+    console.log('Auth failed: Session invalid or expired');
+    return res.status(401).json({ error: 'Session expired or invalid' });
   }
-  res.status(401).json({ error: 'Authentication required' });
+  console.log('Auth successful - User:', req.user._id);
+  next();
 };
 
 const verifyOwnership = (req, res, next) => {
