@@ -21,7 +21,7 @@ const Footer = () => {
           <div className="flex items-center flex-wrap justify-center gap-3 text-sm">
             <div className="relative">
               <a
-                href="https://github.com/hussaino03/QuestLog/stargazers"
+                href="https://github.com/hussaino03/QuestLog"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 px-2.5 py-1 rounded-full shadow-sm text-xs flex items-center gap-1 text-gray-700 dark:text-gray-200 font-medium group"
