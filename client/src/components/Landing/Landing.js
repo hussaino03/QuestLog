@@ -131,14 +131,15 @@ const Landing = ({ isDark, onToggle }) => {
             {/* Secondary Content - Stats */}
             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               {[
-                { label: 'Active Users', value: '200+' },
+                { label: 'Active Users', value: '250+' },
                 { label: 'Tasks Completed', value: '500+' },
                 { label: 'Total XP Earned', value: '350K+' },
                 { label: 'Badges Created', value: '30+' }
               ].map((stat, index) => (
                 <div 
                   key={index} 
-                  className="opacity-0 animate-[scale_0.4s_ease-out_forwards] p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg backdrop-blur-sm"
+                  className="opacity-0 animate-[scale_0.4s_ease-out_forwards] p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg backdrop-blur-sm
+                           border-2 border-transparent hover:border-[#2563EB] transition-all duration-200"
                   style={{ animationDelay: `${0.8 + index * 0.1}s` }}
                 >
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
@@ -215,7 +216,7 @@ const Landing = ({ isDark, onToggle }) => {
                 <div 
                   key={index}
                   className="group opacity-0 animate-[scale_0.4s_ease-out_forwards] bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 
-                           transition-colors duration-200"
+                           transition-all duration-200 border-2 border-transparent hover:border-[#2563EB]"
                   style={{ animationDelay: `${1.6 + index * 0.1}s` }}
                 >
                   <div className="text-gray-900 dark:text-white mb-4">
