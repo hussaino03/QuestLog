@@ -38,8 +38,7 @@ async function getUserCount() {
     // Read file
     let readme = await fs.readFile(readmePath, 'utf8');
 
-    // Update regex and replacement
-    const statsRegex = /!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\)(?:\s*!\[.*?\]\(https:\/\/img\.shields\.io\/badge\/.*?\))?/;
+    const statsRegex = /!\[Current Authorized Users\].*?\) !\[Total User XP\].*?\)/;
     const newBadges = 
       `![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-${userCount}-blue?logo=mongodb&logoColor=white) ` +
       `![Total User XP](https://img.shields.io/badge/Total%20User%20XP-${totalXP.toLocaleString()}-red?logo=zap&logoColor=white)`;
