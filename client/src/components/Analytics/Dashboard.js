@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -25,28 +25,38 @@ ChartJS.register(
   Legend
 );
 
+const LoadingSpinner = memo(() => (
+  <div className="flex items-center justify-center w-full h-full">
+    <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  </div>
+));
+
 const Dashboard = ({ completedTasks, onOpenDashboard }) => {  
   const [isFullView, setIsFullView] = useState(false);
   const [xpData, setXpData] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [dateRange, setDateRange] = useState(7);
+  const [isLoading, setIsLoading] = useState(false);
   
   const dashboardManager = useMemo(() => new DashboardManager(), []);
 
   const periodXP = useMemo(() => 
-    dashboardManager.calculatePeriodXP(completedTasks),
-    [completedTasks, dashboardManager]
+    dashboardManager.calculatePeriodXP(completedTasks, dateRange),
+    [completedTasks, dashboardManager, dateRange]
   );
 
   const { metrics, completedTasksData } = useMemo(() => {
     if (!xpData) return { metrics: null, completedTasksData: null };
     
     return {
-      metrics: dashboardManager.getMetrics(xpData, periodXP),
-      completedTasksData: dashboardManager.getCompletedTasksData(completedTasks, xpData)
+      metrics: dashboardManager.getMetrics(xpData, periodXP, dateRange),
+      completedTasksData: dashboardManager.getCompletedTasksData(completedTasks, xpData, dateRange)
     };
-  }, [completedTasks, xpData, periodXP, dashboardManager]);
+  }, [completedTasks, xpData, periodXP, dashboardManager, dateRange]);
 
-  // Memoize chart options
   const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -76,14 +86,20 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
       },
       x: {
         ticks: {
-          color: '#6B7280'
+          color: '#6B7280',
+          maxRotation: dateRange === 30 ? 65 : 45,
+          minRotation: dateRange === 30 ? 65 : 45,
+          callback: function(val, index) {
+            // Show fewer labels when displaying 30 days
+            return dateRange === 30 && index % 2 !== 0 ? '' : this.getLabelForValue(val);
+          }
         },
         grid: {
           display: false
         }
       }
     }
-  }), []);
+  }), [dateRange]);
 
   const tasksChartOptions = useMemo(() => ({
     responsive: true,
@@ -124,7 +140,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     }
   }), []);
 
-  // Add a utility function to format dates
   const formatDate = useCallback((date, useWeekday = false) => {
     if (useWeekday) {
       return date.toLocaleDateString('en-US', { weekday: 'short' });
@@ -134,7 +149,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     return `${month}/${day}`;
   }, []);
 
-  // Create separate chart data for card and modal views
   const getChartData = useCallback((data, useWeekday = false) => {
     if (!data?.labels || !data?.datasets) return null;
     
@@ -165,20 +179,17 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     };
   }, [dashboardManager]);
 
-  // Calculate XP data
   useEffect(() => {
-    const data = dashboardManager.calculateXPData(completedTasks);
+    const data = dashboardManager.calculateXPData(completedTasks, dateRange);
     setXpData(data);
-  }, [completedTasks, dashboardManager]);
+  }, [completedTasks, dashboardManager, dateRange]); 
 
-  // Setup dashboard opener
   useEffect(() => {
     if (onOpenDashboard) {
       onOpenDashboard(() => setIsFullView(true));
     }
   }, [onOpenDashboard]);
 
-  // Window resize optimization
   useEffect(() => {
     let timeoutId;
     const handleResize = () => {
@@ -195,7 +206,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     };
   }, []);
 
-  // Move chart options to constants
   const CHART_CONSTANTS = useMemo(() => ({
     fontSizes: {
       small: windowWidth < 640 ? 10 : 12,
@@ -206,17 +216,68 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     }
   }), [windowWidth]);
 
-  // Optimize chart data transformations
   const transformedChartData = useMemo(() => ({
     xpData: xpData ? getChartData(xpData, true) : null,
     modalXpData: xpData ? getChartData(xpData, false) : null,
     taskData: completedTasksData ? getChartData(completedTasksData, false) : null
   }), [xpData, completedTasksData, getChartData]);
 
+  const handleRangeChange = (newRange) => {
+    setIsLoading(true);
+    setDateRange(newRange);
+  };
+
+  // Add effect to handle loading state
+  useEffect(() => {
+    if (isLoading && xpData && metrics) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [xpData, metrics, isLoading]);
+
+  const RangeToggle = () => (
+    <span className="inline-flex items-center gap-2">
+      <span className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 dark:bg-gray-700/50">
+        <button
+          onClick={() => handleRangeChange(7)}
+          className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
+            dateRange === 7 
+            ? 'bg-white dark:bg-gray-600 shadow-sm' 
+            : 'text-gray-600 dark:text-gray-300'
+          }`}
+          disabled={isLoading}
+        >
+          7
+        </button>
+        <button
+          onClick={() => handleRangeChange(30)}
+          className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
+            dateRange === 30 
+            ? 'bg-white dark:bg-gray-600 shadow-sm' 
+            : 'text-gray-600 dark:text-gray-300'
+          }`}
+          disabled={isLoading}
+        >
+          30
+        </button>
+      </span>
+      {isLoading && <LoadingSpinner />}
+    </span>
+  );
+
   return (
     <div>
+      <div className="mb-3">
+        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+          Past <RangeToggle /> days
+        </span>
+      </div>
       <div className="h-48">
-        {transformedChartData.xpData ? (
+        {isLoading ? (
+          <LoadingSpinner />
+        ) : transformedChartData.xpData ? (
           <Line data={transformedChartData.xpData} options={chartOptions} />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
@@ -225,7 +286,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
         )}
       </div>
 
-      {/* Modal for full view */}
+      {/* Modal */}
       {isFullView && (
         <div 
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 
@@ -233,9 +294,9 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
           onClick={(e) => e.target === e.currentTarget && handleCloseFullView()}
         >
           <div 
-            className="bg-white dark:bg-gray-800 rounded-2xl w-full max-h-[90vh] overflow-y-auto
+            className="bg-white dark:bg-gray-800 rounded-2xl w-full max-h-[90vh]
                        max-w-[95vw] sm:max-w-5xl shadow-xl transform scale-100 
-                       animate-modalSlide overflow-hidden"
+                       animate-modalSlide overflow-hidden flex flex-col sm:block"
           >
             <div className="relative z-20 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
@@ -243,7 +304,34 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                     Analytics Overview
                   </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Past 7 Days</p>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
+                    Past 
+                    <span className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 dark:bg-gray-700/50">
+                      <button
+                        onClick={() => handleRangeChange(7)}
+                        className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
+                          dateRange === 7 
+                          ? 'bg-white dark:bg-gray-600 shadow-sm' 
+                          : 'text-gray-600 dark:text-gray-300'
+                        }`}
+                        disabled={isLoading}
+                      >
+                        7
+                      </button>
+                      <button
+                        onClick={() => handleRangeChange(30)}
+                        className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
+                          dateRange === 30 
+                          ? 'bg-white dark:bg-gray-600 shadow-sm' 
+                          : 'text-gray-600 dark:text-gray-300'
+                        }`}
+                        disabled={isLoading}
+                      >
+                        30
+                      </button>
+                    </span>
+                    days
+                  </span>
                 </div>
                 <button
                   onClick={handleCloseFullView}
@@ -258,12 +346,14 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                 <div className="p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600">
                   <div className="flex items-center gap-2 sm:gap-3 mb-2">
                     <FireIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">7-Day XP Total</span>
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                      {metrics?.periodLabel}
+                    </span>
                   </div>
                   <p className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">
                     {metrics?.weeklyXP || 0}
                   </p>
-                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Total XP earned this week</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Total XP earned in this period</p>
                 </div>
 
                 {/* Activity Days card */}
@@ -286,87 +376,102 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                     ) : (
                       <ArrowTrendingDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     )}
-                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Weekly Trend</span>
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                      {dateRange === 7 ? 'Weekly' : 'Monthly'} Trend
+                    </span>
                   </div>
                   <p className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">
                     {metrics?.trendDescription}
                   </p>
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    {metrics?.trendPercentage}% {metrics?.trendDirection.toLowerCase()} from last week
+                    {metrics?.trendPercentage}% {metrics?.trendDirection.toLowerCase()} from {dateRange === 7 ? 'last week' : 'last month'}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Charts Section */}
-            <div className="px-4 sm:px-8 pb-6 sm:pb-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
-                <div className="space-y-2 sm:space-y-4">
-                  <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">XP Growth</h4>
-                  <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
-                                border border-gray-100 dark:border-gray-600">
-                    <Line data={transformedChartData.modalXpData} options={{
-                      ...chartOptions, 
-                      maintainAspectRatio: false,
-                      scales: {
-                        ...chartOptions.scales,
-                        x: {
-                          ...chartOptions.scales.x,
-                          ticks: {
-                            maxRotation: CHART_CONSTANTS.rotations.x.max,
-                            minRotation: CHART_CONSTANTS.rotations.x.min,
-                            font: {
-                              size: CHART_CONSTANTS.fontSizes.small
-                            }
-                          }
-                        },
-                        y: {
-                          ...chartOptions.scales.y,
-                          ticks: {
-                            font: {
-                              size: CHART_CONSTANTS.fontSizes.small
-                            }
-                          }
-                        }
-                      }
-                    }} />
-                  </div>
+            {/* Content */}
+            {isLoading ? (
+              <div className="flex-1 min-h-[400px] flex items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            ) : (
+              <>
+                {/* Key Metrics */}
+                <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 gap-3 px-3 sm:px-6">
                 </div>
 
-                <div className="space-y-2 sm:space-y-4">
-                  <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">Task/Project Completion</h4>
-                  <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
-                                border border-gray-100 dark:border-gray-600">
-                    <Bar data={transformedChartData.taskData} options={{
-                      ...tasksChartOptions,
-                      scales: {
-                        ...tasksChartOptions.scales,
-                        x: {
-                          ticks: {
-                            maxRotation: CHART_CONSTANTS.rotations.x.max,
-                            minRotation: CHART_CONSTANTS.rotations.x.min,
-                            font: {
-                              size: CHART_CONSTANTS.fontSizes.small
+                {/* Charts Section */}
+                <div className="px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
+                    <div className="space-y-2 sm:space-y-4">
+                      <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">XP Growth</h4>
+                      <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
+                                    border border-gray-100 dark:border-gray-600">
+                        <Line data={transformedChartData.modalXpData} options={{
+                          ...chartOptions, 
+                          maintainAspectRatio: false,
+                          scales: {
+                            ...chartOptions.scales,
+                            x: {
+                              ...chartOptions.scales.x,
+                              ticks: {
+                                maxRotation: CHART_CONSTANTS.rotations.x.max,
+                                minRotation: CHART_CONSTANTS.rotations.x.min,
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
+                                }
+                              }
+                            },
+                            y: {
+                              ...chartOptions.scales.y,
+                              ticks: {
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
+                                }
+                              }
                             }
                           }
-                        },
-                        y: {
-                          ticks: {
-                            font: {
-                              size: CHART_CONSTANTS.fontSizes.small
+                        }} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 sm:space-y-4">
+                      <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">Task/Project Completion</h4>
+                      <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
+                                    border border-gray-100 dark:border-gray-600">
+                        <Bar data={transformedChartData.taskData} options={{
+                          ...tasksChartOptions,
+                          scales: {
+                            ...tasksChartOptions.scales,
+                            x: {
+                              ticks: {
+                                maxRotation: CHART_CONSTANTS.rotations.x.max,
+                                minRotation: CHART_CONSTANTS.rotations.x.min,
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
+                                }
+                              }
+                            },
+                            y: {
+                              ticks: {
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
+                                }
+                              }
                             }
                           }
-                        }
-                      }
-                    }} />
+                        }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}
-      {xpData && (
+      {!isLoading && xpData && (
         <div className="flex gap-3 mt-4">
           {/* Peak Day card */}
           <div className="flex items-center px-4 py-1.5 rounded-lg border" style={{
@@ -387,7 +492,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             <div className="flex flex-col">
               <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Average Daily</span>
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {dashboardManager.calculateAverageDaily(completedTasks, xpData)} XP per day
+                {dashboardManager.calculateAverageDaily(completedTasks, xpData, dateRange)} XP
               </span>
             </div>
           </div>

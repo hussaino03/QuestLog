@@ -1,20 +1,16 @@
 class DashboardManager {
     constructor() {
-        // Enhanced cache with timestamp
         this.cache = new Map();
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
         
-        // Constants
         this.CHART_COLORS = {
             primary: '#60A5FA',
             background: 'rgba(96, 165, 250, 0.5)'
         };
         
-        // Batch size for processing large datasets
         this.BATCH_SIZE = 100;
     }
 
-    // Improved cache handling with timeout
     getCacheItem(key) {
         const item = this.cache.get(key);
         if (!item) return null;
@@ -33,9 +29,8 @@ class DashboardManager {
         });
     }
 
-    // Optimized date helpers
-    getDateRange() {
-        const cacheKey = 'dateRange';
+    getDateRange(days = 7) {
+        const cacheKey = `dateRange-${days}`;
         const cached = this.getCacheItem(cacheKey);
         if (cached) return cached;
 
@@ -44,37 +39,33 @@ class DashboardManager {
             endDate: new Date()
         };
 
-        result.startDate.setDate(result.startDate.getDate() - 7);
+        result.startDate.setDate(result.startDate.getDate() - (days - 1));
         result.startDate.setHours(0, 0, 0, 0);
-        result.endDate.setDate(result.endDate.getDate() - 1);
         result.endDate.setHours(23, 59, 59, 999);
 
         this.setCacheItem(cacheKey, result);
         return result;
     }
 
-    calculateLast7Days() {
-        const days = [];
-        const { startDate } = this.getDateRange();
+    calculateDays(days = 7) {
+        const daysArray = [];
+        const { startDate } = this.getDateRange(days);
         
-        // Generate 7 days from startDate
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < days; i++) {
             const d = new Date(startDate);
             d.setDate(startDate.getDate() + i);
             const month = (d.getMonth() + 1).toString().padStart(2, '0');
             const day = d.getDate().toString().padStart(2, '0');
-            days.push({
+            daysArray.push({
                 date: d,
                 label: `${month}/${day}` 
             });
         }
-        return days;
+        return daysArray;
     }
 
-    // Helper to normalize date for consistent comparison using UTC
     normalizeDate(date, taskTimezone) {
         const d = new Date(date);
-        // Use the timezone from when the task was completed
         const localDate = new Date(d.toLocaleString('en-US', { 
             timeZone: taskTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone 
         }));
@@ -82,7 +73,6 @@ class DashboardManager {
         return localDate.getTime();
     }
 
-    // Helper to calculate task XP
     getTaskXP(task) {
         const baseXP = task.experience || 0;
         const bonus = task.earlyBonus || 0;
@@ -90,7 +80,6 @@ class DashboardManager {
         return baseXP + bonus + penalty;
     }
 
-    // Optimized task processing
     processTasks(tasks, startDate, endDate) {
         if (!tasks?.length) return new Map();
         
@@ -115,19 +104,18 @@ class DashboardManager {
         return tasksByDate;
     }
 
-    calculateXPData(completedTasks) {
+    calculateXPData(completedTasks, days = 7) {
         if (!completedTasks?.length) return null;
 
-        const cacheKey = `xpData-${completedTasks.length}-${completedTasks[0].completedAt}-${completedTasks[completedTasks.length-1].completedAt}`;
+        const cacheKey = `xpData-${days}-${completedTasks.length}-${completedTasks[0].completedAt}-${completedTasks[completedTasks.length-1].completedAt}`;
         const cached = this.getCacheItem(cacheKey);
         if (cached) return cached;
 
-        const { startDate, endDate } = this.getDateRange();
+        const { startDate, endDate } = this.getDateRange(days);
         const tasksByDate = this.processTasks(completedTasks, startDate, endDate);
-        const last7Days = this.calculateLast7Days();
+        const periodDays = this.calculateDays(days);
 
-        // Calculate daily XP
-        const dailyXP = last7Days.map(day => {
+        const dailyXP = periodDays.map(day => {
             const normalizedDate = this.normalizeDate(day.date);
             const tasksForDay = tasksByDate.get(normalizedDate) || [];
             return {
@@ -152,14 +140,14 @@ class DashboardManager {
         return result;
     }
 
-    calculatePeriodXP(completedTasks) {
+    calculatePeriodXP(completedTasks, days = 7) {
         if (!completedTasks?.length) return 0;
         
-        const cacheKey = `periodXP-${completedTasks.map(t => t.completedAt).join('-')}`;
+        const cacheKey = `periodXP-${days}-${completedTasks.map(t => t.completedAt).join('-')}`;
         const cached = this.getCacheItem(cacheKey);
         if (cached) return cached;
 
-        const { startDate, endDate } = this.getDateRange();
+        const { startDate, endDate } = this.getDateRange(days);
         
         const result = completedTasks
             .filter(task => {
@@ -172,10 +160,10 @@ class DashboardManager {
         return result;
     }
 
-    calculateAverageDaily(completedTasks, xpData) {
+    calculateAverageDaily(completedTasks, xpData, days = 7) {
         if (!completedTasks?.length || !xpData?.labels) return 0;
         
-        const { startDate, endDate } = this.getDateRange();
+        const { startDate, endDate } = this.getDateRange(days);
         
         const periodTasks = completedTasks.filter(task => {
             const taskDate = new Date(task.completedAt);
@@ -186,7 +174,7 @@ class DashboardManager {
             sum + this.getTaskXP(task), 0
         );
 
-        return Math.round(totalXP / 7);
+        return Math.round(totalXP / days);
     }
 
     findPeakDay(xpData) {
@@ -202,10 +190,10 @@ class DashboardManager {
         };
     }
 
-    getCompletedTasksData(completedTasks, xpData) {
+    getCompletedTasksData(completedTasks, xpData, days = 7) {
         if (!completedTasks?.length || !xpData?.labels) return null;
         
-        const daysMap = this.calculateLast7Days().reduce((acc, day) => {
+        const daysMap = this.calculateDays(days).reduce((acc, day) => {
             acc[day.label] = this.normalizeDate(day.date);
             return acc;
         }, {});
@@ -231,22 +219,26 @@ class DashboardManager {
         };
     }
 
-    getMetrics(xpData, periodXP) {
+    getMetrics(xpData, periodXP, days = 7) {
         if (!xpData?.datasets?.[0]?.data) return null;
         const data = xpData.datasets[0].data;
         
-        const firstHalf = data.slice(0, 3).reduce((sum, val) => sum + val, 0) / 3;
-        const secondHalf = data.slice(-3).reduce((sum, val) => sum + val, 0) / 3;
+        const segmentSize = Math.floor(days / 3);
+        const firstHalf = data.slice(0, segmentSize).reduce((sum, val) => sum + val, 0) / segmentSize;
+        const secondHalf = data.slice(-segmentSize).reduce((sum, val) => sum + val, 0) / segmentSize;
         
         const trendPercentage = firstHalf === 0 ? 0 : ((secondHalf - firstHalf) / firstHalf * 100);
         const daysWithActivity = data.filter(xp => xp > 0).length;
+        
+        const periodLabel = days === 7 ? '7-Day' : '30-Day';
         
         return {
             weeklyXP: periodXP,
             trendDirection: secondHalf >= firstHalf ? 'Improving' : 'Decreasing',
             trendPercentage: Math.abs(Math.round(trendPercentage)),
-            activeDays: `${daysWithActivity}/7 days`,
-            trendDescription: this.getTrendDescription(trendPercentage)
+            activeDays: `${daysWithActivity}/${days} days`,
+            trendDescription: this.getTrendDescription(trendPercentage),
+            periodLabel: `${periodLabel} XP Total`
         };
     }
 
