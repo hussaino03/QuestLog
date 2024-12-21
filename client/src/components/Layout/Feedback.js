@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, AlertCircle } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
-
 
 const RatingCategory = ({ title, rating, onRatingChange }) => {
   return (
@@ -30,7 +29,7 @@ const RatingCategory = ({ title, rating, onRatingChange }) => {
   );
 };
 
-const Feedback = () => {
+const Feedback = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [ratings, setRatings] = useState({
     design: 0,
@@ -58,6 +57,7 @@ const Feedback = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', 
         body: JSON.stringify({
           ratings,
           feedback
@@ -88,11 +88,24 @@ const Feedback = () => {
     }
   };
 
+  if (!userId) {
+    return (
+      <button
+        onClick={() => alert('Please log in to provide feedback')}
+        className="inline-flex items-center gap-1 cursor-not-allowed opacity-60"
+        title="Please log in to provide feedback"
+      >
+        <MessageSquare className="w-4 h-4" />
+        <span>Feedback</span>
+      </button>
+    );
+  }
+
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1 cursor-pointer"
+        className="inline-flex items-center gap-1 cursor-pointer hover:text-blue-500 transition-colors"
         aria-label="Give feedback"
       >
         <MessageSquare className="w-4 h-4" />
@@ -102,10 +115,15 @@ const Feedback = () => {
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md animate-modalSlide">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Feedback
-              </h2>
+            <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="text-left">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Feedback
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Help us improve QuestLog with your feedback
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -154,18 +172,35 @@ const Feedback = () => {
                 />
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !feedback}
-                  className="px-4 py-2 bg-white dark:bg-gray-800 
-                           border-2 border-gray-800 shadow-[2px_2px_#2563EB] 
-                           hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 
-                           transition-all duration-200 disabled:opacity-50 
-                           disabled:cursor-not-allowed text-gray-800 dark:text-white"
-                >
-                  Submit
-                </button>
+              {isSubmitting && (
+                <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
+                    Sending feedback...
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg flex items-start gap-2 text-left">
+                  <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Your feedback will be sent from your registered email address
+                  </p>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !feedback}
+                    className="px-4 py-2 bg-white dark:bg-gray-800 
+                             border-2 border-gray-800 shadow-[2px_2px_#2563EB] 
+                             hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 
+                             transition-all duration-200 disabled:opacity-50 
+                             disabled:cursor-not-allowed text-gray-800 dark:text-white"
+                  >
+                    {isSubmitting ? 'Sending...' : 'Submit Feedback'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
