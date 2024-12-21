@@ -1,6 +1,6 @@
 # QuestLog
 
-![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-204-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-309,896-red?logo=zap&logoColor=white) ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/smart-listapp)
+![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-231-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-364,647-red?logo=zap&logoColor=white) ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/smart-listapp)
 <!-- These values update automatically every 1st and 15th of the month -->
 
 QuestLog is a AI-powered gamified productivity platform that turns your tasks and projects into achievement-driven experiences. Built with React and MongoDB, it enhances work management through XP points, levels, and badges while integrating seamlessly with different app integrations!
