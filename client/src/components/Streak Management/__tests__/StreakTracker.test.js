@@ -88,7 +88,7 @@ describe('StreakTracker Component', () => {
       streakData: { current: 0, longest: 0 }
     });
     
-    expect(screen.getByText('No XP data available')).toBeInTheDocument();
+    expect(screen.getByText('No data available')).toBeInTheDocument();
   });
 
   it('shows Analytics button', () => {
