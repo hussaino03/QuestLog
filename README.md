@@ -3,35 +3,34 @@
 ![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-231-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-364,647-red?logo=zap&logoColor=white) ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/smart-listapp)
 <!-- These values update automatically every 1st and 15th of the month -->
 
-QuestLog is a AI-powered gamified productivity platform that turns your tasks and projects into achievement-driven experiences. Built with React and MongoDB, it enhances work management through XP points, levels, and badges while integrating seamlessly with different app integrations!
+QuestLog is an AI-powered productivity platform that turns task/project management into a rewarding progression system. Through XP points, achievement tracking, and smart insights, it creates an engaging framework that helps users maximize their daily productivity while making personal growth measurable and motivating!
 
 ## ✨ Key Features
-- Transform tasks/projects into rewarding quests
-- Track progress with experience points and levels
-- Earn bonuses for early completion
-- Badge system to unlock different achievements
-- Participate in optional leaderboards
-- Seamless data management:
-  - Cloud sync
-  - Privacy-focused leaderboard participation
-- Toggle between List View & Calendar View
-- Displays XP Progression chart, & other key analytics
-- Add labels to your tasks/projects so you can easily sort them by labels/due dates
-- Built-in Pomodoro feature for specific tasks/projects
 
-## Productivity Assistant
+#### 🤖 AI-Powered Productivity
+- Personalized task insights and recommendations
+- Analyzes task completion patterns, task completion rates, recent accomplishments, XP progression, and performance trends
 
-- Integrated with Google's Gemini Pro LLM
-- Provides personalized productivity insights
-- Analyzes task completion patterns
-- Offers contextual advice based on:
-  - Task completion rates
-  - Recent accomplishments
-  - XP progression
-  - Performance trends
-- Maintains conversation context
-- Privacy-focused task analysis
-- Accessible via chat interface
+#### 📈 Progress System
+- Experience points (XP) and leveling
+- Achievement badges 
+- Streak system
+- Control tasks/projects via different XP settings
+
+#### 📊 Productivity Analytics
+- Analytics dashboard
+- Performance metrics and trends
+- XP growth tracking
+- Custom date range insights 
+
+#### 📝 Task/Project Management
+- Cloud synchronization
+- Project or Task creation
+- List/Calendar views
+- Label organization
+
+#### 🏆 Social Features
+- Public leaderboard
 
 ## ⚙️ Integrations
 
@@ -55,16 +54,6 @@ _Tasks will be imported with default XP settings_
   - Express.js security middleware
   - Production-grade CORS policy
   - Rate limiting protection
-
-## 📈 XP System
-When creating tasks/projects, you control your rewards through:
-- Difficulty Level (Easy, Medium, Hard)
-- Importance Level (Low, Medium, High)
-- Completion Time (Early completion bonuses)
-- _For Tasks:_ Task Type (Solo/Team tasks - Team tasks provide bonus XP)
-- Overdue Penalty on tasks that are past the deadline
-
-_Default XP settings are given for Quick Task creation_
 
 ## 🛠️ Technical Overview
 Built with:
@@ -188,26 +177,6 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
    docker-compose down
    ```
 
-## 💻 Usage
-### Account Setup
-- Launch QuestLog in your browser
-- Sign up via Google
-
-### Task Management
-- Create new tasks/projects via the "Create +" button
-- Toggle between task view and project view
-- Configure each with:
-  - Title, description, deadline & XP settings
-- Filter between active and completed items
-
-### Progress Tracking
-- Monitor your XP bar and level progression
-- Earn bonus XP for early completion
-- View your position on the leaderboard 
-- Track daily completion streaks
-- Import tasks from app integrations 
-- Chat with the AI Assistant for producitivty patterns & insights
-
 ## 🔧 API Endpoints
 - `POST /api/users`: Create or retrieve a user
 - `GET /api/users/:id`: Get user data
@@ -217,10 +186,9 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 - `GET /api/auth/<integrations>` : integrations OAuth import
 
 ## 💾 Data Persistence
-- **Authenticated Users**: 
-  - All data synced with MongoDB
-  - Available across devices
-  - Progress tracked on leaderboard
+- All data synced with MongoDB
+- Available across devices
+- Progress tracked on the leaderboard
 
 ## 💳 Support
 If you find QuestLog helpful and would like to support its development:
@@ -228,7 +196,7 @@ If you find QuestLog helpful and would like to support its development:
 [![PayPal](https://img.shields.io/badge/PayPal-Support%20Development-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/hussaino03)
 
 ## 🤝 Contributing
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 ## 📝 License
 This project is open source and available under the [MIT License](LICENSE).
