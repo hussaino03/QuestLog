@@ -68,10 +68,10 @@ describe('StreakTracker Component', () => {
     expect(screen.getByText('Longest Streak').nextElementSibling).toHaveTextContent('0');
   });
 
-  it('renders chart with completed tasks data', () => {
+  it('shows XP Growth section with completed tasks data', () => {
     const mockCompletedTasks = [
-      { completedAt: '2023-05-15T10:00:00Z', experience: 100 },
-      { completedAt: '2023-05-14T10:00:00Z', experience: 150 }
+      { completedAt: new Date().toISOString(), experience: 100 },
+      { completedAt: new Date().toISOString(), experience: 150 }
     ];
 
     renderStreakTracker({ 
@@ -79,7 +79,7 @@ describe('StreakTracker Component', () => {
       streakData: { current: 2, longest: 2 }
     });
     
-    expect(screen.getByTestId('xp-chart')).toBeInTheDocument();
+    expect(screen.getByText('XP Growth')).toBeInTheDocument();
   });
 
   it('shows no data message when no completed tasks', () => {
@@ -91,9 +91,24 @@ describe('StreakTracker Component', () => {
     expect(screen.getByText('No XP data available')).toBeInTheDocument();
   });
 
-  it('shows XP progression header', () => {
+  it('shows Analytics button', () => {
     renderStreakTracker();
+    expect(screen.getByText('Analytics')).toBeInTheDocument();
+  });
+
+  it('shows metrics when XP data is available', () => {
+    const mockCompletedTasks = [
+      { completedAt: new Date().toISOString(), experience: 100 },
+      { completedAt: new Date().toISOString(), experience: 150 }
+    ];
+
+    renderStreakTracker({ 
+      completedTasks: mockCompletedTasks,
+      streakData: { current: 2, longest: 2 }
+    });
     
-    expect(screen.getByText('XP Progression (Last 7 Days)')).toBeInTheDocument();
+    expect(screen.getByText('Analytics')).toBeInTheDocument();
+    expect(screen.getByText(/Peak Day/)).toBeInTheDocument();
+    expect(screen.getByText(/Average Daily/)).toBeInTheDocument();
   });
 });

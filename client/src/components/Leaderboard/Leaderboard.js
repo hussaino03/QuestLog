@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
-import { ChartBarIcon } from '@heroicons/react/24/outline';
+import { PresentationChartLineIcon } from '@heroicons/react/24/outline';
 import LeaderboardManager from '../../services/leaderboard/LeaderboardManager';
 
 const LoadingSpinner = memo(() => (
@@ -26,7 +26,7 @@ const UserListItem = memo(({ user, index, showDetails, setShowDetails }) => (
   <li className="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
     <div className="px-3 sm:px-6 py-3 sm:py-4">
       <div className="flex items-center space-x-4">
-        {/* Position indicator */}
+        {/* Position */}
         <div className="flex-shrink-0 w-8 text-center">
           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
             #{index + 1}
@@ -183,7 +183,7 @@ const Leaderboard = ({ limit, className, scrollUsers = false, onShowFull, onClos
           ) : (
             getLeaderboardMetrics() && (
               <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {/* opt-in control with tooltip */}
+                {/* opt-in */}
                 <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 
                               dark:border-gray-600 flex flex-col justify-center">
                   <div className="relative flex items-center justify-center">
@@ -250,10 +250,52 @@ const Leaderboard = ({ limit, className, scrollUsers = false, onShowFull, onClos
       <div className="flex justify-between items-center mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Leaderboard</h3>
-          <div className="flex items-center space-x-1.5 mt-1">            
-            <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>            
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total User XP: {leaderboardState.communityXP.toLocaleString()}            </p>          </div>        </div>        {onShowFull && (          <button            onClick={onShowFull}            className="flex items-center gap-2 px-3 py-1.5 rounded-lg                     bg-white dark:bg-gray-800 font-medium text-sm                     border-2 border-gray-800 text-gray-800 dark:text-gray-200                      shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5                      hover:translate-y-0.5 transition-all duration-200"          >            <ChartBarIcon className="w-4 h-4 text-gray-900 dark:text-white" />            View All          </button>        )}      </div>      {/* Consistent card styling for limited list view */}      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600 overflow-hidden">        <ul className="divide-y divide-gray-200 dark:divide-gray-600">          {leaderboardState.data.slice(0, limit || leaderboardState.data.length).map((user) => (            <li key={user._id} className="p-4">              <div className="flex items-center justify-between">                <div className="flex items-center space-x-3">                  {user?.picture && (                    <img src={user.picture} alt="Profile" className="w-8 h-8 rounded-full" />                  )}                  <span className="font-medium text-gray-900 dark:text-gray-100">                    {user?.name || 'Anonymous User'}                  </span>                </div>                <span className="text-gray-600 dark:text-gray-400">                  {user?.xp || 0} XP                </span>              </div>            </li>          ))}          {leaderboardState.data.length === 0 && (            <li className="p-4 text-gray-500 dark:text-gray-400 text-center">              No users in leaderboard yet            </li>          )}        </ul>      </div>
+          <div className="flex items-center space-x-1.5 mt-1">
+            <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total User XP: {leaderboardState.communityXP.toLocaleString()}</p>
           </div>
+        </div>
+        {onShowFull && (
+          <button 
+            onClick={onShowFull} 
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 font-medium text-sm 
+                     border-2 border-gray-800 text-gray-800 dark:text-gray-200 
+                     shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                     hover:translate-y-0.5 transition-all duration-200"
+          >
+            <PresentationChartLineIcon className="w-4 h-4 text-gray-900 dark:text-white" />
+            View All
+          </button>
+        )}
+      </div>
+      
+      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600 overflow-hidden">
+        <ul className="divide-y divide-gray-200 dark:divide-gray-600">
+          {leaderboardState.data.slice(0, limit || leaderboardState.data.length).map((user) => (
+            <li key={user._id} className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {user?.picture && (
+                    <img src={user.picture} alt="Profile" className="w-8 h-8 rounded-full" />
+                  )}
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {user?.name || 'Anonymous User'}
+                  </span>
+                </div>
+                <span className="text-gray-600 dark:text-gray-400">
+                  {user?.xp || 0} XP
+                </span>
+              </div>
+            </li>
+          ))}
+          {leaderboardState.data.length === 0 && (
+            <li className="p-4 text-gray-500 dark:text-gray-400 text-center">
+              No users in leaderboard yet
+            </li>
+          )}
+        </ul>
+      </div>
+    </div>
   );
 };
 

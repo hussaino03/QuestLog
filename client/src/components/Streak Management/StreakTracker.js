@@ -24,10 +24,7 @@ const StreakTracker = ({ completedTasks, streakData }) => {
             </div>
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between items-center mb-4">
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">XP Growth</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Past 7 days</p>
-                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">XP Growth</h3>
                     <button 
                         onClick={() => openDashboard?.()}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg
