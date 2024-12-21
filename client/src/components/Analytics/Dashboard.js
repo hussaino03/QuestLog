@@ -34,6 +34,17 @@ const LoadingSpinner = memo(() => (
   </div>
 ));
 
+const SafeChartWrapper = memo(({ children, data }) => {
+  if (!data || !data.labels || !data.datasets || data.labels.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
+        No data available
+      </div>
+    );
+  }
+  return children;
+});
+
 const Dashboard = ({ completedTasks, onOpenDashboard }) => {  
   const [isFullView, setIsFullView] = useState(false);
   const [xpData, setXpData] = useState(null);
@@ -277,12 +288,10 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
       <div className="h-48">
         {isLoading ? (
           <LoadingSpinner />
-        ) : transformedChartData.xpData ? (
-          <Line data={transformedChartData.xpData} options={chartOptions} />
         ) : (
-          <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-            No XP data available
-          </div>
+          <SafeChartWrapper data={transformedChartData.xpData}>
+            <Line data={transformedChartData.xpData} options={chartOptions} />
+          </SafeChartWrapper>
         )}
       </div>
 
@@ -408,31 +417,33 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                       <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">XP Growth</h4>
                       <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
                                     border border-gray-100 dark:border-gray-600">
-                        <Line data={transformedChartData.modalXpData} options={{
-                          ...chartOptions, 
-                          maintainAspectRatio: false,
-                          scales: {
-                            ...chartOptions.scales,
-                            x: {
-                              ...chartOptions.scales.x,
-                              ticks: {
-                                maxRotation: CHART_CONSTANTS.rotations.x.max,
-                                minRotation: CHART_CONSTANTS.rotations.x.min,
-                                font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                        <SafeChartWrapper data={transformedChartData.modalXpData}>
+                          <Line data={transformedChartData.modalXpData} options={{
+                            ...chartOptions, 
+                            maintainAspectRatio: false,
+                            scales: {
+                              ...chartOptions.scales,
+                              x: {
+                                ...chartOptions.scales.x,
+                                ticks: {
+                                  maxRotation: CHART_CONSTANTS.rotations.x.max,
+                                  minRotation: CHART_CONSTANTS.rotations.x.min,
+                                  font: {
+                                    size: CHART_CONSTANTS.fontSizes.small
+                                  }
                                 }
-                              }
-                            },
-                            y: {
-                              ...chartOptions.scales.y,
-                              ticks: {
-                                font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                              },
+                              y: {
+                                ...chartOptions.scales.y,
+                                ticks: {
+                                  font: {
+                                    size: CHART_CONSTANTS.fontSizes.small
+                                  }
                                 }
                               }
                             }
-                          }
-                        }} />
+                          }} />
+                        </SafeChartWrapper>
                       </div>
                     </div>
 
@@ -440,28 +451,30 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                       <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">Task/Project Completion</h4>
                       <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
                                     border border-gray-100 dark:border-gray-600">
-                        <Bar data={transformedChartData.taskData} options={{
-                          ...tasksChartOptions,
-                          scales: {
-                            ...tasksChartOptions.scales,
-                            x: {
-                              ticks: {
-                                maxRotation: CHART_CONSTANTS.rotations.x.max,
-                                minRotation: CHART_CONSTANTS.rotations.x.min,
-                                font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                        <SafeChartWrapper data={transformedChartData.taskData}>
+                          <Bar data={transformedChartData.taskData} options={{
+                            ...tasksChartOptions,
+                            scales: {
+                              ...tasksChartOptions.scales,
+                              x: {
+                                ticks: {
+                                  maxRotation: CHART_CONSTANTS.rotations.x.max,
+                                  minRotation: CHART_CONSTANTS.rotations.x.min,
+                                  font: {
+                                    size: CHART_CONSTANTS.fontSizes.small
+                                  }
                                 }
-                              }
-                            },
-                            y: {
-                              ticks: {
-                                font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                              },
+                              y: {
+                                ticks: {
+                                  font: {
+                                    size: CHART_CONSTANTS.fontSizes.small
+                                  }
                                 }
                               }
                             }
-                          }
-                        }} />
+                          }} />
+                        </SafeChartWrapper>
                       </div>
                     </div>
                   </div>
