@@ -285,7 +285,7 @@ const App = () => {
                   onCancel={() => setShowClearDataModal(false)}
                 />
                 <Analytics />
-                <Footer />
+                <Footer userId={userId} />
               </div>
               ) : (
                 <Navigate to="/" replace />

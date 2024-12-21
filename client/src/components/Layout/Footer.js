@@ -3,7 +3,7 @@ import { Heart, Github, Star } from 'lucide-react';
 import Feedback from './Feedback';
 import { Link } from 'react-router-dom';
 
-const Footer = () => {
+const Footer = ({ userId }) => {
   const [stars, setStars] = useState(0);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const Footer = () => {
             </div>
             <span className="text-gray-400">•</span>
             <span className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-[#77AAF7] dark:hover:text-[#77AAF7] transition-colors">
-              <Feedback />
+              <Feedback userId={userId} />
             </span>
             <span className="text-gray-400">•</span>
             <a

@@ -4,6 +4,19 @@ async function sendFeedback(req, res) {
   const { ratings, feedback } = req.body;
   
   try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userEmail = req.user.email;
+    const userName = req.user.name;
+
+    if (!userEmail) {
+      return res.status(400).json({ 
+        error: 'No email found in user profile'
+      });
+    }
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       host: 'smtp.gmail.com',
@@ -23,17 +36,20 @@ async function sendFeedback(req, res) {
       .join('\n');
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: userEmail,
       to: process.env.EMAIL_USER,
       subject: 'QuestLog Feedback',
-      text: `Ratings:\n${ratingsSummary}\n\nFeedback:\n${feedback}`
+      text: `From: ${userName} (${userEmail})\n\nRatings:\n${ratingsSummary}\n\nFeedback:\n${feedback}`
     };
 
     await transporter.sendMail(mailOptions);
     res.json({ message: 'Feedback sent successfully' });
   } catch (error) {
-    console.error('Error sending feedback:', error);
-    res.status(500).json({ error: `Failed to send feedback: ${error.message}` });
+    console.error('Detailed error in sendFeedback:', error);
+    res.status(500).json({ 
+      error: `Failed to send feedback: ${error.message}`,
+      details: error.stack
+    });
   }
 }
 
