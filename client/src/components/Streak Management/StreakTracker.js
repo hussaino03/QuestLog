@@ -1,43 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import XPProgressionChart from '../../user analytics/graph/XPProgressionChart';
+import React, { useCallback } from 'react';
+import Dashboard from '../Analytics/Dashboard';
+import { ChartBarIcon } from '@heroicons/react/24/outline'; 
+
 
 const StreakTracker = ({ completedTasks, streakData }) => {
-    const [xpData, setXpData] = useState(null);
-    
-    // Keep only XP data calculation in component
-    useEffect(() => {
-        if (!completedTasks.length) {
-            setXpData(null);
-            return;
-        }
+    const [openDashboard, setOpenDashboard] = React.useState(null);
 
-        // Group tasks by date and sum XP
-        const xpByDate = completedTasks.reduce((acc, task) => {
-            if (!task.completedAt) return acc;
-            
-            const date = new Date(task.completedAt).toLocaleDateString();
-            const xp = (task.experience || 0) + (task.earlyBonus || 0) + (task.overduePenalty || 0);
-            
-            acc[date] = (acc[date] || 0) + xp;
-            return acc;
-        }, {});
-
-        // Get last 7 days of data
-        const dates = Object.keys(xpByDate).sort().slice(-7);
-        const xpValues = dates.map(date => xpByDate[date]);
-
-        setXpData({
-            labels: dates.map(date => new Date(date).toLocaleDateString('en-US', { weekday: 'short' })),
-            datasets: [{
-                label: 'XP Gained',
-                data: xpValues,
-                fill: false,
-                borderColor: '#60A5FA',
-                tension: 0.3,
-                pointBackgroundColor: '#60A5FA'
-            }]
-        });
-    }, [completedTasks]);
+    const handleOpenDashboard = useCallback((opener) => {
+        setOpenDashboard(() => opener);
+    }, []);
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200">
@@ -51,13 +22,28 @@ const StreakTracker = ({ completedTasks, streakData }) => {
                     <p className="text-2xl font-bold" style={{ color: '#77dd77' }}>{streakData.longest}</p>
                 </div>
             </div>
-            
-            {/* XP Graph Section */}
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">
-                    XP Progression (Last 7 Days)
-                </h3>
-                <XPProgressionChart xpData={xpData} />
+                <div className="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">XP Growth</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Past 7 days</p>
+                    </div>
+                    <button 
+                        onClick={() => openDashboard?.()}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg
+                                bg-white dark:bg-gray-800 font-medium text-sm
+                                border-2 border-gray-800 text-gray-800 dark:text-gray-200 
+                                shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                                hover:translate-y-0.5 transition-all duration-200"
+                    >
+                        <ChartBarIcon className="w-4 h-4 text-gray-900 dark:text-white" />
+                        Analytics
+                    </button>
+                </div>
+                <Dashboard 
+                    completedTasks={completedTasks} 
+                    onOpenDashboard={handleOpenDashboard}
+                />
             </div>
         </div>
     );
