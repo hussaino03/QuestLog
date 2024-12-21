@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@radix-ui/react-tooltip": "^1.1.6",
     "@react-oauth/google": "^0.12.1",
     "@testing-library/user-event": "^13.5.0",

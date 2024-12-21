@@ -267,16 +267,8 @@ const App = () => {
                 {showFullLeaderboard && (
                   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
                     <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full flex flex-col max-h-[80vh] animate-modalSlide">
-                      <div className="shrink-0 flex justify-end items-center py-2 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-lg">
-                        <button
-                          onClick={() => setShowFullLeaderboard(false)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
-                        >
-                          <span className="text-red-600 dark:text-red-400 text-lg">×</span>
-                        </button>
-                      </div>
                       <div className="flex-1 flex flex-col min-h-0">
-                        <Leaderboard scrollUsers={true} />
+                        <Leaderboard scrollUsers={true} onClose={() => setShowFullLeaderboard(false)} />
                       </div>
                     </div>
                   </div>
