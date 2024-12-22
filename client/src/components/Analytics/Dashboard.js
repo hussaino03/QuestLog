@@ -240,13 +240,13 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
 
   // Add effect to handle loading state
   useEffect(() => {
-    if (isLoading && xpData && metrics) {
+    if (isLoading) {
       const timer = setTimeout(() => {
         setIsLoading(false);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [xpData, metrics, isLoading]);
+  }, [isLoading]);
 
   const RangeToggle = () => (
     <span className="inline-flex items-center gap-2">
