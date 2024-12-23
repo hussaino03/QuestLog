@@ -40,8 +40,7 @@ class TaskManager {
 
             const completedTask = {
                 ...task,
-                completedAt: new Date().toISOString(),
-                completedTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                completedAt: new Date().toISOString() // Store UTC timestamp
             };
             
             const xpResult = this.calculateXP(task.experience, task.deadline);

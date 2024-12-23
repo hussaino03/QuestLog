@@ -34,14 +34,15 @@ class DashboardManager {
         const cached = this.getCacheItem(cacheKey);
         if (cached) return cached;
 
+        const now = new Date();
         const result = {
-            startDate: new Date(),
-            endDate: new Date()
+            startDate: new Date(now),
+            endDate: now
         };
 
-        result.startDate.setDate(result.startDate.getDate() - (days - 1));
-        result.startDate.setHours(0, 0, 0, 0);
-        result.endDate.setHours(23, 59, 59, 999);
+        result.startDate.setDate(now.getDate() - (days - 1));
+        result.startDate.setUTCHours(0, 0, 0, 0);
+        result.endDate.setUTCHours(23, 59, 59, 999);
 
         this.setCacheItem(cacheKey, result);
         return result;
@@ -49,11 +50,14 @@ class DashboardManager {
 
     calculateDays(days = 7) {
         const daysArray = [];
-        const { startDate } = this.getDateRange(days);
+        const now = new Date();
+        const startDate = new Date(now);
+        startDate.setDate(now.getDate() - (days - 1));
         
         for (let i = 0; i < days; i++) {
             const d = new Date(startDate);
             d.setDate(startDate.getDate() + i);
+            // Format date in user's local timezone
             const month = (d.getMonth() + 1).toString().padStart(2, '0');
             const day = d.getDate().toString().padStart(2, '0');
             daysArray.push({
@@ -64,13 +68,11 @@ class DashboardManager {
         return daysArray;
     }
 
-    normalizeDate(date, taskTimezone) {
+    normalizeDate(date) {
         const d = new Date(date);
-        const localDate = new Date(d.toLocaleString('en-US', { 
-            timeZone: taskTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone 
-        }));
-        localDate.setHours(0, 0, 0, 0);
-        return localDate.getTime();
+        // Convert to start of day in UTC
+        d.setUTCHours(0, 0, 0, 0);
+        return d.getTime();
     }
 
     getTaskXP(task) {
@@ -237,27 +239,27 @@ class DashboardManager {
         const tasksByDate = new Map();
         const batches = Math.ceil(tasks.length / batchSize);
         
-        const processBatch = async (batch) => {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    batch.forEach(task => {
-                        const taskDate = new Date(task.completedAt);
-                        if (taskDate >= startDate && taskDate <= endDate) {
-                            const normalizedDate = this.normalizeDate(task.completedAt, task.completedTimezone);
-                            if (!tasksByDate.has(normalizedDate)) {
-                                tasksByDate.set(normalizedDate, []);
-                            }
-                            tasksByDate.get(normalizedDate).push(task);
-                        }
-                    });
-                    resolve();
-                }, 0);
-            });
-        };
-
         for (let i = 0; i < batches; i++) {
-            const batchTasks = tasks.slice(i * batchSize, (i + 1) * batchSize);
-            await processBatch(batchTasks);
+            const start = i * batchSize;
+            const end = Math.min((i + 1) * batchSize, tasks.length);
+            const batch = tasks.slice(start, end);
+            
+            // Process each batch
+            batch.forEach(task => {
+                const taskDate = new Date(task.completedAt);
+                if (taskDate >= startDate && taskDate <= endDate) {
+                    const normalizedDate = this.normalizeDate(task.completedAt);
+                    if (!tasksByDate.has(normalizedDate)) {
+                        tasksByDate.set(normalizedDate, []);
+                    }
+                    tasksByDate.get(normalizedDate).push(task);
+                }
+            });
+            
+            // Allow other operations to process between batches
+            if (i < batches - 1) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
         }
 
         return tasksByDate;
