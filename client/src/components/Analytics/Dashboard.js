@@ -25,15 +25,6 @@ ChartJS.register(
   Legend
 );
 
-const LoadingSpinner = memo(() => (
-  <div className="flex items-center justify-center w-full h-full">
-    <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-  </div>
-));
-
 const SafeChartWrapper = memo(({ children, data }) => {
   if (!data || !data.labels || !data.datasets || data.labels.length === 0) {
     return (
@@ -49,7 +40,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
   const [isFullView, setIsFullView] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [dateRange, setDateRange] = useState(7);
-  const [isLoading, setIsLoading] = useState(false);
   
   const dashboardManager = useMemo(() => new DashboardManager(), []);
   const [dashboardData, setDashboardData] = useState({
@@ -169,8 +159,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
 
   const renderPeakDay = useCallback(() => {
     const peak = dashboardManager.findPeakDay(dashboardData.xpData);
-    if (!peak || peak.xp === 0) return "No activity yet";
-    return `${peak.date} • ${peak.xp}XP`;  
+    return peak.xp > 0 ? `${peak.date} • ${peak.xp}XP` : "No activity yet";
   }, [dashboardData.xpData, dashboardManager]);
 
   // Clear cache when component unmounts
@@ -212,26 +201,32 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     }
   }), [windowWidth]);
 
-  const transformedChartData = useMemo(() => ({
-    xpData: dashboardData.xpData ? getChartData(dashboardData.xpData, true) : null,
-    modalXpData: dashboardData.xpData ? getChartData(dashboardData.xpData, false) : null,
-    taskData: dashboardData.completedTasksData ? getChartData(dashboardData.completedTasksData, false) : null
-  }), [dashboardData.xpData, dashboardData.completedTasksData, getChartData]);
+  const transformedChartData = useMemo(() => {
+    const emptyChart = {
+      labels: [],
+      datasets: [{
+        label: 'XP Gained',
+        data: [],
+        fill: false,
+        borderColor: dashboardManager.CHART_COLORS.primary,
+        tension: 0.3,
+        pointBackgroundColor: dashboardManager.CHART_COLORS.primary,
+        backgroundColor: dashboardManager.CHART_COLORS.background,
+        borderWidth: 1,
+        borderRadius: 5
+      }]
+    };
+
+    return {
+      xpData: getChartData(dashboardData.xpData) || emptyChart,
+      modalXpData: getChartData(dashboardData.xpData) || emptyChart,
+      taskData: getChartData(dashboardData.completedTasksData) || emptyChart
+    };
+  }, [dashboardData.xpData, dashboardData.completedTasksData, getChartData, dashboardManager.CHART_COLORS]);
 
   const handleRangeChange = (newRange) => {
-    setIsLoading(true);
     setDateRange(newRange);
   };
-
-  // Add effect to handle loading state
-  useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading]);
 
   const RangeToggle = () => (
     <span className="inline-flex items-center gap-2">
@@ -243,7 +238,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             ? 'bg-white dark:bg-gray-600 shadow-sm' 
             : 'text-gray-600 dark:text-gray-300'
           }`}
-          disabled={isLoading}
         >
           7
         </button>
@@ -254,12 +248,10 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             ? 'bg-white dark:bg-gray-600 shadow-sm' 
             : 'text-gray-600 dark:text-gray-300'
           }`}
-          disabled={isLoading}
         >
           30
         </button>
       </span>
-      {isLoading && <LoadingSpinner />}
     </span>
   );
 
@@ -267,7 +259,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     let isMounted = true;
     
     const computeMetrics = async () => {
-        setIsLoading(true);
         try {
             const result = await dashboardManager.calculateMetricsOptimized(completedTasks, dateRange);
             if (isMounted) {
@@ -275,10 +266,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             }
         } catch (error) {
             console.error('Error computing metrics:', error);
-        } finally {
-            if (isMounted) {
-                setIsLoading(false);
-            }
         }
     };
 
@@ -297,13 +284,11 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
         </span>
       </div>
       <div className="h-48">
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <SafeChartWrapper data={transformedChartData.xpData}>
+        <SafeChartWrapper data={transformedChartData?.xpData}>
+          {transformedChartData?.xpData && (
             <Line data={transformedChartData.xpData} options={chartOptions} />
-          </SafeChartWrapper>
-        )}
+          )}
+        </SafeChartWrapper>
       </div>
 
       {/* Modal */}
@@ -334,7 +319,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                           ? 'bg-white dark:bg-gray-600 shadow-sm' 
                           : 'text-gray-600 dark:text-gray-300'
                         }`}
-                        disabled={isLoading}
                       >
                         7
                       </button>
@@ -345,7 +329,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                           ? 'bg-white dark:bg-gray-600 shadow-sm' 
                           : 'text-gray-600 dark:text-gray-300'
                         }`}
-                        disabled={isLoading}
                       >
                         30
                       </button>
@@ -411,91 +394,85 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             </div>
 
             {/* Content */}
-            {isLoading ? (
-              <div className="flex-1 min-h-[400px] flex items-center justify-center">
-                <LoadingSpinner />
+            <>
+              {/* Key Metrics */}
+              <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 gap-3 px-3 sm:px-6">
               </div>
-            ) : (
-              <>
-                {/* Key Metrics */}
-                <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 gap-3 px-3 sm:px-6">
-                </div>
 
-                {/* Charts Section */}
-                <div className="px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
-                    <div className="space-y-2 sm:space-y-4">
-                      <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">XP Growth</h4>
-                      <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
-                                    border border-gray-100 dark:border-gray-600">
-                        <SafeChartWrapper data={transformedChartData.modalXpData}>
-                          <Line data={transformedChartData.modalXpData} options={{
-                            ...chartOptions, 
-                            maintainAspectRatio: false,
-                            scales: {
-                              ...chartOptions.scales,
-                              x: {
-                                ...chartOptions.scales.x,
-                                ticks: {
-                                  maxRotation: CHART_CONSTANTS.rotations.x.max,
-                                  minRotation: CHART_CONSTANTS.rotations.x.min,
-                                  font: {
-                                    size: CHART_CONSTANTS.fontSizes.small
-                                  }
+              {/* Charts Section */}
+              <div className="px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
+                  <div className="space-y-2 sm:space-y-4">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">XP Growth</h4>
+                    <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
+                                  border border-gray-100 dark:border-gray-600">
+                      <SafeChartWrapper data={transformedChartData.modalXpData}>
+                        <Line data={transformedChartData.modalXpData} options={{
+                          ...chartOptions, 
+                          maintainAspectRatio: false,
+                          scales: {
+                            ...chartOptions.scales,
+                            x: {
+                              ...chartOptions.scales.x,
+                              ticks: {
+                                maxRotation: CHART_CONSTANTS.rotations.x.max,
+                                minRotation: CHART_CONSTANTS.rotations.x.min,
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
                                 }
-                              },
-                              y: {
-                                ...chartOptions.scales.y,
-                                ticks: {
-                                  font: {
-                                    size: CHART_CONSTANTS.fontSizes.small
-                                  }
+                              }
+                            },
+                            y: {
+                              ...chartOptions.scales.y,
+                              ticks: {
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
                                 }
                               }
                             }
-                          }} />
-                        </SafeChartWrapper>
-                      </div>
+                          }
+                        }} />
+                      </SafeChartWrapper>
                     </div>
+                  </div>
 
-                    <div className="space-y-2 sm:space-y-4">
-                      <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">Task/Project Completion</h4>
-                      <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
-                                    border border-gray-100 dark:border-gray-600">
-                        <SafeChartWrapper data={transformedChartData.taskData}>
-                          <Bar data={transformedChartData.taskData} options={{
-                            ...tasksChartOptions,
-                            scales: {
-                              ...tasksChartOptions.scales,
-                              x: {
-                                ticks: {
-                                  maxRotation: CHART_CONSTANTS.rotations.x.max,
-                                  minRotation: CHART_CONSTANTS.rotations.x.min,
-                                  font: {
-                                    size: CHART_CONSTANTS.fontSizes.small
-                                  }
+                  <div className="space-y-2 sm:space-y-4">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">Task/Project Completion</h4>
+                    <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
+                                  border border-gray-100 dark:border-gray-600">
+                      <SafeChartWrapper data={transformedChartData.taskData}>
+                        <Bar data={transformedChartData.taskData} options={{
+                          ...tasksChartOptions,
+                          scales: {
+                            ...tasksChartOptions.scales,
+                            x: {
+                              ticks: {
+                                maxRotation: CHART_CONSTANTS.rotations.x.max,
+                                minRotation: CHART_CONSTANTS.rotations.x.min,
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
                                 }
-                              },
-                              y: {
-                                ticks: {
-                                  font: {
-                                    size: CHART_CONSTANTS.fontSizes.small
-                                  }
+                              }
+                            },
+                            y: {
+                              ticks: {
+                                font: {
+                                  size: CHART_CONSTANTS.fontSizes.small
                                 }
                               }
                             }
-                          }} />
-                        </SafeChartWrapper>
-                      </div>
+                          }
+                        }} />
+                      </SafeChartWrapper>
                     </div>
                   </div>
                 </div>
-              </>
-            )}
+              </div>
+            </>
           </div>
         </div>
       )}
-      {!isLoading && dashboardData.xpData && (
+      {dashboardData?.xpData && (
         <div className="flex gap-3 mt-4">
           {/* Peak Day card */}
           <div className="flex items-center px-4 py-1.5 rounded-lg border" style={{
