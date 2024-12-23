@@ -1,9 +1,16 @@
 export const formatDate = (date, useWeekday = false) => {
   if (useWeekday) {
-    return date.toLocaleDateString('en-US', { weekday: 'short' });
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short',
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+    });
   }
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
+  
+  const localDate = new Date(date.toLocaleString('en-US', {
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  }));
+  const month = (localDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = localDate.getDate().toString().padStart(2, '0');
   return `${month}/${day}`;
 };
 
