@@ -168,99 +168,102 @@ const App = () => {
                 )}
                 
                 {/* Main Layout Container */}
-                <div className="max-w-7xl mx-auto px-4 py-6">
-                  <div className="grid lg:grid-cols-[1fr,320px] gap-6"> 
-                    {/* Main Content Column */}
-                    <div className="flex flex-col min-w-0"> 
-                      <ProgressBar 
-                        level={level} 
-                        experience={experience} 
-                        userName={userName}
-                      />
-                      
-                      <div className="mt-6 flex-shrink-0">
-                        <div className="space-y-4">
-                          <TaskButtons 
-                            showCompleted={showCompleted} 
-                            toggleView={() => viewManager.toggleView(showCompleted)}
-                            onClearDataClick={handleClearDataClick}
+                <div className="flex flex-col min-h-screen">
+                  <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
+                    <div className="grid lg:grid-cols-[1fr,320px] gap-6 h-full">
+                      {/* Main Content Column */}
+                      <div className="flex flex-col min-h-[calc(100vh-200px)] lg:min-h-0 lg:h-full"> 
+                        <ProgressBar 
+                          level={level} 
+                          experience={experience} 
+                          userName={userName}
+                        />
+                        
+                        <div className="mt-6 flex-shrink-0">
+                          <div className="space-y-4">
+                            <TaskButtons 
+                              showCompleted={showCompleted} 
+                              toggleView={() => viewManager.toggleView(showCompleted)}
+                              onClearDataClick={handleClearDataClick}
+                            />
+                            <TaskForm addTask={taskManager.addTask} />
+                          </div>
+                        </div>
+
+                        {/* Task List Container */}
+                        <div className="mt-6 relative flex-1 min-h-0"> 
+                          <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                            <SwitchTransition mode="out-in">
+                              <CSSTransition
+                                key={currentView}
+                                classNames="slide"
+                                timeout={300}
+                                unmountOnExit
+                              >
+                                <div className="h-full"> 
+                                  {currentView === 'todo' && (
+                                    <TaskList 
+                                      tasks={tasks} 
+                                      removeTask={taskManager.removeTask}
+                                      completeTask={taskManager.completeTask}
+                                      isCompleted={false}
+                                      addTask={taskManager.addTask}  
+                                      updateTask={taskManager.updateTask}  
+                                    />
+                                  )}
+                                  {currentView === 'completed' && (
+                                    <TaskList 
+                                      tasks={completedTasks} 
+                                      removeTask={taskManager.removeTask}
+                                      completeTask={taskManager.completeTask}
+                                      isCompleted={true}
+                                    />
+                                  )}
+                                </div>
+                              </CSSTransition>
+                            </SwitchTransition>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Side Panel - Desktop */}
+                      <div className="hidden lg:flex lg:flex-col space-y-6 h-full pt-[102px]"> 
+                        <div className="flex-shrink-0">
+                          <BadgeGrid unlockedBadges={unlockedBadges} />
+                        </div>
+                        <div className="flex-shrink-0">
+                          <StreakTracker 
+                            completedTasks={completedTasks} 
+                            streakData={streakData}
                           />
-                          <TaskForm addTask={taskManager.addTask} />
+                        </div>
+                        <div className="flex-1 min-h-0 overflow-auto"> 
+                          <Leaderboard 
+                            limit={3} 
+                            className="h-full"
+                            onShowFull={() => setShowFullLeaderboard(true)}
+                          />
                         </div>
                       </div>
 
-                      {/* Task List Container with Gradient */}
-                      <div className="mt-6 relative">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200 overflow-hidden">
-                          <SwitchTransition mode="out-in">
-                            <CSSTransition
-                              key={currentView}
-                              classNames="slide"
-                              timeout={300}
-                              unmountOnExit
-                            >
-                              <div className="min-h-[300px]"> 
-                                {currentView === 'todo' && (
-                                  <TaskList 
-                                    tasks={tasks} 
-                                    removeTask={taskManager.removeTask}
-                                    completeTask={taskManager.completeTask}
-                                    isCompleted={false}
-                                    addTask={taskManager.addTask}  
-                                    updateTask={taskManager.updateTask}  
-                                  />
-                                )}
-                                {currentView === 'completed' && (
-                                  <TaskList 
-                                    tasks={completedTasks} 
-                                    removeTask={taskManager.removeTask}
-                                    completeTask={taskManager.completeTask}
-                                    isCompleted={true}
-                                  />
-                                )}
-                              </div>
-                            </CSSTransition>
-                          </SwitchTransition>
+                      {/* Side Panel - Mobile */}
+                      <div className="lg:hidden mt-4"> 
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
+                          <BadgeGrid unlockedBadges={unlockedBadges} />
+                          <StreakTracker 
+                            completedTasks={completedTasks} 
+                            streakData={streakData}
+                          />
+                          <Leaderboard 
+                            limit={3} 
+                            className="overflow-hidden" 
+                            onShowFull={() => setShowFullLeaderboard(true)}
+                          />
                         </div>
-                        {/* Gradient Overlay */}
-                        <div 
-                          className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b 
-                          from-transparent via-transparent to-gray-50/80 dark:to-gray-900/80 pointer-events-none"
-                          aria-hidden="true"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Side Panel - Desktop */}
-                    <div className="hidden lg:flex lg:flex-col space-y-6 flex-shrink-0 pt-[102px]">
-                      <BadgeGrid unlockedBadges={unlockedBadges} />
-                      <StreakTracker 
-                        completedTasks={completedTasks} 
-                        streakData={streakData}
-                      />
-                      <Leaderboard 
-                        limit={3} 
-                        className="overflow-hidden" 
-                        onShowFull={() => setShowFullLeaderboard(true)}
-                      />
-                    </div>
-
-                    {/* Side Panel - Mobile */}
-                    <div className="lg:hidden mt-4"> 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
-                        <BadgeGrid unlockedBadges={unlockedBadges} />
-                        <StreakTracker 
-                          completedTasks={completedTasks} 
-                          streakData={streakData}
-                        />
-                        <Leaderboard 
-                          limit={3} 
-                          className="overflow-hidden" 
-                          onShowFull={() => setShowFullLeaderboard(true)}
-                        />
                       </div>
                     </div>
                   </div>
+                  <Footer userId={userId} /> 
                 </div>
 
                 {/* Full Leaderboard Modal */}
@@ -285,7 +288,6 @@ const App = () => {
                   onCancel={() => setShowClearDataModal(false)}
                 />
                 <Analytics />
-                <Footer userId={userId} />
               </div>
               ) : (
                 <Navigate to="/" replace />

@@ -7,7 +7,6 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks'); 
-  const [showAllCompleted, setShowAllCompleted] = useState(false);
   const [sortMethod, setSortMethod] = useState('date');
 
   const handleQuickAdd = (e) => {
@@ -110,42 +109,27 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
     }
   });
 
-  const COMPLETED_TASKS_LIMIT = 3;
-  const limitedGroups = isCompleted ? 
-    sortedGroups.reduce((acc, [date, tasks]) => {
-      const totalTasksSoFar = acc.length > 0 ? 
-        acc.reduce((sum, [_, groupTasks]) => sum + (groupTasks?.length || 0), 0) : 0;
-        
-      if (totalTasksSoFar < COMPLETED_TASKS_LIMIT) {
-        const remainingSlots = COMPLETED_TASKS_LIMIT - totalTasksSoFar;
-        const limitedTasks = tasks?.slice(0, remainingSlots) || [];
-        if (limitedTasks.length > 0) {
-          acc.push([date, limitedTasks]);
-        }
-      }
-      return acc;
-    }, []) : 
-    sortedGroups;
-
   return (
     <>
-      <div className="flex flex-col items-center w-full bg-white dark:bg-gray-800 rounded-lg p-6 transition-colors duration-200 min-h-[500px]">
+      <div className="flex flex-col h-full"> 
         {!isCompleted ? (
           <>
-            {/* Quick Task Input */}
-            <div className="relative w-full mb-6 group">
-              <input
-                type="text"
-                placeholder="Quick add task..."
-                value={quickTaskInput}
-                onChange={(e) => setQuickTaskInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleQuickAdd(e);
-                  }
-                }}
-                className="w-full px-4 py-3 text-sm bg-gray-50/80 dark:bg-gray-700/80 
+            {/* Quick Task Input and Controls */}
+            <div className="flex-shrink-0 px-6 pt-6"> 
+              {/* Quick Task Input */}
+              <div className="relative w-full mb-6 group">
+                <input
+                  type="text"
+                  placeholder="Quick add task..."
+                  value={quickTaskInput}
+                  onChange={(e) => setQuickTaskInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleQuickAdd(e);
+                    }
+                  }}
+                  className="w-full px-4 py-3 text-sm bg-gray-50/80 dark:bg-gray-700/80 
                        border border-gray-200 dark:border-gray-600 rounded-lg 
                        text-gray-900 dark:text-gray-100 backdrop-blur-sm
                        placeholder-gray-400 dark:placeholder-gray-500 
@@ -155,8 +139,8 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                        focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10
                        focus:outline-none
                        hover:border-gray-300 dark:hover:border-gray-500"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 
                           px-1.5 py-0.5 rounded-md 
                           bg-gray-100 dark:bg-gray-600
                           text-[10px] font-medium tracking-wide uppercase
@@ -164,160 +148,105 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                           opacity-0 group-hover:opacity-100 
                           transition-all duration-200 ease-in-out
                           transform group-hover:translate-x-0 translate-x-2">
-                enter ↵
-              </div>
-            </div>
-
-            {/* Combined Toggle Controls */}
-            <div className="w-full flex justify-between items-center mb-6">
-              <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5 sm:p-1">
-                <button
-                  onClick={() => setActiveTab('tasks')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
-                    activeTab === 'tasks'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-                >
-                  <span>Tasks ({regularTasks.length})</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('projects')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
-                    activeTab === 'projects'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-                >
-                  <span>Projects ({projects.length})</span>
-                </button>
+                  enter ↵
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                {/* Sort Dropdown */}
-                <div className="relative">
+              {/* Combined Toggle Controls */}
+              <div className="w-full flex justify-between items-center mb-6">
+                <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5 sm:p-1">
                   <button
-                    onClick={() => setSortMethod(sortMethod === 'date' ? 'label' : 'date')}
-                    className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
+                    onClick={() => setActiveTab('tasks')}
+                    className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
+                      activeTab === 'tasks'
+                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <span>Tasks ({regularTasks.length})</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('projects')}
+                    className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
+                      activeTab === 'projects'
+                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <span>Projects ({projects.length})</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Sort Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setSortMethod(sortMethod === 'date' ? 'label' : 'date')}
+                      className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
                              bg-gray-100 dark:bg-gray-700
                              text-gray-600 dark:text-gray-400 
                              hover:text-gray-900 dark:hover:text-gray-200
                              transition-all duration-200 ease-in-out
                              flex items-center gap-1.5 sm:gap-2"
-                  >
-                    <ArrowUpDown className="w-4 h-4" />
-                    <span className="hidden xs:inline">
-                      Sort by {sortMethod === 'date' ? 'Label' : 'Due Date'}
-                    </span>
-                  </button>
-                </div>
+                    >
+                      <ArrowUpDown className="w-4 h-4" />
+                      <span className="hidden xs:inline">
+                        Sort by {sortMethod === 'date' ? 'Label' : 'Due Date'}
+                      </span>
+                    </button>
+                  </div>
 
-                {/* Calendar/List View Toggle */}
-                <button
-                  onClick={() => setIsCalendarView(!isCalendarView)}
-                  className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
+                  {/* Calendar/List View Toggle */}
+                  <button
+                    onClick={() => setIsCalendarView(!isCalendarView)}
+                    className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
                            bg-gray-100 dark:bg-gray-700
                            text-gray-600 dark:text-gray-400 
                            hover:text-gray-900 dark:hover:text-gray-200
                            transition-all duration-200 ease-in-out
                            flex items-center gap-1.5 sm:gap-2"
-                >
-                  {isCalendarView ? (
-                    <>
-                      <LayoutList className="w-4 h-4" />
-                      <span className="hidden xs:inline text-xs sm:text-sm">List</span>
-                    </>
-                  ) : (
-                    <>
-                      <Calendar className="w-4 h-4" />
-                      <span className="hidden xs:inline text-xs sm:text-sm">Calendar</span>
-                    </>
-                  )}
-                </button>
+                  >
+                    {isCalendarView ? (
+                      <>
+                        <LayoutList className="w-4 h-4" />
+                        <span className="hidden xs:inline text-xs sm:text-sm">List</span>
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="w-4 h-4" />
+                        <span className="hidden xs:inline text-xs sm:text-sm">Calendar</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </>
         ) : (
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 w-full text-center mb-6">
-            Completed
-          </h2>
+          <div className="flex-shrink-0 px-6 pt-6">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 w-full text-center mb-3">
+              Completed
+            </h2>
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5">
+                <div className="px-3 py-1.5 text-xs rounded-md
+                              bg-white dark:bg-gray-800 
+                              text-gray-900 dark:text-gray-100
+                              shadow-sm">
+                  {tasks.filter(t => !t.isProject && !t.subtasks).length} tasks · {tasks.filter(t => t.isProject || t.subtasks).length} projects
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {!isCompleted && isCalendarView ? (
-          <CalendarView tasks={tasks} />
-        ) : (
-          <div className="space-y-8 w-full flex flex-col items-center">
-            {/* Always show limited tasks in the background */}
-            {limitedGroups.map(([date, dateTasks]) => (
-              <div key={date} className="w-full flex flex-col items-center space-y-2">
-                <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                  {date}
-                </div>
-                <ul className="w-full flex flex-col items-center">
-                  {dateTasks.map((task) => (
-                    <Task
-                      key={task.id}
-                      task={task}
-                      removeTask={removeTask}
-                      completeTask={completeTask}
-                      isCompleted={isCompleted}
-                      updateTask={updateTask}
-                    />
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            {isCompleted && !showAllCompleted && (tasks || []).length > COMPLETED_TASKS_LIMIT && (
-              <button
-                onClick={() => setShowAllCompleted(true)}
-                className="mt-4 p-1.5 sm:p-2 rounded-lg bg-white dark:bg-gray-800 font-bold text-base sm:text-lg 
-                          bordV2 border-gray-800 text-gray-800 dark:text-gray-200 
-                          shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
-                          hover:translate-y-0.5 transition-all duration-200"
-              >
-                See All ({(tasks || []).length})
-              </button>
-            )}
-
-            {!isCompleted && sortedTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 py-16 flex-grow">
-                {activeTab === 'tasks' ? (
-                  <>
-                    <PlusCircle className="w-20 h-20 mb-6 text-gray-400 dark:text-gray-600" />
-                    <p className="text-2xl font-semibold mb-3">No tasks yet</p>
-                    <p className="text-base text-center max-w-sm">
-                      Type above for a quick task or use the Create+ button for more options
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <FolderPlus className="w-20 h-20 mb-6 text-gray-400 dark:text-gray-600" />
-                    <p className="text-2xl font-semibold mb-3">No projects yet</p>
-                    <p className="text-base text-center max-w-sm">
-                      Use the Create+ button to add a new project with subtasks
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
+          <div className="flex-1 min-h-0 overflow-auto">
+            <CalendarView tasks={tasks} />
           </div>
-        )}
-      </div>
-
-      {/* Completed tasks modal */}
-      {showAllCompleted && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl h-[80vh] flex flex-col">
-            <div className="flex justify-end items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => setShowAllCompleted(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
-              >
-                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent flex-1">
+        ) : (
+          <div className="flex-1 min-h-0 overflow-auto px-6 pb-6"> 
+            <div className="space-y-8">
               {sortedGroups.map(([date, dateTasks]) => (
                 <div key={date} className="w-full flex flex-col items-center space-y-2">
                   <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
@@ -337,10 +266,32 @@ const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, 
                   </ul>
                 </div>
               ))}
+
+              {!isCompleted && sortedTasks.length === 0 && (
+                <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 py-16 flex-grow">
+                  {activeTab === 'tasks' ? (
+                    <>
+                      <PlusCircle className="w-20 h-20 mb-6 text-gray-400 dark:text-gray-600" />
+                      <p className="text-2xl font-semibold mb-3">No tasks yet</p>
+                      <p className="text-base text-center max-w-sm">
+                        Type above for a quick task or use the Create+ button for more options
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <FolderPlus className="w-20 h-20 mb-6 text-gray-400 dark:text-gray-600" />
+                      <p className="text-2xl font-semibold mb-3">No projects yet</p>
+                      <p class="text-base text-center max-w-sm">
+                        Use the Create+ button to add a new project with subtasks
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };
