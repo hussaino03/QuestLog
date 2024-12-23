@@ -47,26 +47,17 @@ const SafeChartWrapper = memo(({ children, data }) => {
 
 const Dashboard = ({ completedTasks, onOpenDashboard }) => {  
   const [isFullView, setIsFullView] = useState(false);
-  const [xpData, setXpData] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [dateRange, setDateRange] = useState(7);
   const [isLoading, setIsLoading] = useState(false);
   
   const dashboardManager = useMemo(() => new DashboardManager(), []);
-
-  const periodXP = useMemo(() => 
-    dashboardManager.calculatePeriodXP(completedTasks, dateRange),
-    [completedTasks, dashboardManager, dateRange]
-  );
-
-  const { metrics, completedTasksData } = useMemo(() => {
-    if (!xpData) return { metrics: null, completedTasksData: null };
-    
-    return {
-      metrics: dashboardManager.getMetrics(xpData, periodXP, dateRange),
-      completedTasksData: dashboardManager.getCompletedTasksData(completedTasks, xpData, dateRange)
-    };
-  }, [completedTasks, xpData, periodXP, dashboardManager, dateRange]);
+  const [dashboardData, setDashboardData] = useState({
+    xpData: null,
+    metrics: null,
+    completedTasksData: null,
+    periodXP: 0
+  });
 
   const chartOptions = useMemo(() => ({
     responsive: true,
@@ -101,7 +92,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
           maxRotation: dateRange === 30 ? 65 : 45,
           minRotation: dateRange === 30 ? 65 : 45,
           callback: function(val, index) {
-            // Show fewer labels when displaying 30 days
             return dateRange === 30 && index % 2 !== 0 ? '' : this.getLabelForValue(val);
           }
         },
@@ -178,10 +168,10 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
   }, []);
 
   const renderPeakDay = useCallback(() => {
-    const peak = dashboardManager.findPeakDay(xpData);
+    const peak = dashboardManager.findPeakDay(dashboardData.xpData);
     if (!peak || peak.xp === 0) return "No activity yet";
     return `${peak.date} • ${peak.xp}XP`;  
-  }, [xpData, dashboardManager]);
+  }, [dashboardData.xpData, dashboardManager]);
 
   // Clear cache when component unmounts
   useEffect(() => {
@@ -189,11 +179,6 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
         dashboardManager.clearCache();
     };
   }, [dashboardManager]);
-
-  useEffect(() => {
-    const data = dashboardManager.calculateXPData(completedTasks, dateRange);
-    setXpData(data);
-  }, [completedTasks, dashboardManager, dateRange]); 
 
   useEffect(() => {
     if (onOpenDashboard) {
@@ -228,10 +213,10 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
   }), [windowWidth]);
 
   const transformedChartData = useMemo(() => ({
-    xpData: xpData ? getChartData(xpData, true) : null,
-    modalXpData: xpData ? getChartData(xpData, false) : null,
-    taskData: completedTasksData ? getChartData(completedTasksData, false) : null
-  }), [xpData, completedTasksData, getChartData]);
+    xpData: dashboardData.xpData ? getChartData(dashboardData.xpData, true) : null,
+    modalXpData: dashboardData.xpData ? getChartData(dashboardData.xpData, false) : null,
+    taskData: dashboardData.completedTasksData ? getChartData(dashboardData.completedTasksData, false) : null
+  }), [dashboardData.xpData, dashboardData.completedTasksData, getChartData]);
 
   const handleRangeChange = (newRange) => {
     setIsLoading(true);
@@ -277,6 +262,32 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
       {isLoading && <LoadingSpinner />}
     </span>
   );
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const computeMetrics = async () => {
+        setIsLoading(true);
+        try {
+            const result = await dashboardManager.calculateMetricsOptimized(completedTasks, dateRange);
+            if (isMounted) {
+                setDashboardData(result);
+            }
+        } catch (error) {
+            console.error('Error computing metrics:', error);
+        } finally {
+            if (isMounted) {
+                setIsLoading(false);
+            }
+        }
+    };
+
+    computeMetrics();
+    
+    return () => {
+        isMounted = false;
+    };
+  }, [completedTasks, dashboardManager, dateRange]);
 
   return (
     <div>
@@ -356,11 +367,11 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                   <div className="flex items-center gap-2 sm:gap-3 mb-2">
                     <FireIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                      {metrics?.periodLabel}
+                      {dashboardData.metrics?.periodLabel}
                     </span>
                   </div>
                   <p className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">
-                    {metrics?.weeklyXP || 0}
+                    {dashboardData.metrics?.weeklyXP || 0}
                   </p>
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Total XP earned in this period</p>
                 </div>
@@ -372,7 +383,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                     <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Activity Days</span>
                   </div>
                   <p className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">
-                    {metrics?.activeDays}
+                    {dashboardData.metrics?.activeDays}
                   </p>
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Days with completed tasks</p>
                 </div>
@@ -380,7 +391,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                 {/* Weekly Trend card */}
                 <div className="p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600">
                   <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                    {metrics?.trendDirection === 'Improving' ? (
+                    {dashboardData.metrics?.trendDirection === 'Improving' ? (
                       <ArrowTrendingUpIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
                     ) : (
                       <ArrowTrendingDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -390,10 +401,10 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                     </span>
                   </div>
                   <p className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">
-                    {metrics?.trendDescription}
+                    {dashboardData.metrics?.trendDescription}
                   </p>
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    {metrics?.trendPercentage}% {metrics?.trendDirection.toLowerCase()} from {dateRange === 7 ? 'last week' : 'last month'}
+                    {dashboardData.metrics?.trendPercentage}% {dashboardData.metrics?.trendDirection.toLowerCase()} from {dateRange === 7 ? 'last week' : 'last month'}
                   </p>
                 </div>
               </div>
@@ -484,7 +495,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
           </div>
         </div>
       )}
-      {!isLoading && xpData && (
+      {!isLoading && dashboardData.xpData && (
         <div className="flex gap-3 mt-4">
           {/* Peak Day card */}
           <div className="flex items-center px-4 py-1.5 rounded-lg border" style={{
@@ -505,7 +516,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             <div className="flex flex-col">
               <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Average Daily</span>
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {dashboardManager.calculateAverageDaily(completedTasks, xpData, dateRange)} XP
+                {dashboardManager.calculateAverageDaily(completedTasks, dashboardData.xpData, dateRange)} XP
               </span>
             </div>
           </div>
