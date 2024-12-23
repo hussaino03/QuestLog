@@ -6,46 +6,55 @@ async function updateUser(req, res) {
     return res.status(400).json({ error: 'Invalid user ID format' });
   }
 
-  const { xp, tasksCompleted, level, tasks, completedTasks, unlockedBadges } = req.body;
-  
+  const { xp, tasksCompleted, level, tasks, completedTasks, unlockedBadges } =
+    req.body;
+
   const numXP = Number(xp) || 0;
   const numTasksCompleted = Number(tasksCompleted) || 0;
   const numLevel = Number(level) || 1;
 
-  const sanitizedTasks = Array.isArray(tasks) ? tasks.map(task => ({
-    ...task,
-    deadline: task.deadline || null
-  })) : [];
+  const sanitizedTasks = Array.isArray(tasks)
+    ? tasks.map((task) => ({
+        ...task,
+        deadline: task.deadline || null
+      }))
+    : [];
 
-  const sanitizedCompletedTasks = Array.isArray(completedTasks) ? completedTasks.map(task => ({
-    ...task,
-    deadline: task.deadline || null
-  })) : [];
-  
+  const sanitizedCompletedTasks = Array.isArray(completedTasks)
+    ? completedTasks.map((task) => ({
+        ...task,
+        deadline: task.deadline || null
+      }))
+    : [];
+
   if (isNaN(numXP) || isNaN(numTasksCompleted) || isNaN(numLevel)) {
-    return res.status(400).json({ error: 'Invalid xp, tasksCompleted, or level value' });
+    return res
+      .status(400)
+      .json({ error: 'Invalid xp, tasksCompleted, or level value' });
   }
 
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
-    
-    const userId = ObjectId.isValid(req.params.id) ? new ObjectId(req.params.id) : null;
+
+    const userId = ObjectId.isValid(req.params.id)
+      ? new ObjectId(req.params.id)
+      : null;
     if (!userId) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
     const result = await usersCollection.updateOne(
       { _id: userId },
-      { 
-        $set: { 
+      {
+        $set: {
           xp: numXP,
           tasksCompleted: numTasksCompleted,
           level: numLevel,
           tasks: sanitizedTasks,
           completedTasks: sanitizedCompletedTasks,
           unlockedBadges: Array.isArray(unlockedBadges) ? unlockedBadges : [],
-          updatedAt: new Date() 
+          updatedAt: new Date()
         }
       }
     );
@@ -70,13 +79,13 @@ async function getUser(req, res) {
 
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
-    
+
     const user = await usersCollection.findOne(
       { _id: new ObjectId(req.params.id) },
       {
         projection: {
           name: 1,
-          xp: 1, 
+          xp: 1,
           level: 1,
           isOptIn: 1,
           unlockedBadges: 1,
@@ -101,23 +110,25 @@ async function updateOptInStatus(req, res) {
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
-    
-    const user = await usersCollection.findOne({ _id: new ObjectId(req.params.id) });
-    
+
+    const user = await usersCollection.findOne({
+      _id: new ObjectId(req.params.id)
+    });
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
     const newStatus = !user.isOptIn;
-    
+
     await usersCollection.updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: { isOptIn: newStatus } }
     );
-    
-    res.json({ 
+
+    res.json({
       message: `Opt-in status updated successfully`,
-      isOptIn: newStatus 
+      isOptIn: newStatus
     });
   } catch (error) {
     console.error('Error updating opt-in status:', error);

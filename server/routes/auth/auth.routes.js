@@ -3,15 +3,17 @@ const router = express.Router();
 const passport = require('../../config/passport-setup');
 const { authenticateToken } = require('../../middleware/auth');
 
-router.get('/google', 
-  passport.authenticate('google', { 
-    scope: ['profile', 'email'] 
+router.get(
+  '/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
   })
 );
 
-router.get('/google/callback', 
-  passport.authenticate('google', { 
-    failureRedirect: '/login' 
+router.get(
+  '/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: '/login'
   }),
   (req, res) => {
     const clientURL = process.env.CLIENT || 'http://localhost:3000';
@@ -26,14 +28,14 @@ router.get('/logout', (req, res) => {
       console.error('Session destruction error:', err);
       return res.status(500).json({ error: 'Logout failed' });
     }
-    
+
     res.clearCookie('connect.sid', {
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     });
-    
+
     req.logout(() => {
       if (userId) {
         console.log('User logged out successfully:', userId.toString());
@@ -50,7 +52,7 @@ router.get('/current_user', authenticateToken, (req, res) => {
     isOptIn: req.user.isOptIn || false,
     timestamp: new Date().toISOString()
   });
-  
+
   res.json({
     userId: req.user._id,
     name: req.user.name,
@@ -60,7 +62,7 @@ router.get('/current_user', authenticateToken, (req, res) => {
     level: req.user.level || 1,
     tasks: req.user.tasks || [],
     completedTasks: req.user.completedTasks || [],
-    isOptIn: req.user.isOptIn || false 
+    isOptIn: req.user.isOptIn || false
   });
 });
 

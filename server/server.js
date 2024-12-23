@@ -20,36 +20,40 @@ if (!mongoUri) {
 }
 
 // Session middleware with MongoDB store
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback_secret',
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ 
-    mongoUrl: mongoUri,
-    collectionName: 'sessions',
-    autoRemove: 'native',
-    touchAfter: 24 * 3600
-  }),
-  cookie: { 
-    secure: process.env.NODE_ENV === 'production', 
-    maxAge: 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-  }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'fallback_secret',
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: mongoUri,
+      collectionName: 'sessions',
+      autoRemove: 'native',
+      touchAfter: 24 * 3600
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    }
+  })
+);
 
 // Passport initialization
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Update CORS configuration
-app.use(cors({
-  origin: process.env.CLIENT || 'http://localhost:3000',  
-  credentials: true,  // Allow credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
-  exposedHeaders: ['Content-Type', 'Authorization']  // Exposed headers
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT || 'http://localhost:3000',
+    credentials: true, // Allow credentials
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    exposedHeaders: ['Content-Type', 'Authorization'] // Exposed headers
+  })
+);
 
 // Require passport setup
 require('./config/passport-setup');

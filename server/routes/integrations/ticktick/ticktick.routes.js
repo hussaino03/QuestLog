@@ -8,21 +8,25 @@ const TICKTICK_CLIENT_SECRET = process.env.TICKTICK_CLIENT_SECRET;
 const TICKTICK_REDIRECT_URI = process.env.TICKTICK_REDIRECT_URL;
 
 router.get('/auth/ticktick', authenticateToken, (req, res) => {
-  const authUrl = `https://ticktick.com/oauth/authorize?` +
+  const authUrl =
+    `https://ticktick.com/oauth/authorize?` +
     `client_id=${TICKTICK_CLIENT_ID}&` +
-    `scope=tasks:read tasks:write&` + 
+    `scope=tasks:read tasks:write&` +
     `state=${req.sessionID}&` +
     `redirect_uri=${TICKTICK_REDIRECT_URI}&` +
-    `response_type=code`;  // Required parameter
-  
+    `response_type=code`; // Required parameter
+
   res.redirect(authUrl);
 });
 
 router.get('/auth/ticktick/callback', authenticateToken, async (req, res) => {
   try {
-    const auth = Buffer.from(`${TICKTICK_CLIENT_ID}:${TICKTICK_CLIENT_SECRET}`).toString('base64');
-    
-    const tokenResponse = await axios.post('https://ticktick.com/oauth/token', 
+    const auth = Buffer.from(
+      `${TICKTICK_CLIENT_ID}:${TICKTICK_CLIENT_SECRET}`
+    ).toString('base64');
+
+    const tokenResponse = await axios.post(
+      'https://ticktick.com/oauth/token',
       new URLSearchParams({
         code: req.query.code,
         grant_type: 'authorization_code',
@@ -31,7 +35,7 @@ router.get('/auth/ticktick/callback', authenticateToken, async (req, res) => {
       }).toString(),
       {
         headers: {
-          'Authorization': `Basic ${auth}`,
+          Authorization: `Basic ${auth}`,
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }
@@ -42,28 +46,34 @@ router.get('/auth/ticktick/callback', authenticateToken, async (req, res) => {
     req.user.ticktickToken = accessToken;
 
     // Get user's projects first
-    const projectsResponse = await axios.get('https://api.ticktick.com/open/v1/project', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
+    const projectsResponse = await axios.get(
+      'https://api.ticktick.com/open/v1/project',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
       }
-    });
+    );
 
     // Get tasks from each project
     const allTasks = [];
     for (const project of projectsResponse.data) {
-      const tasksResponse = await axios.get(`https://api.ticktick.com/open/v1/project/${project.id}/data`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
+      const tasksResponse = await axios.get(
+        `https://api.ticktick.com/open/v1/project/${project.id}/data`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
         }
-      });
+      );
       if (tasksResponse.data.tasks) {
         allTasks.push(...tasksResponse.data.tasks);
       }
     }
 
     const relevantTasks = allTasks
-      .filter(task => !task.status) // Only include non-completed tasks for now
-      .map(task => task.title);
+      .filter((task) => !task.status) // Only include non-completed tasks for now
+      .map((task) => task.title);
 
     res.send(`
       <html>
@@ -84,7 +94,10 @@ router.get('/auth/ticktick/callback', authenticateToken, async (req, res) => {
       </html>
     `);
   } catch (error) {
-    console.error('TickTick OAuth error details:', error.response?.data || error.message);
+    console.error(
+      'TickTick OAuth error details:',
+      error.response?.data || error.message
+    );
     res.send(`
       <html>
         <head><title>Error</title></head>

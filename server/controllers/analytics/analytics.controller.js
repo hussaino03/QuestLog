@@ -6,11 +6,12 @@ const getCommunityXP = async (req, res) => {
   try {
     client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    
-    const db = client.db("usersDB");
-    const xpResult = await db.collection('users').aggregate([
-      { $group: { _id: null, communityXP: { $sum: "$xp" } } }
-    ]).toArray();
+
+    const db = client.db('usersDB');
+    const xpResult = await db
+      .collection('users')
+      .aggregate([{ $group: { _id: null, communityXP: { $sum: '$xp' } } }])
+      .toArray();
 
     const communityXP = xpResult[0]?.communityXP || 0;
 

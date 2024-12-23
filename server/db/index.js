@@ -24,7 +24,7 @@ async function connectToDatabase() {
       maxPoolSize: 10,
       minPoolSize: 5,
       retryWrites: true,
-      retryReads: true,
+      retryReads: true
     });
 
     // Add keepAlive to handle serverless cold starts better
@@ -37,7 +37,7 @@ async function connectToDatabase() {
       cachedDb = null;
     });
 
-    const db = client.db("usersDB");
+    const db = client.db('usersDB');
     cachedDb = db;
     return db;
   } catch (error) {
@@ -53,13 +53,13 @@ async function initializeIndexes() {
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
-    
+
     // Check if index already exists
     const indexes = await usersCollection.indexes();
-    const hasGoogleIdIndex = indexes.some(index => 
-      index.key && index.key.googleId === 1
+    const hasGoogleIdIndex = indexes.some(
+      (index) => index.key && index.key.googleId === 1
     );
-    
+
     if (!hasGoogleIdIndex) {
       await usersCollection.createIndex({ googleId: 1 }, { unique: true });
       console.log('Created googleId index');
