@@ -81,16 +81,28 @@ class DashboardManager {
     }
     
     findPeakDay(xpData) {
-        if (!xpData?.labels) return null;
+        if (!xpData?.datasets?.[0]?.data?.length) {
+            return { date: 'N/A', xp: 0 };
+        }
+        
         const data = xpData.datasets[0].data;
         const maxXP = Math.max(...data);
+        if (maxXP === 0) return { date: 'N/A', xp: 0 };
+
         const peakIndex = data.indexOf(maxXP);
-        const [month, day] = xpData.labels[peakIndex].split('/');
-        const date = new Date(new Date().getFullYear(), Number(month) - 1, Number(day));
-        return {
-            date: date.toLocaleDateString('en-US', { weekday: 'short' }),
-            xp: maxXP
-        };
+        const label = xpData.labels?.[peakIndex];
+        if (!label) return { date: 'N/A', xp: maxXP };
+
+        try {
+            const [month, day] = label.split('/');
+            const date = new Date(new Date().getFullYear(), Number(month) - 1, Number(day));
+            return {
+                date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                xp: maxXP
+            };
+        } catch {
+            return { date: 'N/A', xp: maxXP };
+        }
     }
 
     calculateAverageDaily(completedTasks, xpData, days = 7) {
@@ -111,7 +123,17 @@ class DashboardManager {
     }
 
     getMetrics(xpData, periodXP, days = 7) {
-        if (!xpData?.datasets?.[0]?.data) return null;
+        const defaultMetrics = {
+            weeklyXP: 0,
+            trendDirection: 'Maintaining',
+            trendPercentage: 0,
+            activeDays: `0/${days} days`,
+            trendDescription: 'No data',
+            periodLabel: `${days === 7 ? '7-Day' : '30-Day'} XP Total`
+        };
+
+        if (!xpData?.datasets?.[0]?.data?.length) return defaultMetrics;
+        
         const data = xpData.datasets[0].data;
         
         const segmentSize = Math.floor(days / 3);
@@ -153,7 +175,41 @@ class DashboardManager {
     }
 
     async calculateMetricsOptimized(completedTasks, days = 7) {
-        if (!completedTasks?.length) return null;
+        if (!completedTasks?.length) {
+            return {
+                xpData: {
+                    labels: [],
+                    datasets: [{
+                        label: 'XP Gained',
+                        data: [],
+                        fill: false,
+                        borderColor: this.CHART_COLORS.primary,
+                        tension: 0.3,
+                        pointBackgroundColor: this.CHART_COLORS.primary
+                    }]
+                },
+                metrics: {
+                    weeklyXP: 0,
+                    trendDirection: 'Maintaining',
+                    trendPercentage: 0,
+                    activeDays: `0/${days} days`,
+                    trendDescription: 'No data',
+                    periodLabel: `${days === 7 ? '7-Day' : '30-Day'} XP Total`
+                },
+                completedTasksData: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Tasks Completed',
+                        data: [],
+                        backgroundColor: this.CHART_COLORS.background,
+                        borderColor: this.CHART_COLORS.primary,
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    }]
+                },
+                periodXP: 0
+            };
+        }
 
         const cacheKey = `metrics-${days}-${completedTasks.length}-${completedTasks[0].completedAt}-${completedTasks[completedTasks.length-1].completedAt}`;
         const cached = this.getCacheItem(cacheKey);
