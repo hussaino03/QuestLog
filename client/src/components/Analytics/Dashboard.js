@@ -13,6 +13,9 @@ import {
 } from 'chart.js';
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, FireIcon } from '@heroicons/react/24/outline';
 import DashboardManager from '../../services/analytics/DashboardManager';
+import { getChartFontSizes, createChartOptions, createEmptyChartData } from '../../utils/analytics/chartUtils';
+import { transformChartDates } from '../../utils/analytics/dateUtils';
+import RangeToggle from '../../utils/analytics/rangeToggle';
 
 ChartJS.register(
   CategoryScale,
@@ -49,118 +52,51 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     periodXP: 0
   });
 
-  const chartOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: '#1F2937',
-        titleColor: '#F3F4F6',
-        bodyColor: '#F3F4F6',
-        displayColors: false,
-        callbacks: {
-          label: (context) => `${context.parsed.y} XP`
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          color: '#6B7280'
-        },
-        grid: {
-          display: false
-        }
-      },
-      x: {
-        ticks: {
-          color: '#6B7280',
-          maxRotation: dateRange === 30 ? 65 : 45,
-          minRotation: dateRange === 30 ? 65 : 45,
-          callback: function(val, index) {
-            return dateRange === 30 && index % 2 !== 0 ? '' : this.getLabelForValue(val);
-          }
-        },
-        grid: {
-          display: false
-        }
-      }
-    }
-  }), [dateRange]);
+  // Consolidate chart-related calculations
+  const chartConfig = useMemo(() => {
+    const fontSizes = getChartFontSizes(windowWidth);
+    const { xpChartOptions, tasksChartOptions } = createChartOptions(
+      dateRange, 
+      dashboardManager.CHART_COLORS, 
+      fontSizes
+    );
 
-  const tasksChartOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: '#1F2937',
-        titleColor: '#F3F4F6',
-        bodyColor: '#F3F4F6',
-        displayColors: false,
-        callbacks: {
-          label: (context) => `${context.parsed.y} tasks completed`
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
-          color: '#6B7280'
-        },
-        grid: {
-          display: false
-        }
-      },
-      x: {
-        ticks: {
-          color: '#6B7280'
-        },
-        grid: {
-          display: false
-        }
-      }
-    }
-  }), []);
-
-  const formatDate = useCallback((date, useWeekday = false) => {
-    if (useWeekday) {
-      return date.toLocaleDateString('en-US', { weekday: 'short' });
-    }
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${month}/${day}`;
-  }, []);
-
-  const getChartData = useCallback((data, useWeekday = false) => {
-    if (!data?.labels || !data?.datasets) return null;
-    
-    return {
-      ...data,
-      labels: data.labels.map(label => {
-        const [month, day] = label.split('/');
-        const date = new Date(new Date().getFullYear(), Number(month) - 1, Number(day));
-        return formatDate(date, useWeekday);
-      })
+    const emptyChart = createEmptyChartData(dashboardManager.CHART_COLORS);
+    const transformedData = {
+      xpData: transformChartDates(dashboardData.xpData) || emptyChart,
+      taskData: transformChartDates(dashboardData.completedTasksData) || emptyChart
     };
-  }, [formatDate]);
+
+    const rotations = { x: { max: 45, min: 45 } };
+    const chartFontSizes = {
+      small: windowWidth < 640 ? 10 : 12,
+      regular: windowWidth < 640 ? 12 : 14
+    };
+
+    return {
+      xpChartOptions,
+      tasksChartOptions,
+      transformedData,
+      rotations,
+      chartFontSizes
+    };
+  }, [windowWidth, dateRange, dashboardData.xpData, dashboardData.completedTasksData, dashboardManager.CHART_COLORS]);
+
+  // Memoize peak day calculation
+  const peakDay = useMemo(() => {
+    const peak = dashboardManager.findPeakDay(dashboardData.xpData);
+    return peak.xp > 0 ? `${peak.date} • ${peak.xp}XP` : "No activity yet";
+  }, [dashboardData.xpData, dashboardManager]);
+
+  // Memoize average daily calculation
+  const averageDaily = useMemo(() => 
+    dashboardManager.calculateAverageDaily(completedTasks, dashboardData.xpData, dateRange),
+    [completedTasks, dashboardData.xpData, dateRange, dashboardManager]
+  );
 
   const handleCloseFullView = useCallback(() => {
     setIsFullView(false);
   }, []);
-
-  const renderPeakDay = useCallback(() => {
-    const peak = dashboardManager.findPeakDay(dashboardData.xpData);
-    return peak.xp > 0 ? `${peak.date} • ${peak.xp}XP` : "No activity yet";
-  }, [dashboardData.xpData, dashboardManager]);
 
   // Clear cache when component unmounts
   useEffect(() => {
@@ -191,69 +127,9 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     };
   }, []);
 
-  const CHART_CONSTANTS = useMemo(() => ({
-    fontSizes: {
-      small: windowWidth < 640 ? 10 : 12,
-      regular: windowWidth < 640 ? 12 : 14
-    },
-    rotations: {
-      x: { max: 45, min: 45 }
-    }
-  }), [windowWidth]);
-
-  const transformedChartData = useMemo(() => {
-    const emptyChart = {
-      labels: [],
-      datasets: [{
-        label: 'XP Gained',
-        data: [],
-        fill: false,
-        borderColor: dashboardManager.CHART_COLORS.primary,
-        tension: 0.3,
-        pointBackgroundColor: dashboardManager.CHART_COLORS.primary,
-        backgroundColor: dashboardManager.CHART_COLORS.background,
-        borderWidth: 1,
-        borderRadius: 5
-      }]
-    };
-
-    return {
-      xpData: getChartData(dashboardData.xpData) || emptyChart,
-      modalXpData: getChartData(dashboardData.xpData) || emptyChart,
-      taskData: getChartData(dashboardData.completedTasksData) || emptyChart
-    };
-  }, [dashboardData.xpData, dashboardData.completedTasksData, getChartData, dashboardManager.CHART_COLORS]);
-
   const handleRangeChange = (newRange) => {
     setDateRange(newRange);
   };
-
-  const RangeToggle = () => (
-    <span className="inline-flex items-center gap-2">
-      <span className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 dark:bg-gray-700/50">
-        <button
-          onClick={() => handleRangeChange(7)}
-          className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
-            dateRange === 7 
-            ? 'bg-white dark:bg-gray-600 shadow-sm' 
-            : 'text-gray-600 dark:text-gray-300'
-          }`}
-        >
-          7
-        </button>
-        <button
-          onClick={() => handleRangeChange(30)}
-          className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
-            dateRange === 30 
-            ? 'bg-white dark:bg-gray-600 shadow-sm' 
-            : 'text-gray-600 dark:text-gray-300'
-          }`}
-        >
-          30
-        </button>
-      </span>
-    </span>
-  );
 
   useEffect(() => {
     let isMounted = true;
@@ -280,13 +156,16 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     <div>
       <div className="mb-3">
         <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-          Past <RangeToggle /> days
+          Past <RangeToggle currentRange={dateRange} onRangeChange={handleRangeChange} /> days
         </span>
       </div>
       <div className="h-48">
-        <SafeChartWrapper data={transformedChartData?.xpData}>
-          {transformedChartData?.xpData && (
-            <Line data={transformedChartData.xpData} options={chartOptions} />
+        <SafeChartWrapper data={chartConfig.transformedData.xpData}>
+          {chartConfig.transformedData.xpData && (
+            <Line 
+              data={chartConfig.transformedData.xpData} 
+              options={chartConfig.xpChartOptions} 
+            />
           )}
         </SafeChartWrapper>
       </div>
@@ -406,32 +285,35 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">XP Growth</h4>
                     <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
                                   border border-gray-100 dark:border-gray-600">
-                      <SafeChartWrapper data={transformedChartData.modalXpData}>
-                        <Line data={transformedChartData.modalXpData} options={{
-                          ...chartOptions, 
-                          maintainAspectRatio: false,
-                          scales: {
-                            ...chartOptions.scales,
-                            x: {
-                              ...chartOptions.scales.x,
-                              ticks: {
-                                maxRotation: CHART_CONSTANTS.rotations.x.max,
-                                minRotation: CHART_CONSTANTS.rotations.x.min,
-                                font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                      <SafeChartWrapper data={chartConfig.transformedData.xpData}>
+                        <Line 
+                          data={chartConfig.transformedData.xpData}
+                          options={{
+                            ...chartConfig.xpChartOptions, 
+                            maintainAspectRatio: false,
+                            scales: {
+                              ...chartConfig.xpChartOptions.scales,
+                              x: {
+                                ...chartConfig.xpChartOptions.scales.x,
+                                ticks: {
+                                  maxRotation: chartConfig.rotations.x.max,
+                                  minRotation: chartConfig.rotations.x.min,
+                                  font: {
+                                    size: chartConfig.chartFontSizes.small
+                                  }
                                 }
-                              }
-                            },
-                            y: {
-                              ...chartOptions.scales.y,
-                              ticks: {
-                                font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                              },
+                              y: {
+                                ...chartConfig.xpChartOptions.scales.y,
+                                ticks: {
+                                  font: {
+                                    size: chartConfig.chartFontSizes.small
+                                  }
                                 }
                               }
                             }
-                          }
-                        }} />
+                          }}
+                        />
                       </SafeChartWrapper>
                     </div>
                   </div>
@@ -440,24 +322,24 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 px-1">Task/Project Completion</h4>
                     <div className="h-[250px] sm:h-[280px] p-3 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 
                                   border border-gray-100 dark:border-gray-600">
-                      <SafeChartWrapper data={transformedChartData.taskData}>
-                        <Bar data={transformedChartData.taskData} options={{
-                          ...tasksChartOptions,
+                      <SafeChartWrapper data={chartConfig.transformedData.taskData}>
+                        <Bar data={chartConfig.transformedData.taskData} options={{
+                          ...chartConfig.tasksChartOptions,
                           scales: {
-                            ...tasksChartOptions.scales,
+                            ...chartConfig.tasksChartOptions.scales,
                             x: {
                               ticks: {
-                                maxRotation: CHART_CONSTANTS.rotations.x.max,
-                                minRotation: CHART_CONSTANTS.rotations.x.min,
+                                maxRotation: chartConfig.rotations.x.max,
+                                minRotation: chartConfig.rotations.x.min,
                                 font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                                  size: chartConfig.chartFontSizes.small
                                 }
                               }
                             },
                             y: {
                               ticks: {
                                 font: {
-                                  size: CHART_CONSTANTS.fontSizes.small
+                                  size: chartConfig.chartFontSizes.small
                                 }
                               }
                             }
@@ -481,7 +363,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             <div className="flex flex-col">
               <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Peak Day</span>
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {renderPeakDay()}
+                {peakDay}
               </span>
             </div>
           </div>
@@ -493,7 +375,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
             <div className="flex flex-col">
               <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Average Daily</span>
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {dashboardManager.calculateAverageDaily(completedTasks, dashboardData.xpData, dateRange)} XP
+                {averageDaily} XP
               </span>
             </div>
           </div>
