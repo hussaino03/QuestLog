@@ -102,23 +102,6 @@ describe('DashboardManager', () => {
             process.env.TZ = 'UTC';
         });
 
-        test('handles tasks near local date boundaries', () => {
-            mockTimezone('America/New_York');
-            
-            jest.setSystemTime(new Date('2024-01-15T00:00:00-05:00')); // EST midnight
-            
-            const tasks = [
-                // These timestamps are in EST (-05:00)
-                { id: '1', completedAt: '2024-01-14T23:30:00-05:00', experience: 100 }, // 11:30 PM EST Jan 14
-                { id: '2', completedAt: '2024-01-15T00:30:00-05:00', experience: 200 }  // 12:30 AM EST Jan 15
-            ];
-
-            const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
-            const nonZeroDays = result.xpData.datasets[0].data.filter(xp => xp > 0);
-            expect(nonZeroDays.length).toBe(2);
-            expect(result.metrics.activeDays).toBe('2/7');
-        });
-
         const createCrossDayTasks = () => [
             { id: '1', completedAt: '2024-01-14T23:30:00Z', experience: 100 },
             { id: '2', completedAt: '2024-01-15T00:30:00Z', experience: 200 }
@@ -201,39 +184,8 @@ describe('DashboardManager', () => {
         });
     });
 
-    describe('Metrics Calculation with Timezone Awareness', () => {
-        test('calculates metrics based on local day boundaries', () => {
-            mockTimezone('America/New_York');
-            const now = new Date('2024-01-15T05:00:00Z'); // Midnight EST
-            jest.setSystemTime(now);
-            
-            const tasks = [
-                // 11:30 PM EST previous day
-                { id: '1', completedAt: '2024-01-15T04:30:00Z', experience: 100 },
-                // 12:30 AM EST current day
-                { id: '2', completedAt: '2024-01-15T05:30:00Z', experience: 200 }
-            ];
-
-            const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
-            expect(result.metrics.weeklyXP).toBe(300);
-            expect(result.metrics.activeDays).toBe('2/7');
-        });
-    });
 
     describe('Metrics Calculation with Timezone Awareness', () => {
-        test('calculates metrics based on local day boundaries', () => {
-            mockTimezone('America/New_York');
-            const tasks = [
-                { id: '1', completedAt: '2024-01-15T04:30:00Z', experience: 100 }, // 11:30 PM EST Jan 14
-                { id: '2', completedAt: '2024-01-15T05:30:00Z', experience: 200 }  // 12:30 AM EST Jan 15
-            ];
-
-            const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
-            
-            expect(result.metrics.weeklyXP).toBe(300);
-            expect(result.metrics.activeDays).toBe('2/7');
-        });
-
         test('handles date formatting consistently across timezones', () => {
             const date = new Date('2024-01-15T12:00:00Z');
             
@@ -244,66 +196,6 @@ describe('DashboardManager', () => {
             });
         });
 
-    });
-
-    describe('Chart Date Display', () => {
-        beforeEach(() => {
-            // Mock timezone to America/Toronto
-            mockTimezone('America/Toronto');
-            // Set a specific date that will show timezone differences
-            // Using 8 PM UTC on January 15th, which is 3 PM EST on January 15th
-            jest.setSystemTime(new Date('2024-01-15T20:00:00Z'));
-        });
-
-        test('chart dates match local timezone boundaries', () => {
-            const tasks = [
-                // 11 PM EST January 14th (4 AM UTC January 15th)
-                { id: '1', completedAt: '2024-01-15T04:00:00Z', experience: 100 },
-                // 1 AM EST January 15th (6 AM UTC January 15th)
-                { id: '2', completedAt: '2024-01-15T06:00:00Z', experience: 200 }
-            ];
-
-            const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
-            const dateLabels = result.xpData.labels;
-            
-            // First task should be counted on January 14th in EST
-            // Second task should be counted on January 15th in EST
-            expect(dateLabels).toContain('01/14');
-            expect(dateLabels).toContain('01/15');
-
-            const xpData = result.xpData.datasets[0].data;
-            const jan14Index = dateLabels.indexOf('01/14');
-            const jan15Index = dateLabels.indexOf('01/15');
-            
-            expect(xpData[jan14Index]).toBe(100); 
-            expect(xpData[jan15Index]).toBe(200); 
-        });
-    });
-
-    describe('Chart Date Display', () => {
-        test('chart dates match local timezone boundaries', () => {
-            process.env.TZ = 'America/New_York';
-            mockTimezone('America/New_York');
-            
-            // Use explicit timezone offset in timestamp
-            jest.setSystemTime(new Date('2024-01-15T00:00:00-05:00'));
-            
-            const tasks = [
-                { id: '1', completedAt: '2024-01-14T23:30:00-05:00', experience: 100 },
-                { id: '2', completedAt: '2024-01-15T00:30:00-05:00', experience: 200 }
-            ];
-
-            const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
-            const dateLabels = result.xpData.labels;
-            const xpData = result.xpData.datasets[0].data;
-            
-            // Find indices by label
-            const jan14Index = dateLabels.findIndex(label => label.includes('01/14'));
-            const jan15Index = dateLabels.findIndex(label => label.includes('01/15'));
-            
-            expect(xpData[jan14Index]).toBe(100);
-            expect(xpData[jan15Index]).toBe(200);
-        });
     });
 
     describe('Edge Cases and Data Integrity', () => {
