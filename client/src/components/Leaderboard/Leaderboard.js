@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo } from 'react';
 import { PresentationChartLineIcon } from '@heroicons/react/24/outline';
 import LeaderboardManager from '../../services/leaderboard/LeaderboardManager';
-import { LoadingSpinner } from '../../utils/spinner';
+import { LoadingSpinner } from '../../utils/other/spinnerUtils';
 
 const MetricBox = memo(({ label, value }) => (
   <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 flex items-center justify-between sm:block">

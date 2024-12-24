@@ -14,8 +14,8 @@ import {
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, FireIcon } from '@heroicons/react/24/outline';
 import DashboardManager from '../../services/analytics/DashboardManager';
 import { getChartFontSizes, createChartOptions, createEmptyChartData } from '../../utils/analytics/chartUtils';
-import RangeToggle from '../../utils/analytics/rangeToggle';
-import { LoadingSpinner } from '../../utils/spinner';
+import RangeToggle from './RangeToggle';
+import { LoadingSpinner } from '../../utils/other/spinnerUtils';
 import { formatLocalDate } from '../../utils/analytics/dateUtils';
 
 ChartJS.register(

@@ -1,4 +1,4 @@
-import { BADGES } from '../components/Badge/BadgeGrid';
+import { BADGES } from '../../components/Badge/BadgeGrid';
 
 /**
  * Badge Unlock Manager

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Task from './View';
-import CalendarView from '../../utils/CalendarView';
+import CalendarView from './CalendarView';
 import { LayoutList, Calendar, PlusCircle, FolderPlus, ArrowUpDown } from 'lucide-react';
 
 const TaskList = ({ tasks = [], removeTask, completeTask, isCompleted, addTask, updateTask }) => {

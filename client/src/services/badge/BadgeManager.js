@@ -1,4 +1,4 @@
-import { checkBadgeUnlocks } from '../../utils/badgeManager';
+import { checkBadgeUnlocks } from '../../utils/badges/badgeUtils';
 
 class BadgeManager {
     constructor(setUnlockedBadges) {
