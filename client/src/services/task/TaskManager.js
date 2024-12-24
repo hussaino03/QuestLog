@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { startConfetti } from '../../utils/confettiEffect';
+import { startConfetti } from '../../utils/other/confettiUtils';
 
 class TaskManager {
     constructor(calculateXP, setTasks, setCompletedTasks, setError) {

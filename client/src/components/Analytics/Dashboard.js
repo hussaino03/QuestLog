@@ -14,9 +14,9 @@ import {
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, FireIcon } from '@heroicons/react/24/outline';
 import DashboardManager from '../../services/analytics/DashboardManager';
 import { getChartFontSizes, createChartOptions, createEmptyChartData } from '../../utils/analytics/chartUtils';
-import { transformChartDates } from '../../utils/analytics/dateUtils';
-import RangeToggle from '../../utils/analytics/rangeToggle';
-import { LoadingSpinner } from '../../utils/spinner';
+import RangeToggle from './RangeToggle';
+import { LoadingSpinner } from '../../utils/other/spinnerUtils';
+import { formatLocalDate } from '../../utils/analytics/dateUtils';
 
 ChartJS.register(
   CategoryScale,
@@ -43,7 +43,8 @@ const SafeChartWrapper = memo(({ children, data }) => {
 const Dashboard = ({ completedTasks, onOpenDashboard }) => {  
   const [isFullView, setIsFullView] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [dateRange, setDateRange] = useState(7);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
   const dashboardManager = useMemo(() => new DashboardManager(), []);
@@ -54,47 +55,52 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     periodXP: 0
   });
 
-  // Consolidate chart-related calculations
-  const chartConfig = useMemo(() => {
-    const fontSizes = getChartFontSizes(windowWidth);
-    const { xpChartOptions, tasksChartOptions } = createChartOptions(
-      dateRange, 
-      dashboardManager.CHART_COLORS, 
-      fontSizes
-    );
+  const chartConfig = useMemo(() => ({
+    ...createChartOptions(startDate, endDate, dashboardManager.CHART_COLORS, getChartFontSizes(windowWidth)),
+    transformedData: {
+        xpData: dashboardData.xpData || createEmptyChartData(dashboardManager.CHART_COLORS),
+        taskData: dashboardData.completedTasksData || createEmptyChartData(dashboardManager.CHART_COLORS)
+    },
+    chartFontSizes: getChartFontSizes(windowWidth)
+  }), [windowWidth, startDate, endDate, dashboardData, dashboardManager.CHART_COLORS]);
 
-    const emptyChart = createEmptyChartData(dashboardManager.CHART_COLORS);
-    const transformedData = {
-      xpData: transformChartDates(dashboardData.xpData) || emptyChart,
-      taskData: transformChartDates(dashboardData.completedTasksData) || emptyChart
-    };
-
-    const rotations = { x: { max: 45, min: 45 } };
-    const chartFontSizes = {
-      small: windowWidth < 640 ? 10 : 12,
-      regular: windowWidth < 640 ? 12 : 14
-    };
-
-    return {
-      xpChartOptions,
-      tasksChartOptions,
-      transformedData,
-      rotations,
-      chartFontSizes
-    };
-  }, [windowWidth, dateRange, dashboardData.xpData, dashboardData.completedTasksData, dashboardManager.CHART_COLORS]);
+  const formatDateForDisplay = useCallback((date) => {
+    return formatLocalDate(date);
+  }, []);
 
   // Memoize peak day calculation
   const peakDay = useMemo(() => {
     const peak = dashboardManager.findPeakDay(dashboardData.xpData);
-    return peak.xp > 0 ? `${peak.date} • ${peak.xp}XP` : "No activity yet";
-  }, [dashboardData.xpData, dashboardManager]);
+    if (peak.xp > 0) {
+        const localDate = formatDateForDisplay(new Date(peak.date));
+        return `${localDate} • ${peak.xp}XP`;
+    }
+    return "No activity yet";
+  }, [dashboardData.xpData, dashboardManager, formatDateForDisplay]);
 
   // Memoize average daily calculation
-  const averageDaily = useMemo(() => 
-    dashboardManager.calculateAverageDaily(completedTasks, dashboardData.xpData, dateRange),
-    [completedTasks, dashboardData.xpData, dateRange, dashboardManager]
-  );
+  const averageDaily = useMemo(() => {
+    // Use same effective dates logic as in computeMetrics
+    const effectiveStartDate = startDate || (() => {
+      const date = new Date();
+      date.setDate(date.getDate() - 6);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    })();
+    
+    const effectiveEndDate = endDate || (() => {
+      const date = new Date();
+      date.setHours(23, 59, 59, 999);
+      return date;
+    })();
+
+    return dashboardManager.calculateAverageDaily(
+      completedTasks, 
+      dashboardData.xpData, 
+      effectiveStartDate, 
+      effectiveEndDate
+    );
+  }, [completedTasks, dashboardData.xpData, startDate, endDate, dashboardManager]);
 
   const handleCloseFullView = useCallback(() => {
     setIsFullView(false);
@@ -129,19 +135,37 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     };
   }, []);
 
-  const handleRangeChange = (newRange) => {
+  const handleRangeChange = (start, end) => {
     setIsLoading(true);
-    setDateRange(newRange);
-    // Add a small delay to show loading state
+    setStartDate(start);
+    setEndDate(end);
     setTimeout(() => setIsLoading(false), 300);
   };
 
   useEffect(() => {
     let isMounted = true;
     
-    const computeMetrics = async () => {
+    const computeMetrics = () => {
         try {
-            const result = await dashboardManager.calculateMetricsOptimized(completedTasks, dateRange);
+            // If no custom range is selected, use default 7 days
+            const effectiveStartDate = startDate || (() => {
+                const date = new Date();
+                date.setDate(date.getDate() - 6);
+                date.setHours(0, 0, 0, 0);
+                return date;
+            })();
+            
+            const effectiveEndDate = endDate || (() => {
+                const date = new Date();
+                date.setHours(23, 59, 59, 999);
+                return date;
+            })();
+
+            const result = dashboardManager.calculateMetricsOptimized(
+                completedTasks, 
+                effectiveStartDate, 
+                effectiveEndDate
+            );
             if (isMounted) {
                 setDashboardData(result);
             }
@@ -155,13 +179,13 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     return () => {
         isMounted = false;
     };
-  }, [completedTasks, dashboardManager, dateRange]);
+  }, [completedTasks, dashboardManager, startDate, endDate]);
 
   return (
     <div>
       <div className="mb-3">
         <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-          Past <RangeToggle currentRange={dateRange} onRangeChange={handleRangeChange} /> days
+          <RangeToggle startDate={startDate} endDate={endDate} onRangeChange={handleRangeChange} />
         </span>
       </div>
       <div className="h-48">
@@ -200,30 +224,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                     Analytics Overview
                   </h2>
                   <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
-                    Past 
-                    <span className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 dark:bg-gray-700/50">
-                      <button
-                        onClick={() => handleRangeChange(7)}
-                        className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
-                          dateRange === 7 
-                          ? 'bg-white dark:bg-gray-600 shadow-sm' 
-                          : 'text-gray-600 dark:text-gray-300'
-                        }`}
-                      >
-                        7
-                      </button>
-                      <button
-                        onClick={() => handleRangeChange(30)}
-                        className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
-                          dateRange === 30 
-                          ? 'bg-white dark:bg-gray-600 shadow-sm' 
-                          : 'text-gray-600 dark:text-gray-300'
-                        }`}
-                      >
-                        30
-                      </button>
-                    </span>
-                    days
+                    <RangeToggle startDate={startDate} endDate={endDate} onRangeChange={handleRangeChange} />
                   </span>
                 </div>
                 <button
@@ -270,14 +271,14 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                       <ArrowTrendingDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     )}
                     <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                      {dateRange === 7 ? 'Weekly' : 'Monthly'} Trend
+                      Period Trend
                     </span>
                   </div>
                   <p className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">
                     {dashboardData.metrics?.trendDescription}
                   </p>
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    {dashboardData.metrics?.trendPercentage}% {dashboardData.metrics?.trendDirection.toLowerCase()} from {dateRange === 7 ? 'last week' : 'last month'}
+                    Comparing First {dashboardData.metrics?.compareSegmentSize} day{dashboardData.metrics?.compareSegmentSize === 1 ? '' : 's'} vs Last {dashboardData.metrics?.compareSegmentSize} day{dashboardData.metrics?.compareSegmentSize === 1 ? '' : 's'}
                   </p>
                 </div>
               </div>
@@ -312,8 +313,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                                 x: {
                                   ...chartConfig.xpChartOptions.scales.x,
                                   ticks: {
-                                    maxRotation: chartConfig.rotations.x.max,
-                                    minRotation: chartConfig.rotations.x.min,
+                                    ...chartConfig.xpChartOptions.scales.x.ticks,
                                     font: {
                                       size: chartConfig.chartFontSizes.small
                                     }
@@ -322,6 +322,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                                 y: {
                                   ...chartConfig.xpChartOptions.scales.y,
                                   ticks: {
+                                    ...chartConfig.xpChartOptions.scales.y.ticks,
                                     font: {
                                       size: chartConfig.chartFontSizes.small
                                     }
@@ -350,16 +351,18 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                             scales: {
                               ...chartConfig.tasksChartOptions.scales,
                               x: {
+                                ...chartConfig.tasksChartOptions.scales.x,
                                 ticks: {
-                                  maxRotation: chartConfig.rotations.x.max,
-                                  minRotation: chartConfig.rotations.x.min,
+                                  ...chartConfig.tasksChartOptions.scales.x.ticks,
                                   font: {
                                     size: chartConfig.chartFontSizes.small
                                   }
                                 }
                               },
                               y: {
+                                ...chartConfig.tasksChartOptions.scales.y,
                                 ticks: {
+                                  ...chartConfig.tasksChartOptions.scales.y.ticks,
                                   font: {
                                     size: chartConfig.chartFontSizes.small
                                   }

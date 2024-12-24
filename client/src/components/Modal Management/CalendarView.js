@@ -44,25 +44,25 @@ const CalendarView = ({ tasks }) => {
 
   return (
     <div className="w-full max-w-5xl">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6 px-2 sm:px-4">
         <button 
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex items-center justify-center"
         >
-          <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
         <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
           {monthStart.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </h2>
         <button 
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex items-center justify-center"
         >
-          <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 sm:gap-4">
+      <div className="grid grid-cols-7 gap-1 sm:gap-4 p-2 sm:p-4">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center py-1 sm:py-2">
             {day}
@@ -80,7 +80,7 @@ const CalendarView = ({ tasks }) => {
                 key={`${i}-${j}`} 
                 onClick={() => day && handleDayClick(day)}
                 className={`
-                  min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border dark:border-gray-700 rounded-lg
+                  min-h-[50px] sm:min-h-[70px] p-1 sm:p-2 border dark:border-gray-700 rounded-lg
                   ${!day ? 'invisible' : 'cursor-pointer'}
                   ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
                   ${day ? 'hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-sm transition-all duration-200' : ''}

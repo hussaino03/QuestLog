@@ -1,7 +1,7 @@
 import BadgeManager from '../BadgeManager';
-import { checkBadgeUnlocks } from '../../../utils/badgeManager';
+import { checkBadgeUnlocks } from '../../../utils/badges/badgeUtils';
 
-jest.mock('../../../utils/badgeManager');
+jest.mock('../../../utils/badges/badgeUtils');
 
 describe('BadgeManager', () => {
     let badgeManager;

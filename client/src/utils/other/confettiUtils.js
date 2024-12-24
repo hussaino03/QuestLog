@@ -1,3 +1,7 @@
+/**
+ * Predefined color palettes for light/dark themes using Tailwind CSS colors
+ * These arrays provide consistent theming across the application
+ */
 const lightColors = [
   '#0EA5E9', 
   '#6366F1', 
@@ -18,6 +22,23 @@ const darkColors = [
   '#94A3B8', 
 ];
 
+/**
+ * Particle Class
+ * Represents a single confetti particle with physics and rendering capabilities
+ * 
+ * @class
+ * @property {CanvasRenderingContext2D} context - Canvas rendering context
+ * @property {number} width - Canvas width
+ * @property {number} height - Canvas height
+ * @property {number} x - Horizontal position
+ * @property {number} y - Vertical position
+ * @property {number} rotation - Current rotation angle
+ * @property {string} color - Particle color from theme
+ * @property {number} size - Particle size (4-12px)
+ * @property {number} speedY - Vertical speed (2-5)
+ * @property {number} speedX - Horizontal speed (-1 to 1)
+ * @property {number} speedRotation - Rotation speed (-1 to 1)
+ */
 class Particle {
   constructor(context, width, height, isDark) {
     this.context = context;
@@ -54,6 +75,20 @@ class Particle {
   }
 }
 
+/**
+ * Creates and manages a celebratory confetti animation
+ * Features:
+ * - Responsive canvas that adjusts to window size
+ * - Theme-aware colors (light/dark mode)
+ * - Automatic cleanup after animation
+ * - Smooth fade-out effect
+ * - Memory leak prevention
+ * - Non-blocking animation using requestAnimationFrame
+ * - Zero interference with user interaction (pointer-events: none)
+ * 
+ * @returns {Function} Cleanup function that can be called to stop animation early
+ * 
+ */
 export const startConfetti = () => {
   const canvas = document.createElement('canvas');
   canvas.style.position = 'fixed';
@@ -89,7 +124,6 @@ export const startConfetti = () => {
     if (!startTime) startTime = timestamp;
     const progress = timestamp - startTime;
 
-    // Start fading after 1.5 seconds
     if (progress > 1500) {
       opacity = Math.max(0, opacity - 0.02);
     }

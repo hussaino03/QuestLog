@@ -1,7 +1,7 @@
 import TaskManager from '../TaskManager';
-import { startConfetti } from '../../../utils/confettiEffect';
+import { startConfetti } from '../../../utils/other/confettiUtils';
 
-jest.mock('../../../utils/confettiEffect');
+jest.mock('../../../utils/other/confettiUtils');
 
 describe('TaskManager', () => {
     let taskManager;
