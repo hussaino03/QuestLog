@@ -23,6 +23,7 @@ class MetricsManager {
     }
 
     getTaskXP(task) {
+        if (!task) return 0;
         const baseXP = task.experience || 0;
         const bonus = task.earlyBonus || 0;
         const penalty = task.overduePenalty || 0;
@@ -43,57 +44,79 @@ class MetricsManager {
     }
 
     calculateAverageDaily(completedTasks, xpData, dateRange) {
-        if (!completedTasks?.length || !xpData?.labels) return 0;
+        if (!completedTasks?.length || !xpData?.labels || !dateRange.startDate || !dateRange.endDate) return 0;
         
-        const startDate = dateRange.startDate;
-        const endDate = dateRange.endDate;
+        // Get total XP across all days
+        const totalXP = xpData.datasets[0].data.reduce((sum, xp) => sum + xp, 0);
         
-        const periodTasks = completedTasks.filter(task => {
-            return task.completedAt >= dateRange.startDate.toISOString() && 
-                   task.completedAt <= dateRange.endDate.toISOString();
-        });
+        const daysDiff = Math.floor((new Date(dateRange.endDate) - new Date(dateRange.startDate)) / (1000 * 60 * 60 * 24)) + 1;
         
-        const totalXP = periodTasks.reduce((sum, task) => 
-            sum + this.getTaskXP(task), 0
-        );
-
-        return Math.round(totalXP / ((endDate - startDate) / (24 * 60 * 60 * 1000)));
+        return Math.round(totalXP / daysDiff);
     }
 
     getMetrics(xpData, periodXP, days = 7) {
+        const totalDays = xpData?.datasets?.[0]?.data?.length || days;
+        const segmentSize = Math.max(1, Math.floor(totalDays / 3));
+
         if (!xpData?.datasets?.[0]?.data?.length) {
             return {
                 weeklyXP: 0,
                 trendDirection: 'Maintaining',
                 trendPercentage: 0,
-                activeDays: `0/${days} days`,
-                trendDescription: 'No data',
-                periodLabel: `${days === 7 ? '7-Day' : '30-Day'} XP Total`
+                activeDays: `0/${totalDays}`,
+                trendDescription: 'No activity',
+                periodLabel: `${totalDays}-Day XP Total`,
+                compareSegmentSize: segmentSize
             };
         }
         
         const data = xpData.datasets[0].data;
         const daysWithActivity = data.filter(xp => xp > 0).length;
         
-        // Simplify trend calculation to just compare first and last third
-        const segmentSize = Math.floor(days / 3);
         const firstSegment = data.slice(0, segmentSize).reduce((sum, val) => sum + val, 0);
         const lastSegment = data.slice(-segmentSize).reduce((sum, val) => sum + val, 0);
         
-        const trendPercentage = firstSegment === 0 ? 0 : ((lastSegment - firstSegment) / firstSegment * 100);
+        if (firstSegment === 0 && lastSegment > 0) {
+            return {
+                weeklyXP: periodXP,
+                trendDirection: 'Improving',
+                trendPercentage: 100,
+                activeDays: `${daysWithActivity}/${totalDays}`,
+                trendDescription: 'New activity',
+                periodLabel: `${totalDays}-Day XP Total`,
+                compareSegmentSize: segmentSize
+            };
+        }
+        
+        // If both segments are empty, it's "no activity"
+        if (firstSegment === 0 && lastSegment === 0) {
+            return {
+                weeklyXP: periodXP,
+                trendDirection: 'Maintaining',
+                trendPercentage: 0,
+                activeDays: `${daysWithActivity}/${totalDays}`,
+                trendDescription: 'No activity',
+                periodLabel: `${totalDays}-Day XP Total`,
+                compareSegmentSize: segmentSize
+            };
+        }
+        
+        const trendPercentage = ((lastSegment - firstSegment) / firstSegment * 100);
         
         return {
             weeklyXP: periodXP,
             trendDirection: lastSegment >= firstSegment ? 'Improving' : 'Decreasing',
             trendPercentage: Math.abs(Math.round(trendPercentage)),
-            activeDays: `${daysWithActivity}/${days} days`,
+            activeDays: `${daysWithActivity}/${totalDays}`,
             trendDescription: this.getTrendDescription(trendPercentage),
-            periodLabel: `${days === 7 ? '7-Day' : '30-Day'} XP Total`
+            periodLabel: `${totalDays}-Day XP Total`,
+            compareSegmentSize: segmentSize
         };
     }
 
     getTrendDescription(percentage) {
-        if (percentage === 0) return 'Maintaining';
+        if (percentage === 0) return 'No change';
+        if (percentage === Infinity) return 'New activity'; 
         if (percentage > 0) {
             if (percentage > 100) return 'Significant growth';
             if (percentage > 50) return 'Strong growth';

@@ -41,74 +41,82 @@ const commonPluginConfig = {
  * @param {Object} fontSizes - Font size configuration
  * @returns {Object} Combined chart options for XP and Tasks charts
  */
-export const createChartOptions = (dateRange, colors, fontSizes) => ({
-  xpChartOptions: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      ...commonPluginConfig,
-      tooltip: {
-        ...commonPluginConfig.tooltip,
-        callbacks: {
-          label: (context) => `${context.parsed.y} XP`
+export const createChartOptions = (startDate, endDate, colors, fontSizes) => {
+  // Calculate days between dates for rotation logic
+  const days = startDate && endDate ? 
+    Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1 : 7;
+  
+  return {
+    xpChartOptions: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        ...commonPluginConfig,
+        tooltip: {
+          ...commonPluginConfig.tooltip,
+          callbacks: {
+            label: (context) => `${context.parsed.y} XP`
+          }
+        }
+      },
+      scales: {
+        y: {
+          ...commonScaleConfig,
+          beginAtZero: true,
+          ticks: {
+            ...commonScaleConfig.ticks,
+            font: { size: fontSizes.small }
+          }
+        },
+        x: {
+          ...commonScaleConfig,
+          ticks: {
+            ...commonScaleConfig.ticks,
+            maxRotation: days > 14 ? 65 : 45,
+            minRotation: days > 14 ? 65 : 45,
+            callback: function(val, index) {
+              return days > 14 && index % 2 !== 0 ? '' : this.getLabelForValue(val);
+            },
+            font: { size: fontSizes.small }
+          }
         }
       }
     },
-    scales: {
-      y: {
-        ...commonScaleConfig,
-        beginAtZero: true,
-        ticks: {
-          ...commonScaleConfig.ticks,
-          font: { size: fontSizes.small }
+    tasksChartOptions: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        ...commonPluginConfig,
+        tooltip: {
+          ...commonPluginConfig.tooltip,
+          callbacks: {
+            label: (context) => `${context.parsed.y} tasks completed`
+          }
         }
       },
-      x: {
-        ...commonScaleConfig,
-        ticks: {
-          ...commonScaleConfig.ticks,
-          maxRotation: dateRange === 30 ? 65 : 45,
-          minRotation: dateRange === 30 ? 65 : 45,
-          callback: function(val, index) {
-            return dateRange === 30 && index % 2 !== 0 ? '' : this.getLabelForValue(val);
-          },
-          font: { size: fontSizes.small }
+      scales: {
+        y: {
+          ...commonScaleConfig,
+          beginAtZero: true,
+          ticks: {
+            ...commonScaleConfig.ticks,
+            stepSize: 1,
+            font: { size: fontSizes.small }
+          }
+        },
+        x: {
+          ...commonScaleConfig,
+          ticks: {
+            ...commonScaleConfig.ticks,
+            maxRotation: 45,
+            minRotation: 45,
+            font: { size: fontSizes.small }
+          }
         }
       }
     }
-  },
-  tasksChartOptions: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      ...commonPluginConfig,
-      tooltip: {
-        ...commonPluginConfig.tooltip,
-        callbacks: {
-          label: (context) => `${context.parsed.y} tasks completed`
-        }
-      }
-    },
-    scales: {
-      y: {
-        ...commonScaleConfig,
-        beginAtZero: true,
-        ticks: {
-          ...commonScaleConfig.ticks,
-          stepSize: 1,
-          font: { size: fontSizes.small }
-        }
-      },
-      x: {
-        ...commonScaleConfig,
-        ticks: {
-          ...commonScaleConfig.ticks,
-          font: { size: fontSizes.small }
-        }
-      }
-    }
-  }
-});
+  };
+};
 
 /**
  * Creates an empty chart data structure with basic styling

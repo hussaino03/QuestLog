@@ -43,7 +43,8 @@ const SafeChartWrapper = memo(({ children, data }) => {
 const Dashboard = ({ completedTasks, onOpenDashboard }) => {  
   const [isFullView, setIsFullView] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [dateRange, setDateRange] = useState(7);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
   const dashboardManager = useMemo(() => new DashboardManager(), []);
@@ -55,13 +56,13 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
   });
 
   const chartConfig = useMemo(() => ({
-    ...createChartOptions(dateRange, dashboardManager.CHART_COLORS, getChartFontSizes(windowWidth)),
+    ...createChartOptions(startDate, endDate, dashboardManager.CHART_COLORS, getChartFontSizes(windowWidth)),
     transformedData: {
         xpData: dashboardData.xpData || createEmptyChartData(dashboardManager.CHART_COLORS),
         taskData: dashboardData.completedTasksData || createEmptyChartData(dashboardManager.CHART_COLORS)
     },
     chartFontSizes: getChartFontSizes(windowWidth)
-  }), [windowWidth, dateRange, dashboardData, dashboardManager.CHART_COLORS]);
+  }), [windowWidth, startDate, endDate, dashboardData, dashboardManager.CHART_COLORS]);
 
   const formatDateForDisplay = useCallback((date) => {
     return formatLocalDate(date);
@@ -78,10 +79,28 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
   }, [dashboardData.xpData, dashboardManager, formatDateForDisplay]);
 
   // Memoize average daily calculation
-  const averageDaily = useMemo(() => 
-    dashboardManager.calculateAverageDaily(completedTasks, dashboardData.xpData, dateRange),
-    [completedTasks, dashboardData.xpData, dateRange, dashboardManager]
-  );
+  const averageDaily = useMemo(() => {
+    // Use same effective dates logic as in computeMetrics
+    const effectiveStartDate = startDate || (() => {
+      const date = new Date();
+      date.setDate(date.getDate() - 6);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    })();
+    
+    const effectiveEndDate = endDate || (() => {
+      const date = new Date();
+      date.setHours(23, 59, 59, 999);
+      return date;
+    })();
+
+    return dashboardManager.calculateAverageDaily(
+      completedTasks, 
+      dashboardData.xpData, 
+      effectiveStartDate, 
+      effectiveEndDate
+    );
+  }, [completedTasks, dashboardData.xpData, startDate, endDate, dashboardManager]);
 
   const handleCloseFullView = useCallback(() => {
     setIsFullView(false);
@@ -116,10 +135,10 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     };
   }, []);
 
-  const handleRangeChange = (newRange) => {
+  const handleRangeChange = (start, end) => {
     setIsLoading(true);
-    setDateRange(newRange);
-    // Add a small delay to show loading state
+    setStartDate(start);
+    setEndDate(end);
     setTimeout(() => setIsLoading(false), 300);
   };
 
@@ -128,7 +147,25 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     
     const computeMetrics = () => {
         try {
-            const result = dashboardManager.calculateMetricsOptimized(completedTasks, dateRange);
+            // If no custom range is selected, use default 7 days
+            const effectiveStartDate = startDate || (() => {
+                const date = new Date();
+                date.setDate(date.getDate() - 6);
+                date.setHours(0, 0, 0, 0);
+                return date;
+            })();
+            
+            const effectiveEndDate = endDate || (() => {
+                const date = new Date();
+                date.setHours(23, 59, 59, 999);
+                return date;
+            })();
+
+            const result = dashboardManager.calculateMetricsOptimized(
+                completedTasks, 
+                effectiveStartDate, 
+                effectiveEndDate
+            );
             if (isMounted) {
                 setDashboardData(result);
             }
@@ -142,13 +179,13 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     return () => {
         isMounted = false;
     };
-  }, [completedTasks, dashboardManager, dateRange]);
+  }, [completedTasks, dashboardManager, startDate, endDate]);
 
   return (
     <div>
       <div className="mb-3">
         <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-          Past <RangeToggle currentRange={dateRange} onRangeChange={handleRangeChange} /> days
+          <RangeToggle startDate={startDate} endDate={endDate} onRangeChange={handleRangeChange} />
         </span>
       </div>
       <div className="h-48">
@@ -187,30 +224,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                     Analytics Overview
                   </h2>
                   <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
-                    Past 
-                    <span className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 dark:bg-gray-700/50">
-                      <button
-                        onClick={() => handleRangeChange(7)}
-                        className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
-                          dateRange === 7 
-                          ? 'bg-white dark:bg-gray-600 shadow-sm' 
-                          : 'text-gray-600 dark:text-gray-300'
-                        }`}
-                      >
-                        7
-                      </button>
-                      <button
-                        onClick={() => handleRangeChange(30)}
-                        className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
-                          dateRange === 30 
-                          ? 'bg-white dark:bg-gray-600 shadow-sm' 
-                          : 'text-gray-600 dark:text-gray-300'
-                        }`}
-                      >
-                        30
-                      </button>
-                    </span>
-                    days
+                    <RangeToggle startDate={startDate} endDate={endDate} onRangeChange={handleRangeChange} />
                   </span>
                 </div>
                 <button
@@ -257,14 +271,14 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                       <ArrowTrendingDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     )}
                     <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                      {dateRange === 7 ? 'Weekly' : 'Monthly'} Trend
+                      Period Trend
                     </span>
                   </div>
                   <p className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">
                     {dashboardData.metrics?.trendDescription}
                   </p>
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    {dashboardData.metrics?.trendPercentage}% {dashboardData.metrics?.trendDirection.toLowerCase()} from {dateRange === 7 ? 'last week' : 'last month'}
+                    Comparing First {dashboardData.metrics?.compareSegmentSize} day{dashboardData.metrics?.compareSegmentSize === 1 ? '' : 's'} vs Last {dashboardData.metrics?.compareSegmentSize} day{dashboardData.metrics?.compareSegmentSize === 1 ? '' : 's'}
                   </p>
                 </div>
               </div>

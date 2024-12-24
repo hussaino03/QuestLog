@@ -1,5 +1,5 @@
 import DashboardManager from '../DashboardManager';
-import { formatLocalDate, getUserTimezone } from '../../../utils/analytics/dateUtils';
+import { formatLocalDate, getUserTimezone, calculateDays } from '../../../utils/analytics/dateUtils';
 
 jest.setTimeout(30000);
 
@@ -76,11 +76,13 @@ describe('DashboardManager', () => {
                 });
 
                 test('calculateDays generates dates in local timezone', () => {
-                    const days = dashboardManager.calculateDays(3);
+                    // Create a 3-day range
+                    const end = new Date('2024-01-15T23:59:59Z');
+                    const start = new Date('2024-01-13T00:00:00Z');
+                    const days = calculateDays(start, end); 
                     
                     expect(days).toHaveLength(3);
                     days.forEach(day => {
-                        // Only verify date format, not hours since they may shift with timezone
                         expect(day.label).toMatch(/^\d{2}\/\d{2}$/);
                         expect(day.date instanceof Date).toBe(true);
                     });
@@ -118,9 +120,11 @@ describe('DashboardManager', () => {
 
                 test('calculateXPDataFromBatches maintains local date boundaries', () => {
                     const tasks = createCrossDayTasks();
-                    const { startDate, endDate } = dashboardManager.getDateRange(7);
+                    const endDate = new Date('2024-01-15T23:59:59Z');
+                    const startDate = new Date('2024-01-09T00:00:00Z');
                     const taskMap = dashboardManager.processTasksBatched(tasks, startDate, endDate);
-                    const xpData = dashboardManager.calculateXPDataFromBatches(taskMap, 7);
+                    const periodDays = calculateDays(startDate, endDate); 
+                    const xpData = dashboardManager.calculateXPDataFromBatches(taskMap, periodDays);
 
                     expect(xpData.datasets[0].data.some(xp => xp > 0)).toBe(true);
                     expect(xpData.labels.length).toBe(7);
@@ -156,7 +160,7 @@ describe('DashboardManager', () => {
             const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
             
             expect(result.metrics.weeklyXP).toBe(300);
-            expect(result.metrics.activeDays).toBe('2/7 days');
+            expect(result.metrics.activeDays).toBe('2/7');
         });
 
         test('handles date formatting consistently across timezones', () => {

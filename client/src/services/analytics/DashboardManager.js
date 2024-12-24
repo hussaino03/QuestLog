@@ -36,8 +36,8 @@ class DashboardManager {
         return this.metricsManager.getMetrics(xpData, periodXP, days);
     }
 
-    calculateAverageDaily(completedTasks, xpData, days) {
-        const dateRange = this.getDateRange(days);
+    calculateAverageDaily(completedTasks, xpData, startDate, endDate) {
+        const dateRange = { startDate, endDate };
         return this.metricsManager.calculateAverageDaily(completedTasks, xpData, dateRange);
     }
 
@@ -69,8 +69,13 @@ class DashboardManager {
         return range;
     }
 
-    calculateDays(numDays) {
-        return calculateDays(numDays);
+    calculateDays(startDateOrNumDays, endDate = null) {
+        if (typeof startDateOrNumDays === 'number' && endDate === null) {
+            const { startDate, endDate } = this.getDateRange(startDateOrNumDays);
+            return calculateDays(startDate, endDate);
+        }
+        
+        return calculateDays(startDateOrNumDays, endDate);
     }
 
     processTasksBatched(tasks, startDate, endDate) {
@@ -99,11 +104,9 @@ class DashboardManager {
         return taskMap;
     }
 
-    calculateXPDataFromBatches(tasksByDate, days) {
-        const periodDays = this.calculateDays(days);
-        
+    calculateXPDataFromBatches(tasksByDate, periodDays) {
         const dailyXP = periodDays.map(day => {
-            const dateKey = new Date(day.date).setHours(0, 0, 0, 0);
+            const dateKey = startOfLocalDay(day.date).getTime();
             const tasksForDay = tasksByDate.get(dateKey) || [];
             return {
                 label: day.label,
@@ -121,7 +124,7 @@ class DashboardManager {
                 tension: 0.3,
                 pointBackgroundColor: this.CHART_COLORS.primary,
                 backgroundColor: this.CHART_COLORS.background,
-                borderWidth: 3,  
+                borderWidth: 3,
                 borderRadius: 5
             }]
         };
@@ -133,12 +136,15 @@ class DashboardManager {
             .reduce((total, task) => total + this.getTaskXP(task), 0);
     }
 
-    calculateTasksDataFromBatches(tasksByDate, days) {
-        const periodDays = this.calculateDays(days);
-        const dailyTasks = periodDays.map(day => ({
-            label: day.label,
-            count: (tasksByDate.get(new Date(day.date).setHours(0, 0, 0, 0)) || []).length
-        }));
+    calculateTasksDataFromBatches(tasksByDate, periodDays) {
+        const dailyTasks = periodDays.map(day => {
+            const dateKey = startOfLocalDay(day.date).getTime();
+            const tasksForDay = tasksByDate.get(dateKey) || [];
+            return {
+                label: day.label,
+                count: tasksForDay.length
+            };
+        });
 
         return {
             labels: dailyTasks.map(d => d.label),
@@ -158,30 +164,31 @@ class DashboardManager {
         this._dateRangeCache.clear();
     }
 
-    calculateMetricsOptimized(completedTasks, days = 7) {
+    calculateMetricsOptimized(completedTasks, startDate, endDate) {
+        const { startDate: start, endDate: end } = getDateRange(startDate, endDate);
+        const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        
         if (!completedTasks?.length) {
             const emptyData = this.createEmptyChartData();
             return {
                 xpData: emptyData,
-                metrics: this.metricsManager.getMetrics(null, 0, days),
+                metrics: this.metricsManager.getMetrics(emptyData, 0, days),
                 completedTasksData: emptyData,
                 periodXP: 0
             };
         }
 
-        const cacheKey = `metrics-${days}-${completedTasks.length}-${completedTasks[0].completedAt}`;
+        const cacheKey = `metrics-${start.getTime()}-${end.getTime()}-${completedTasks.length}-${completedTasks[0].completedAt}`;
         const cached = this.getCacheItem(cacheKey);
         if (cached) return cached;
 
-        const { startDate, endDate } = this.getDateRange(days);
-        const tasksByDate = this.processTasksBatched(completedTasks, startDate, endDate);
+        const tasksByDate = this.processTasksBatched(completedTasks, start, end);
+        const periodDays = calculateDays(start, end);
         
         const result = {
-            xpData: this.calculateXPDataFromBatches(tasksByDate, days),
-            periodXP: Array.from(tasksByDate.values())
-                .flat()
-                .reduce((total, task) => total + this.getTaskXP(task), 0),
-            completedTasksData: this.calculateTasksDataFromBatches(tasksByDate, days)
+            xpData: this.calculateXPDataFromBatches(tasksByDate, periodDays),
+            periodXP: this.calculatePeriodXPFromBatches(tasksByDate),
+            completedTasksData: this.calculateTasksDataFromBatches(tasksByDate, periodDays)
         };
 
         result.metrics = this.metricsManager.getMetrics(result.xpData, result.periodXP, days);

@@ -37,15 +37,26 @@ export const getUserTimezone = () => {
  * @param {number} days - Number of days to include in range
  * @returns {Object} Object containing startDate and endDate
  */
-export const getDateRange = (days = 7) => {
-    const endDate = new Date();
-    endDate.setHours(23, 59, 59, 999);
+export const getDateRange = (startDate = null, endDate = null) => {
+    // If no dates provided, default to last 7 days
+    if (!startDate || !endDate) {
+        const end = new Date();
+        end.setHours(23, 59, 59, 999);
+        
+        const start = new Date();
+        start.setDate(start.getDate() - 6); // Last 7 days including today
+        start.setHours(0, 0, 0, 0);
+        
+        return { startDate: start, endDate: end };
+    }
+
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
     
-    const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - (days - 1));
-    startDate.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
     
-    return { startDate, endDate };
+    return { startDate: start, endDate: end };
 };
 
 /**
@@ -54,19 +65,17 @@ export const getDateRange = (days = 7) => {
  * @param {number} numDays - Number of days to generate
  * @returns {Array} Array of objects containing date and formatted label
  */
-export const calculateDays = (numDays) => {
+export const calculateDays = (startDate, endDate) => {
     const days = [];
-    const endDate = new Date();
+    const current = new Date(startDate);
+    const end = new Date(endDate);
     
-    for (let i = numDays - 1; i >= 0; i--) {
-        const date = new Date(endDate);
-        date.setDate(date.getDate() - i);
-        date.setHours(0, 0, 0, 0);
-        
+    while (current <= end) {
         days.push({
-            date,
-            label: formatLocalDate(date)
+            date: new Date(current),
+            label: formatLocalDate(current)
         });
+        current.setDate(current.getDate() + 1);
     }
     return days;
 };
