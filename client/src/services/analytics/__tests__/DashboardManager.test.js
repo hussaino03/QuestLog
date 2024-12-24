@@ -92,6 +92,33 @@ describe('DashboardManager', () => {
     });
 
     describe('Task Processing and Grouping', () => {
+        beforeAll(() => {
+            // Force Node to use the mocked timezone
+            process.env.TZ = 'America/New_York';
+        });
+
+        afterAll(() => {
+            // Reset timezone
+            process.env.TZ = 'UTC';
+        });
+
+        test('handles tasks near local date boundaries', () => {
+            mockTimezone('America/New_York');
+            
+            jest.setSystemTime(new Date('2024-01-15T00:00:00-05:00')); // EST midnight
+            
+            const tasks = [
+                // These timestamps are in EST (-05:00)
+                { id: '1', completedAt: '2024-01-14T23:30:00-05:00', experience: 100 }, // 11:30 PM EST Jan 14
+                { id: '2', completedAt: '2024-01-15T00:30:00-05:00', experience: 200 }  // 12:30 AM EST Jan 15
+            ];
+
+            const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
+            const nonZeroDays = result.xpData.datasets[0].data.filter(xp => xp > 0);
+            expect(nonZeroDays.length).toBe(2);
+            expect(result.metrics.activeDays).toBe('2/7');
+        });
+
         const createCrossDayTasks = () => [
             { id: '1', completedAt: '2024-01-14T23:30:00Z', experience: 100 },
             { id: '2', completedAt: '2024-01-15T00:30:00Z', experience: 200 }
@@ -255,15 +282,15 @@ describe('DashboardManager', () => {
 
     describe('Chart Date Display', () => {
         test('chart dates match local timezone boundaries', () => {
+            process.env.TZ = 'America/New_York';
             mockTimezone('America/New_York');
-            const now = new Date('2024-01-15T05:00:00Z'); // Midnight EST
-            jest.setSystemTime(now);
+            
+            // Use explicit timezone offset in timestamp
+            jest.setSystemTime(new Date('2024-01-15T00:00:00-05:00'));
             
             const tasks = [
-                // 11:30 PM EST January 14th
-                { id: '1', completedAt: '2024-01-15T04:30:00Z', experience: 100 },
-                // 12:30 AM EST January 15th
-                { id: '2', completedAt: '2024-01-15T05:30:00Z', experience: 200 }
+                { id: '1', completedAt: '2024-01-14T23:30:00-05:00', experience: 100 },
+                { id: '2', completedAt: '2024-01-15T00:30:00-05:00', experience: 200 }
             ];
 
             const result = dashboardManager.calculateMetricsOptimized(tasks, 7);
