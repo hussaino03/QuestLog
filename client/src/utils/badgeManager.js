@@ -1,19 +1,43 @@
 import { BADGES } from '../components/Badge/BadgeGrid';
 
+/**
+ * Badge Unlock Manager
+ * Checks various achievement conditions and returns unlocked badge IDs
+ * 
+ * Handles multiple badge types:
+ * - Level-based badges
+ * - Streak-based achievements
+ * - Task completion milestones
+ * - Time-sensitive completions (early/night/weekend)
+ * - Daily completion challenges
+ * - Precision timing achievements
+ * 
+ * @param {number} level - Current user level
+ * @param {number} streak - Current streak count
+ * @param {number} completedTasksCount - Total completed tasks
+ * @param {Array} completedTasks - Array of task objects with completion details
+ * @returns {Array} Array of unlocked badge IDs
+ */
 export const checkBadgeUnlocks = (level, streak = 0, completedTasksCount = 0, completedTasks = []) => {
   const unlockedBadges = [];
 
   Object.values(BADGES).forEach(badge => {
+    // Level achievements
     if (badge.level && level >= badge.level) {
       unlockedBadges.push(badge.id);
     }
+
+    // Streak achievements
     if (badge.streakRequired && streak >= badge.streakRequired) {
       unlockedBadges.push(badge.id);
     }
+
+    // Task count achievements
     if (badge.tasksRequired && completedTasksCount >= badge.tasksRequired) {
       unlockedBadges.push(badge.id);
     }
 
+    // Early completion badges
     if (badge.earlyCompletions) {
       const earlyCount = completedTasks.filter(task => {
         const completedDate = new Date(task.completedAt);
@@ -25,6 +49,7 @@ export const checkBadgeUnlocks = (level, streak = 0, completedTasksCount = 0, co
       }
     }
 
+    // Night owl badges (10 PM - 4 AM)
     if (badge.nightCompletions) {
       const nightCount = completedTasks.filter(task => {
         const completedHour = new Date(task.completedAt).getHours();
@@ -35,6 +60,7 @@ export const checkBadgeUnlocks = (level, streak = 0, completedTasksCount = 0, co
       }
     }
 
+    // Daily achievement badges
     if (badge.tasksPerDay) {
       const tasksPerDayMap = completedTasks.reduce((acc, task) => {
         const date = new Date(task.completedAt).toDateString();
@@ -46,6 +72,7 @@ export const checkBadgeUnlocks = (level, streak = 0, completedTasksCount = 0, co
       }
     }
 
+    // Weekend warrior badges
     if (badge.weekendCompletions) {
       const weekendCount = completedTasks.filter(task => {
         const day = new Date(task.completedAt).getDay();
@@ -56,6 +83,7 @@ export const checkBadgeUnlocks = (level, streak = 0, completedTasksCount = 0, co
       }
     }
 
+    // Deadline precision badges (within 1 hour)
     if (badge.exactDeadlines) {
       const exactCount = completedTasks.filter(task => {
         const completedDate = new Date(task.completedAt);

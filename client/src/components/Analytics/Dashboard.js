@@ -14,9 +14,9 @@ import {
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, FireIcon } from '@heroicons/react/24/outline';
 import DashboardManager from '../../services/analytics/DashboardManager';
 import { getChartFontSizes, createChartOptions, createEmptyChartData } from '../../utils/analytics/chartUtils';
-import { transformChartDates } from '../../utils/analytics/dateUtils';
 import RangeToggle from '../../utils/analytics/rangeToggle';
 import { LoadingSpinner } from '../../utils/spinner';
+import { formatLocalDate } from '../../utils/analytics/dateUtils';
 
 ChartJS.register(
   CategoryScale,
@@ -54,41 +54,28 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
     periodXP: 0
   });
 
-  // Consolidate chart-related calculations
-  const chartConfig = useMemo(() => {
-    const fontSizes = getChartFontSizes(windowWidth);
-    const { xpChartOptions, tasksChartOptions } = createChartOptions(
-      dateRange, 
-      dashboardManager.CHART_COLORS, 
-      fontSizes
-    );
+  const chartConfig = useMemo(() => ({
+    ...createChartOptions(dateRange, dashboardManager.CHART_COLORS, getChartFontSizes(windowWidth)),
+    transformedData: {
+        xpData: dashboardData.xpData || createEmptyChartData(dashboardManager.CHART_COLORS),
+        taskData: dashboardData.completedTasksData || createEmptyChartData(dashboardManager.CHART_COLORS)
+    },
+    chartFontSizes: getChartFontSizes(windowWidth)
+  }), [windowWidth, dateRange, dashboardData, dashboardManager.CHART_COLORS]);
 
-    const emptyChart = createEmptyChartData(dashboardManager.CHART_COLORS);
-    const transformedData = {
-      xpData: transformChartDates(dashboardData.xpData) || emptyChart,
-      taskData: transformChartDates(dashboardData.completedTasksData) || emptyChart
-    };
-
-    const rotations = { x: { max: 45, min: 45 } };
-    const chartFontSizes = {
-      small: windowWidth < 640 ? 10 : 12,
-      regular: windowWidth < 640 ? 12 : 14
-    };
-
-    return {
-      xpChartOptions,
-      tasksChartOptions,
-      transformedData,
-      rotations,
-      chartFontSizes
-    };
-  }, [windowWidth, dateRange, dashboardData.xpData, dashboardData.completedTasksData, dashboardManager.CHART_COLORS]);
+  const formatDateForDisplay = useCallback((date) => {
+    return formatLocalDate(date);
+  }, []);
 
   // Memoize peak day calculation
   const peakDay = useMemo(() => {
     const peak = dashboardManager.findPeakDay(dashboardData.xpData);
-    return peak.xp > 0 ? `${peak.date} • ${peak.xp}XP` : "No activity yet";
-  }, [dashboardData.xpData, dashboardManager]);
+    if (peak.xp > 0) {
+        const localDate = formatDateForDisplay(new Date(peak.date));
+        return `${localDate} • ${peak.xp}XP`;
+    }
+    return "No activity yet";
+  }, [dashboardData.xpData, dashboardManager, formatDateForDisplay]);
 
   // Memoize average daily calculation
   const averageDaily = useMemo(() => 
@@ -139,9 +126,9 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
   useEffect(() => {
     let isMounted = true;
     
-    const computeMetrics = async () => {
+    const computeMetrics = () => {
         try {
-            const result = await dashboardManager.calculateMetricsOptimized(completedTasks, dateRange);
+            const result = dashboardManager.calculateMetricsOptimized(completedTasks, dateRange);
             if (isMounted) {
                 setDashboardData(result);
             }
@@ -312,8 +299,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                                 x: {
                                   ...chartConfig.xpChartOptions.scales.x,
                                   ticks: {
-                                    maxRotation: chartConfig.rotations.x.max,
-                                    minRotation: chartConfig.rotations.x.min,
+                                    ...chartConfig.xpChartOptions.scales.x.ticks,
                                     font: {
                                       size: chartConfig.chartFontSizes.small
                                     }
@@ -322,6 +308,7 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                                 y: {
                                   ...chartConfig.xpChartOptions.scales.y,
                                   ticks: {
+                                    ...chartConfig.xpChartOptions.scales.y.ticks,
                                     font: {
                                       size: chartConfig.chartFontSizes.small
                                     }
@@ -350,16 +337,18 @@ const Dashboard = ({ completedTasks, onOpenDashboard }) => {
                             scales: {
                               ...chartConfig.tasksChartOptions.scales,
                               x: {
+                                ...chartConfig.tasksChartOptions.scales.x,
                                 ticks: {
-                                  maxRotation: chartConfig.rotations.x.max,
-                                  minRotation: chartConfig.rotations.x.min,
+                                  ...chartConfig.tasksChartOptions.scales.x.ticks,
                                   font: {
                                     size: chartConfig.chartFontSizes.small
                                   }
                                 }
                               },
                               y: {
+                                ...chartConfig.tasksChartOptions.scales.y,
                                 ticks: {
+                                  ...chartConfig.tasksChartOptions.scales.y.ticks,
                                   font: {
                                     size: chartConfig.chartFontSizes.small
                                   }
