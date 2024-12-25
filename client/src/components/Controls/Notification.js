@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BellIcon } from '@heroicons/react/24/outline';
+import { Bell } from 'lucide-react';
 import { useNotification } from '../../contexts/NotificationContext';
 
 const Notification = () => {
@@ -30,12 +30,13 @@ const Notification = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg bg-white dark:bg-gray-800 font-bold 
-                  border-2 border-gray-800 text-gray-800 dark:text-gray-200 
-                  shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
-                  hover:translate-y-0.5 transition-all duration-200 relative"
+        className="p-2 rounded-lg bg-white dark:bg-gray-800 
+                  border-2 border-gray-800 shadow-[2px_2px_#2563EB] 
+                  hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 
+                  transition-all duration-200"
+        aria-label="Notifications"
       >
-        <BellIcon className="h-6 w-6" />
+        <Bell className="w-5 h-5 text-gray-800 dark:text-white" />
         {hasUnread && (
           <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 
                          ring-2 ring-white dark:ring-gray-800"/>
