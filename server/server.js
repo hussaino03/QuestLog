@@ -64,7 +64,6 @@ const analyticsRoutes = require('./routes/analytics/analytics.routes');
 const todoistRoutes = require('./routes/integrations/todoist/todoist.routes');
 const ticktickRoutes = require('./routes/integrations/ticktick/ticktick.routes');
 
-// Move this before other route handlers
 app.use('/api/ai', require('./routes/ai/ai.routes'));
 
 app.use('/api', apiRoutes);
