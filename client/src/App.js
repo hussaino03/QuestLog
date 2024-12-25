@@ -4,6 +4,7 @@ import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { NotificationProvider, useNotification } from './contexts/NotificationContext';
 import Header from './components/Layout/Header';
 import ProgressBar from './components/XP Management/ProgressBar';
 import TaskButtons from './components/Modal Management/Buttons';
@@ -28,7 +29,7 @@ import StreakManager from './services/streak/StreakManager';
 import ViewManager from './services/view/ViewManager';
 import BadgeManager from './services/badge/BadgeManager';
 
-const App = () => {
+const AppContent = () => {
   const [isDark, setIsDark] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -47,11 +48,9 @@ const App = () => {
   const {
     level,
     experience,
-    showLevelUp,
     newLevel,
     calculateXP,
     resetXP,
-    setShowLevelUp,
     getTotalXP,
     setTotalExperience
   } = useXPManager();
@@ -77,7 +76,11 @@ const App = () => {
   const themeManager = useMemo(() => new ThemeManager(setIsDark), []);
   const streakManager = useMemo(() => new StreakManager(setCurrentStreak), []);
   const viewManager = useMemo(() => new ViewManager(setShowCompleted, setCurrentView), []);
-  const badgeManager = useMemo(() => new BadgeManager(setUnlockedBadges), []);
+  const { addNotification } = useNotification();
+  const badgeManager = useMemo(() => new BadgeManager(
+    setUnlockedBadges, 
+    addNotification
+  ), [addNotification]);
 
   useEffect(() => {
     themeManager.initializeTheme();
@@ -113,6 +116,24 @@ const App = () => {
     setStreakData(newStreakData);
   }, [completedTasks, streakManager]);
 
+  useEffect(() => {
+    if (userId && userName) {
+      const stored = localStorage.getItem('notifications');
+      const allNotifications = stored ? JSON.parse(stored) : [];
+      const welcomeWasCleared = allNotifications.some(n => 
+        n.type === 'welcome' && 
+        n.cleared === true
+      );
+
+      if (!welcomeWasCleared) {
+        addNotification(
+          `👋 Hey${userName ? ` ${userName.charAt(0).toUpperCase() + userName.slice(1)}` : ''}! Ready to be productive?`,
+          'welcome'
+        );
+      }
+    }
+  }, [userId, userName, addNotification]);
+
   const handleClearDataClick = () => {
     setShowClearDataModal(true);
   };
@@ -128,177 +149,184 @@ const App = () => {
   }
 
   return (
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-      <BrowserRouter>
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              userId ? (
-                <Navigate to="/app" replace />
-              ) : (
-                <Landing isDark={isDark} onToggle={toggleTheme} />
-              )
-            } 
-          />
-          <Route 
-            path="/app" 
-            element={
-              userId ? (
-                <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-                  <Header 
-                    authComponent={
-                      <Auth 
-                        onAuthChange={dataManager.handleAuthChange} 
-                        handleUserDataLoad={dataManager.handleUserDataLoad}
-                      />
-                    }
-                    AppControls={
-                      <AppControls 
-                        isDark={isDark} 
-                        onToggle={toggleTheme}
-                        addTask={taskManager.addTask}
-                      />
-                    }
-                  />
-                  {error && (
-                  <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
-                    Error: {error}
-                  </div>
-                )}
-                
-                {/* Main Layout Container */}
-                <div className="flex flex-col min-h-screen">
-                  <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
-                    <div className="grid lg:grid-cols-[1fr,320px] gap-6 h-full">
-                      {/* Main Content Column */}
-                      <div className="flex flex-col min-h-[calc(100vh-200px)] lg:min-h-0 lg:h-full"> 
-                        <ProgressBar 
-                          level={level} 
-                          experience={experience} 
-                          userName={userName}
-                        />
-                        
-                        <div className="mt-6 flex-shrink-0">
-                          <div className="space-y-4">
-                            <TaskButtons 
-                              showCompleted={showCompleted} 
-                              toggleView={() => viewManager.toggleView(showCompleted)}
-                              onClearDataClick={handleClearDataClick}
-                            />
-                            <TaskForm addTask={taskManager.addTask} />
-                          </div>
-                        </div>
-
-                        {/* Task List Container */}
-                        <div className="mt-6 relative flex-1 min-h-0"> 
-                          <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                            <SwitchTransition mode="out-in">
-                              <CSSTransition
-                                key={currentView}
-                                classNames="slide"
-                                timeout={300}
-                                unmountOnExit
-                              >
-                                <div className="h-full"> 
-                                  {currentView === 'todo' && (
-                                    <TaskList 
-                                      tasks={tasks} 
-                                      removeTask={taskManager.removeTask}
-                                      completeTask={taskManager.completeTask}
-                                      isCompleted={false}
-                                      addTask={taskManager.addTask}  
-                                      updateTask={taskManager.updateTask}  
-                                    />
-                                  )}
-                                  {currentView === 'completed' && (
-                                    <TaskList 
-                                      tasks={completedTasks} 
-                                      removeTask={taskManager.removeTask}
-                                      completeTask={taskManager.completeTask}
-                                      isCompleted={true}
-                                    />
-                                  )}
-                                </div>
-                              </CSSTransition>
-                            </SwitchTransition>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Side Panel - Desktop */}
-                      <div className="hidden lg:flex lg:flex-col space-y-6 h-full pt-[102px]"> 
-                        <div className="flex-shrink-0">
-                          <BadgeGrid unlockedBadges={unlockedBadges} />
-                        </div>
-                        <div className="flex-shrink-0">
-                          <StreakTracker 
-                            completedTasks={completedTasks} 
-                            streakData={streakData}
-                          />
-                        </div>
-                        <div className="flex-1 min-h-0 overflow-auto"> 
-                          <Leaderboard 
-                            limit={3} 
-                            className="h-full"
-                            onShowFull={() => setShowFullLeaderboard(true)}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Side Panel - Mobile */}
-                      <div className="lg:hidden mt-4"> 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
-                          <BadgeGrid unlockedBadges={unlockedBadges} />
-                          <StreakTracker 
-                            completedTasks={completedTasks} 
-                            streakData={streakData}
-                          />
-                          <Leaderboard 
-                            limit={3} 
-                            className="overflow-hidden" 
-                            onShowFull={() => setShowFullLeaderboard(true)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <Footer userId={userId} /> 
+    <BrowserRouter>
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            userId ? (
+              <Navigate to="/app" replace />
+            ) : (
+              <Landing isDark={isDark} onToggle={toggleTheme} />
+            )
+          } 
+        />
+        <Route 
+          path="/app" 
+          element={
+            userId ? (
+              <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+                <Header 
+                  authComponent={
+                    <Auth 
+                      onAuthChange={dataManager.handleAuthChange} 
+                      handleUserDataLoad={dataManager.handleUserDataLoad}
+                    />
+                  }
+                  AppControls={
+                    <AppControls 
+                      isDark={isDark} 
+                      onToggle={toggleTheme}
+                      addTask={taskManager.addTask}
+                    />
+                  }
+                />
+                {error && (
+                <div className="mx-4 my-2 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
+                  Error: {error}
                 </div>
+              )}
+              
+              {/* Main Layout Container */}
+              <div className="flex flex-col min-h-screen">
+                <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
+                  <div className="grid lg:grid-cols-[1fr,320px] gap-6 h-full">
+                    {/* Main Content Column */}
+                    <div className="flex flex-col min-h-[calc(100vh-200px)] lg:min-h-0 lg:h-full"> 
+                      <ProgressBar 
+                        level={level} 
+                        experience={experience} 
+                        userName={userName}
+                      />
+                      
+                      <div className="mt-6 flex-shrink-0">
+                        <div className="space-y-4">
+                          <TaskButtons 
+                            showCompleted={showCompleted} 
+                            toggleView={() => viewManager.toggleView(showCompleted)}
+                            onClearDataClick={handleClearDataClick}
+                          />
+                          <TaskForm addTask={taskManager.addTask} />
+                        </div>
+                      </div>
 
-                {/* Full Leaderboard Modal */}
-                {showFullLeaderboard && (
-                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full flex flex-col max-h-[80vh] animate-modalSlide">
-                      <div className="flex-1 flex flex-col min-h-0">
-                        <Leaderboard scrollUsers={true} onClose={() => setShowFullLeaderboard(false)} />
+                      {/* Task List Container */}
+                      <div className="mt-6 relative flex-1 min-h-0"> 
+                        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                          <SwitchTransition mode="out-in">
+                            <CSSTransition
+                              key={currentView}
+                              classNames="slide"
+                              timeout={300}
+                              unmountOnExit
+                            >
+                              <div className="h-full"> 
+                                {currentView === 'todo' && (
+                                  <TaskList 
+                                    tasks={tasks} 
+                                    removeTask={taskManager.removeTask}
+                                    completeTask={taskManager.completeTask}
+                                    isCompleted={false}
+                                    addTask={taskManager.addTask}  
+                                    updateTask={taskManager.updateTask}  
+                                  />
+                                )}
+                                {currentView === 'completed' && (
+                                  <TaskList 
+                                    tasks={completedTasks} 
+                                    removeTask={taskManager.removeTask}
+                                    completeTask={taskManager.completeTask}
+                                    isCompleted={true}
+                                  />
+                                )}
+                              </div>
+                            </CSSTransition>
+                          </SwitchTransition>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Side Panel - Desktop */}
+                    <div className="hidden lg:flex lg:flex-col space-y-6 h-full pt-[102px]"> 
+                      <div className="flex-shrink-0">
+                        <BadgeGrid unlockedBadges={unlockedBadges} />
+                      </div>
+                      <div className="flex-shrink-0">
+                        <StreakTracker 
+                          completedTasks={completedTasks} 
+                          streakData={streakData}
+                        />
+                      </div>
+                      <div className="flex-1 min-h-0 overflow-auto"> 
+                        <Leaderboard 
+                          limit={3} 
+                          className="h-full"
+                          onShowFull={() => setShowFullLeaderboard(true)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Side Panel - Mobile */}
+                    <div className="lg:hidden mt-4"> 
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
+                        <BadgeGrid unlockedBadges={unlockedBadges} />
+                        <StreakTracker 
+                          completedTasks={completedTasks} 
+                          streakData={streakData}
+                        />
+                        <Leaderboard 
+                          limit={3} 
+                          className="overflow-hidden" 
+                          onShowFull={() => setShowFullLeaderboard(true)}
+                        />
                       </div>
                     </div>
                   </div>
-                )}
-
-                <LevelUpNoti 
-                  show={showLevelUp}
-                  onClose={() => setShowLevelUp(false)} 
-                  level={newLevel}
-                />
-                <ClearDataModal
-                  show={showClearDataModal}
-                  onConfirm={handleConfirmClear}
-                  onCancel={() => setShowClearDataModal(false)}
-                />
-                <Analytics />
+                </div>
+                <Footer userId={userId} /> 
               </div>
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route path="/legal/privacy" element={<PrivacyPolicy />} />
-          <Route path="/legal/terms" element={<TermsOfService />} />
-        </Routes>
-      </BrowserRouter>
+
+              {/* Full Leaderboard Modal */}
+              {showFullLeaderboard && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full flex flex-col max-h-[80vh] animate-modalSlide">
+                    <div className="flex-1 flex flex-col min-h-0">
+                      <Leaderboard scrollUsers={true} onClose={() => setShowFullLeaderboard(false)} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <LevelUpNoti 
+                level={newLevel}
+              />
+              <ClearDataModal
+                show={showClearDataModal}
+                onConfirm={handleConfirmClear}
+                onCancel={() => setShowClearDataModal(false)}
+              />
+              <Analytics />
+            </div>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+        <Route path="/legal/terms" element={<TermsOfService />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+const App = () => {
+  return (
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
     </GoogleOAuthProvider>
   );
 };
+
 export default App;
