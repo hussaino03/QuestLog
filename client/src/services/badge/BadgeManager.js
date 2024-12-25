@@ -15,7 +15,8 @@ class BadgeManager {
         if (badge && this.addNotification) {
             this.addNotification(
                 `🏆 New Badge Unlocked: ${badge.icon} ${badge.name}!`,
-                'achievement'
+                'achievement',
+                `badge_${badgeId}` 
             );
             this.notifiedBadges.add(badgeId);
             localStorage.setItem('notifiedBadges', JSON.stringify([...this.notifiedBadges]));

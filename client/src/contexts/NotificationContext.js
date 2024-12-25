@@ -10,25 +10,25 @@ export const NotificationProvider = ({ children }) => {
     return stored ? JSON.parse(stored) : [];
   });
 
-  const addNotification = useCallback((message, type = 'info') => {
+  const addNotification = useCallback((message, type = 'info', id = null) => {
+    // If no ID is provided, fallback to timestamp-based
+    const notificationId = id || Date.now();
+
     const newNotification = {
-      id: Date.now(),
+      id: notificationId,
       message,
       type,
       timestamp: new Date().toISOString(),
       read: false
     };
-    
+
     setNotifications(prev => {
-      // Check for duplicates and cleared status
-      const isDuplicate = prev.some(n => 
-        n.message === message && 
-        n.type === type &&
-        (n.cleared || !n.cleared === undefined)  // Consider both cleared and undefined cleared status
-      );
-
-      if (isDuplicate) return prev;
-
+      // Check if this ID is already in notifications
+      const existing = prev.find(n => n.id === notificationId);
+      if (existing) {
+        // If it's cleared or present, skip adding again
+        return prev;
+      }
       const updated = [newNotification, ...prev].slice(0, MAX_NOTIFICATIONS);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
@@ -47,11 +47,10 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => {
       const clearedNotifications = prev.map(n => ({ ...n, cleared: true }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(clearedNotifications));
-      return []; // Still clear the visual list
+      return []; 
     });
   }, []);
 
-  // This effect now filters out cleared notifications on page load
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {

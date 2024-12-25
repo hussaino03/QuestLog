@@ -128,7 +128,8 @@ const AppContent = () => {
       if (!welcomeWasCleared) {
         addNotification(
           `👋 Hey${userName ? ` ${userName.charAt(0).toUpperCase() + userName.slice(1)}` : ''}! Ready to be productive?`,
-          'welcome'
+          'welcome',
+          'welcome_notif' 
         );
       }
     }
