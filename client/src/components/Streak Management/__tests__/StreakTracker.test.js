@@ -40,9 +40,9 @@ describe('StreakTracker Component', () => {
     expect(screen.getByText('Longest Streak').nextElementSibling).toHaveTextContent('0');
   });
 
-  it('renders the Analytics button', () => {
+  it('renders the Stats button', () => {
     renderStreakTracker();
-    expect(screen.getByText('Analytics')).toBeInTheDocument();
+    expect(screen.getByText('Stats')).toBeInTheDocument();
   });
 
   it('shows the Dashboard component', () => {
@@ -50,14 +50,12 @@ describe('StreakTracker Component', () => {
     expect(screen.getByTestId('dashboard')).toBeInTheDocument();
   });
 
-  it('opens dashboard when Analytics button is clicked', () => {
+  it('opens dashboard when Stats button is clicked', () => {
     const { container } = renderStreakTracker();
-    const analyticsButton = screen.getByText('Analytics');
+    const statsButton = screen.getByText('Stats');
     
-    fireEvent.click(analyticsButton);
+    fireEvent.click(statsButton);
     
-    // Only verify that the handler is called - specific dashboard behavior
-    // should be tested in Dashboard's own test file
     expect(container.querySelector('[data-testid="dashboard"]')).toBeInTheDocument();
   });
 });
