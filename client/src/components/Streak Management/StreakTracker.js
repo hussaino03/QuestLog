@@ -1,12 +1,27 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Dashboard from '../Analytics/Dashboard';
 import { ChartBarIcon } from '@heroicons/react/24/outline'; 
 import { Bot } from 'lucide-react';
 import Chat from '../AI/Chat';
+import { createFireElement } from '../../utils/other/animationsUtils';
 
 const StreakTracker = ({ completedTasks, streakData }) => {
     const [openDashboard, setOpenDashboard] = React.useState(null);
-    const [isChatOpen, setIsChatOpen] = React.useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [showFireAnimation, setShowFireAnimation] = useState(false);
+    const [prevStreak, setPrevStreak] = useState(streakData.current);
+
+    useEffect(() => {
+        if (streakData.current > prevStreak) {
+            setShowFireAnimation(true);
+            const fireTimer = setTimeout(() => {
+                setShowFireAnimation(false);
+            }, 2000);
+            return () => clearTimeout(fireTimer);
+        }
+        setPrevStreak(streakData.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [prevStreak, streakData?.current]);
 
     const handleOpenDashboard = useCallback((opener) => {
         setOpenDashboard(() => opener);
@@ -15,13 +30,19 @@ const StreakTracker = ({ completedTasks, streakData }) => {
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-colors duration-200">
             <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="relative text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Streak</p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{streakData.current}</p>
+                    <div className="relative">
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{streakData.current}</p>
+                        {createFireElement(showFireAnimation)}
+                    </div>
                 </div>
-                <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="relative text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest Streak</p>
-                    <p className="text-2xl font-bold" style={{ color: '#77dd77' }}>{streakData.longest}</p>
+                    <div className="relative">
+                        <p className="text-2xl font-bold" style={{ color: '#77dd77' }}>{streakData.longest}</p>
+                        {createFireElement(showFireAnimation && streakData.current >= streakData.longest)}
+                    </div>
                 </div>
             </div>
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
