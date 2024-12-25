@@ -1,7 +1,10 @@
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const router = express.Router();
-const { getProductivityInsights, chatWithAI } = require('../../controllers/ai/ai.controller');
+const {
+  getProductivityInsights,
+  chatWithAI
+} = require('../../controllers/ai/ai.controller');
 const { authenticateToken } = require('../../middleware/auth');
 
 // Add health check endpoint
@@ -12,13 +15,13 @@ router.get('/health', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
     // Test the model with a simple prompt
     const result = await model.generateContent('Say "OK" if you can hear me.');
     const response = await result.response.text();
-    
-    res.json({ 
+
+    res.json({
       status: 'healthy',
       modelResponse: response,
       timestamp: new Date().toISOString(),
@@ -26,7 +29,7 @@ router.get('/health', async (req, res) => {
     });
   } catch (error) {
     console.error('AI Health Check Failed:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       status: 'unhealthy',
       error: error.message,
       apiKeyConfigured: !!process.env.GEMINI_API_KEY,

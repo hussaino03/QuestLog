@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 
 async function sendFeedback(req, res) {
   const { ratings, feedback } = req.body;
-  
+
   try {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: 'Not authenticated' });
@@ -12,7 +12,7 @@ async function sendFeedback(req, res) {
     const userName = req.user.name;
 
     if (!userEmail) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'No email found in user profile'
       });
     }
@@ -46,7 +46,7 @@ async function sendFeedback(req, res) {
     res.json({ message: 'Feedback sent successfully' });
   } catch (error) {
     console.error('Detailed error in sendFeedback:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: `Failed to send feedback: ${error.message}`,
       details: error.stack
     });

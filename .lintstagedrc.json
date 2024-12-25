@@ -1,0 +1,3 @@
+{
+  "./server/*": "npm run format:fix"
+}

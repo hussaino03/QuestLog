@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  updateUser, 
-  getUser, 
-  updateOptInStatus 
+const {
+  updateUser,
+  getUser,
+  updateOptInStatus
 } = require('../../controllers/users/users.controller');
 const { authenticateToken, verifyOwnership } = require('../../middleware/auth');
 

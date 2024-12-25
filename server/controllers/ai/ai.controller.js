@@ -1,16 +1,16 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { connectToDatabase } = require('../../db');
-const { ObjectId } = require('mongodb'); 
+const { ObjectId } = require('mongodb');
 
 // Log initial setup
 console.log('Initializing Gemini AI model...');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ 
-  model: "gemini-2.0-flash-exp",  
+const model = genAI.getGenerativeModel({
+  model: 'gemini-2.0-flash-exp',
   safetySettings: [
     {
-      category: "HARM_CATEGORY_HARASSMENT",
-      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+      category: 'HARM_CATEGORY_HARASSMENT',
+      threshold: 'BLOCK_MEDIUM_AND_ABOVE'
     }
   ]
 });
@@ -36,16 +36,16 @@ async function getUserStats(userId) {
   console.log('Fetching user stats for userId:', userId);
   try {
     const db = await connectToDatabase();
-    
+
     if (!ObjectId.isValid(userId)) {
       console.error('Invalid userId format:', userId);
       return null;
     }
 
-    const user = await db.collection('users').findOne(
-      { _id: new ObjectId(userId) } 
-    );
-    
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
+
     if (!user) {
       console.error('User not found:', userId);
       return null;
@@ -61,34 +61,40 @@ async function getUserStats(userId) {
     const completedTasks = user.completedTasks || [];
     const pendingTasks = user.tasks || [];
 
-    console.log('Processing completed tasks. Sample:', 
-      completedTasks.slice(-2).map(t => ({
+    console.log(
+      'Processing completed tasks. Sample:',
+      completedTasks.slice(-2).map((t) => ({
         title: t.title || t.name,
         experience: t.experience,
         completedAt: t.completedAt
       }))
     );
 
-    const recentCompletions = completedTasks
-      .slice(-5)
-      .map(task => {
-        console.log('Processing task:', task);
-        return {
-          title: task.title || task.name || 'Untitled Task', 
-          experience: task.experience || 0,
-          completedAt: new Date(task.completedAt).toLocaleDateString(),
-          deadline: task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline',
-          earlyBonus: task.earlyBonus || 0,
-          overduePenalty: task.overduePenalty || 0
-        };
-      });
+    const recentCompletions = completedTasks.slice(-5).map((task) => {
+      console.log('Processing task:', task);
+      return {
+        title: task.title || task.name || 'Untitled Task',
+        experience: task.experience || 0,
+        completedAt: new Date(task.completedAt).toLocaleDateString(),
+        deadline: task.deadline
+          ? new Date(task.deadline).toLocaleDateString()
+          : 'No deadline',
+        earlyBonus: task.earlyBonus || 0,
+        overduePenalty: task.overduePenalty || 0
+      };
+    });
 
     console.log('Processed recent completions:', recentCompletions);
 
     const stats = {
-      taskCompletionRate: completedTasks.length + pendingTasks.length > 0 
-        ? ((completedTasks.length / (completedTasks.length + pendingTasks.length)) * 100).toFixed(1) 
-        : 0,
+      taskCompletionRate:
+        completedTasks.length + pendingTasks.length > 0
+          ? (
+              (completedTasks.length /
+                (completedTasks.length + pendingTasks.length)) *
+              100
+            ).toFixed(1)
+          : 0,
       totalTasksCompleted: completedTasks.length,
       currentLevel: user.level || 1,
       experiencePoints: user.xp || 0,
@@ -109,13 +115,13 @@ async function getUserStats(userId) {
 // Helper function to handle AI model interaction
 async function generateAIResponse(prompt, systemPrompt = SYSTEM_PROMPT) {
   const result = await model.generateContent([systemPrompt, prompt]);
-  
+
   if (!result || !result.response) {
     throw new Error('Invalid response from AI model');
   }
 
   const response = await result.response.text();
-  
+
   if (!response) {
     throw new Error('Empty response from AI model');
   }
@@ -126,7 +132,7 @@ async function generateAIResponse(prompt, systemPrompt = SYSTEM_PROMPT) {
 async function getProductivityInsights(req, res) {
   try {
     const stats = await getUserStats(req.user._id);
-    
+
     const prompt = `Based on these user statistics:
     - Task completion rate: ${stats.taskCompletionRate}%
     - Total completed tasks: ${stats.totalTasksCompleted}
@@ -149,7 +155,7 @@ async function chatWithAI(req, res) {
   try {
     const { message, previousResponses = [] } = req.body;
     const isFirstMessage = previousResponses.length === 0;
-    
+
     const stats = await getUserStats(req.user._id);
     if (!stats) {
       return res.status(500).json({ error: 'Failed to fetch user statistics' });
@@ -165,12 +171,14 @@ async function chatWithAI(req, res) {
     - Active tasks: ${stats.totalActiveTasks}
 
     Recent Task Completions:
-    ${stats.recentCompletions.map(task => 
-      `- "${task.title}" completed on ${task.completedAt} (deadline: ${task.deadline}) (${task.experience}XP${
-        task.earlyBonus ? ` +${task.earlyBonus} bonus` : ''}${
-        task.overduePenalty ? ` ${task.overduePenalty} penalty` : ''
-      })`
-    ).join('\n')}
+    ${stats.recentCompletions
+      .map(
+        (task) =>
+          `- "${task.title}" completed on ${task.completedAt} (deadline: ${task.deadline}) (${task.experience}XP${
+            task.earlyBonus ? ` +${task.earlyBonus} bonus` : ''
+          }${task.overduePenalty ? ` ${task.overduePenalty} penalty` : ''})`
+      )
+      .join('\n')}
 
     Conversation State:
     - Is first message: ${isFirstMessage}
@@ -188,22 +196,27 @@ async function chatWithAI(req, res) {
     console.log('Sending prompt to AI:', contextPrompt);
     const response = await generateAIResponse(contextPrompt);
     console.log('AI Response received:', response);
-    
+
     console.log('-------- End Chat Request --------');
-    res.json({ 
+    res.json({
       response,
       conversationContext: {
-        performance: stats.taskCompletionRate > 70 ? 'high' : 
-                    stats.taskCompletionRate > 40 ? 'medium' : 'getting_started'
+        performance:
+          stats.taskCompletionRate > 70
+            ? 'high'
+            : stats.taskCompletionRate > 40
+              ? 'medium'
+              : 'getting_started'
       }
     });
   } catch (error) {
     console.error('-------- Chat Error --------');
     console.error('Error details:', error);
     console.error('Stack:', error.stack);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to process message',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details:
+        process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }

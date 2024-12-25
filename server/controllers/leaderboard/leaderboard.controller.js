@@ -3,7 +3,7 @@ const { connectToDatabase } = require('../../db');
 const getLeaderboard = async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const offset = parseInt(req.query.offset) || 0;
-  
+
   try {
     const db = await connectToDatabase();
     const usersCollection = db.collection('users');
@@ -11,7 +11,7 @@ const getLeaderboard = async (req, res) => {
     const leaderboard = await usersCollection
       .find(
         { isOptIn: true },
-        { 
+        {
           projection: {
             name: 1,
             picture: 1,
