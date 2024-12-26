@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const Chat = ({ isOpen, onClose }) => { 
+const Chat = ({ isOpen, onClose }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -9,10 +9,10 @@ const Chat = ({ isOpen, onClose }) => {
   const modalRef = useRef(null);
 
   const commonPrompts = [
-    "How am I doing with my tasks today?",
+    'How am I doing with my tasks today?',
     "What's my productivity trend?",
-    "Tips to improve my task completion rate",
-    "Show me my recent achievements"
+    'Tips to improve my task completion rate',
+    'Show me my recent achievements'
   ];
 
   const handlePromptClick = (prompt) => {
@@ -61,29 +61,30 @@ const Chat = ({ isOpen, onClose }) => {
 
   const sendMessage = async (e, promptOverride = null) => {
     e?.preventDefault();
-    
+
     const messageToSend = promptOverride || message;
     if (!messageToSend.trim() || isLoading) return;
-    
+
     setIsLoading(true);
     const userMessage = messageToSend.trim();
     setMessage('');
-    setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
-    
+    setMessages((prev) => [...prev, { type: 'user', content: userMessage }]);
+
     const previousResponses = messages
-      .filter(m => m.type === 'ai')
-      .map(m => m.content)
+      .filter((m) => m.type === 'ai')
+      .map((m) => m.content)
       .slice(-2);
 
     try {
-      const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
+      const API_BASE_URL =
+        process.env.REACT_APP_PROD || 'http://localhost:3001/api';
       const response = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
+        headers: {
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: userMessage,
           previousResponses,
           conversationContext
@@ -95,23 +96,27 @@ const Chat = ({ isOpen, onClose }) => {
         console.error('Error response:', errorText);
         throw new Error(response.statusText);
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.response) {
         throw new Error('Invalid response format');
       }
-      
-      setMessages(prev => [...prev, { type: 'ai', content: data.response }]);
+
+      setMessages((prev) => [...prev, { type: 'ai', content: data.response }]);
       if (data.conversationContext) {
         setConversationContext(data.conversationContext);
       }
     } catch (error) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, { 
-        type: 'error', 
-        content: 'Sorry, I had trouble processing that request. Please try again.' 
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: 'error',
+          content:
+            'Sorry, I had trouble processing that request. Please try again.'
+        }
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -120,12 +125,12 @@ const Chat = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       aria-modal="true"
       role="dialog"
     >
-      <div 
+      <div
         ref={modalRef}
         className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full h-[600px] flex flex-col shadow-2xl transform scale-100 animate-modalSlide"
       >
@@ -134,7 +139,7 @@ const Chat = ({ isOpen, onClose }) => {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Productivity Assistant
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
           >
@@ -174,8 +179,8 @@ const Chat = ({ isOpen, onClose }) => {
                   msg.type === 'user'
                     ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                     : msg.type === 'error'
-                    ? 'bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400'
-                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'
+                      ? 'bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400'
+                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'
                 }`}
               >
                 {msg.content}
@@ -184,8 +189,10 @@ const Chat = ({ isOpen, onClose }) => {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2 
-                            text-gray-900 dark:text-gray-100 animate-pulse">
+              <div
+                className="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2 
+                            text-gray-900 dark:text-gray-100 animate-pulse"
+              >
                 Thinking...
               </div>
             </div>
@@ -194,7 +201,10 @@ const Chat = ({ isOpen, onClose }) => {
         </div>
 
         {/* Input Form */}
-        <form onSubmit={sendMessage} className="p-6 border-t border-gray-200 dark:border-gray-700">
+        <form
+          onSubmit={sendMessage}
+          className="p-6 border-t border-gray-200 dark:border-gray-700"
+        >
           <div className="flex gap-2">
             <input
               type="text"

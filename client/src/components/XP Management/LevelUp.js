@@ -3,7 +3,7 @@ import { useNotification } from '../../contexts/NotificationContext';
 
 const LevelUpNoti = ({ level }) => {
   const { addNotification } = useNotification();
-  
+
   useEffect(() => {
     if (level && level > 1) {
       addNotification(

@@ -3,29 +3,29 @@
  * These arrays provide consistent theming across the application
  */
 const lightColors = [
-  '#0EA5E9', 
-  '#6366F1', 
-  '#8B5CF6', 
-  '#EC4899', 
+  '#0EA5E9',
+  '#6366F1',
+  '#8B5CF6',
+  '#EC4899',
   '#F472B6',
-  '#818CF8', 
-  '#2DD4BF', 
+  '#818CF8',
+  '#2DD4BF'
 ];
 
 const darkColors = [
-  '#38BDF8', 
-  '#A5B4FC', 
-  '#C4B5FD', 
-  '#F9A8D4', 
-  '#67E8F9', 
-  '#5EEAD4', 
-  '#94A3B8', 
+  '#38BDF8',
+  '#A5B4FC',
+  '#C4B5FD',
+  '#F9A8D4',
+  '#67E8F9',
+  '#5EEAD4',
+  '#94A3B8'
 ];
 
 /**
  * Particle Class
  * Represents a single confetti particle with physics and rendering capabilities
- * 
+ *
  * @class
  * @property {CanvasRenderingContext2D} context - Canvas rendering context
  * @property {number} width - Canvas width
@@ -47,7 +47,9 @@ class Particle {
     this.x = Math.random() * width;
     this.y = Math.random() * height - height;
     this.rotation = Math.random() * 360;
-    this.color = (isDark ? darkColors : lightColors)[Math.floor(Math.random() * (isDark ? darkColors : lightColors).length)];
+    this.color = (isDark ? darkColors : lightColors)[
+      Math.floor(Math.random() * (isDark ? darkColors : lightColors).length)
+    ];
     this.size = Math.random() * 8 + 4;
     this.speedY = Math.random() * 3 + 2;
     this.speedX = Math.random() * 2 - 1;
@@ -58,7 +60,7 @@ class Particle {
     this.y += this.speedY;
     this.x += this.speedX;
     this.rotation += this.speedRotation;
-    
+
     if (this.y > this.height) {
       this.y = -10;
       this.x = Math.random() * this.width;
@@ -85,9 +87,9 @@ class Particle {
  * - Memory leak prevention
  * - Non-blocking animation using requestAnimationFrame
  * - Zero interference with user interaction (pointer-events: none)
- * 
+ *
  * @returns {Function} Cleanup function that can be called to stop animation early
- * 
+ *
  */
 export const startConfetti = () => {
   const canvas = document.createElement('canvas');
@@ -131,7 +133,7 @@ export const startConfetti = () => {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.globalAlpha = opacity;
 
-    particles.forEach(particle => {
+    particles.forEach((particle) => {
       particle.update();
       particle.draw();
     });

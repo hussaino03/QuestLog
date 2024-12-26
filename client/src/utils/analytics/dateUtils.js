@@ -5,16 +5,16 @@
  * @returns {string} Formatted date string in MM/DD format
  */
 export const formatLocalDate = (date) => {
-    try {
-        return new Intl.DateTimeFormat('en-US', {
-            month: '2-digit',
-            day: '2-digit'
-        }).format(date);
-    } catch (e) {
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${month}/${day}`;
-    }
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date);
+  } catch (e) {
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${month}/${day}`;
+  }
 };
 
 /**
@@ -23,11 +23,11 @@ export const formatLocalDate = (date) => {
  * @returns {string} Timezone identifier (e.g., 'America/New_York')
  */
 export const getUserTimezone = () => {
-    try {
-        return Intl.DateTimeFormat().resolvedOptions().timeZone;
-    } catch (e) {
-        return 'UTC';
-    }
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch (e) {
+    return 'UTC';
+  }
 };
 
 /**
@@ -38,25 +38,25 @@ export const getUserTimezone = () => {
  * @returns {Object} Object containing startDate and endDate
  */
 export const getDateRange = (startDate = null, endDate = null) => {
-    // If no dates provided, default to last 7 days
-    if (!startDate || !endDate) {
-        const end = new Date();
-        end.setHours(23, 59, 59, 999);
-        
-        const start = new Date();
-        start.setDate(start.getDate() - 6); // Last 7 days including today
-        start.setHours(0, 0, 0, 0);
-        
-        return { startDate: start, endDate: end };
-    }
-
-    const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0);
-    
-    const end = new Date(endDate);
+  // If no dates provided, default to last 7 days
+  if (!startDate || !endDate) {
+    const end = new Date();
     end.setHours(23, 59, 59, 999);
-    
+
+    const start = new Date();
+    start.setDate(start.getDate() - 6); // Last 7 days including today
+    start.setHours(0, 0, 0, 0);
+
     return { startDate: start, endDate: end };
+  }
+
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+
+  return { startDate: start, endDate: end };
 };
 
 /**
@@ -66,18 +66,18 @@ export const getDateRange = (startDate = null, endDate = null) => {
  * @returns {Array} Array of objects containing date and formatted label
  */
 export const calculateDays = (startDate, endDate) => {
-    const days = [];
-    const current = new Date(startDate);
-    const end = new Date(endDate);
-    
-    while (current <= end) {
-        days.push({
-            date: new Date(current),
-            label: formatLocalDate(current)
-        });
-        current.setDate(current.getDate() + 1);
-    }
-    return days;
+  const days = [];
+  const current = new Date(startDate);
+  const end = new Date(endDate);
+
+  while (current <= end) {
+    days.push({
+      date: new Date(current),
+      label: formatLocalDate(current)
+    });
+    current.setDate(current.getDate() + 1);
+  }
+  return days;
 };
 
 /**
@@ -88,11 +88,13 @@ export const calculateDays = (startDate, endDate) => {
  * @returns {boolean} True if dates are on same calendar day
  */
 export const isSameLocalDay = (date1, date2) => {
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
 };
 
 /**
@@ -102,9 +104,9 @@ export const isSameLocalDay = (date1, date2) => {
  * @returns {Date} New date object set to start of day
  */
 export const startOfLocalDay = (date) => {
-    const newDate = new Date(date);
-    newDate.setHours(0, 0, 0, 0);
-    return newDate;
+  const newDate = new Date(date);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
 };
 
 /**
@@ -114,7 +116,7 @@ export const startOfLocalDay = (date) => {
  * @returns {Date} New date object set to end of day
  */
 export const endOfLocalDay = (date) => {
-    const newDate = new Date(date);
-    newDate.setHours(23, 59, 59, 999);
-    return newDate;
+  const newDate = new Date(date);
+  newDate.setHours(23, 59, 59, 999);
+  return newDate;
 };

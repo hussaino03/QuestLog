@@ -41,7 +41,7 @@ const Feedback = ({ userId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRatingChange = (category, value) => {
-    setRatings(prev => ({
+    setRatings((prev) => ({
       ...prev,
       [category]: value
     }));
@@ -55,9 +55,9 @@ const Feedback = ({ userId }) => {
       const response = await fetch(`${API_BASE_URL}/feedback`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        credentials: 'include', 
+        credentials: 'include',
         body: JSON.stringify({
           ratings,
           feedback
@@ -129,31 +129,41 @@ const Feedback = ({ userId }) => {
                 onClick={() => setIsOpen(false)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
               >
-                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                <span className="text-red-600 dark:text-red-400 text-lg">
+                  ×
+                </span>
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="space-y-4 text-left">
-                <RatingCategory 
+                <RatingCategory
                   title="Design & Visual Appeal"
                   rating={ratings.design}
-                  onRatingChange={(value) => handleRatingChange('design', value)}
+                  onRatingChange={(value) =>
+                    handleRatingChange('design', value)
+                  }
                 />
-                <RatingCategory 
+                <RatingCategory
                   title="Ease of Use"
                   rating={ratings.usability}
-                  onRatingChange={(value) => handleRatingChange('usability', value)}
+                  onRatingChange={(value) =>
+                    handleRatingChange('usability', value)
+                  }
                 />
-                <RatingCategory 
+                <RatingCategory
                   title="Features & Functionality"
                   rating={ratings.features}
-                  onRatingChange={(value) => handleRatingChange('features', value)}
+                  onRatingChange={(value) =>
+                    handleRatingChange('features', value)
+                  }
                 />
-                <RatingCategory 
+                <RatingCategory
                   title="Performance & Reliability"
                   rating={ratings.performance}
-                  onRatingChange={(value) => handleRatingChange('performance', value)}
+                  onRatingChange={(value) =>
+                    handleRatingChange('performance', value)
+                  }
                 />
               </div>
 
@@ -184,10 +194,11 @@ const Feedback = ({ userId }) => {
                 <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg flex items-start gap-2 text-left">
                   <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Your feedback will be sent from your registered email address
+                    Your feedback will be sent from your registered email
+                    address
                   </p>
                 </div>
-                
+
                 <div className="flex justify-end">
                   <button
                     type="submit"

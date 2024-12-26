@@ -5,7 +5,7 @@ import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 const activeTimers = new Set();
 
 const PomodoroTimer = ({ taskName }) => {
-  const [minutes, setMinutes] = useState(25); 
+  const [minutes, setMinutes] = useState(25);
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
@@ -15,36 +15,38 @@ const PomodoroTimer = ({ taskName }) => {
 
   useEffect(() => {
     let interval = null;
-    
+
     if (isActive) {
       if (activeTimers.size > 0 && !activeTimers.has(taskName)) {
         setIsActive(false);
-        setErrorMessage('Another Pomodoro timer is already running. Please create a project to focus on multiple tasks at once!');
+        setErrorMessage(
+          'Another Pomodoro timer is already running. Please create a project to focus on multiple tasks at once!'
+        );
         return;
       }
-      
+
       // Add this timer to active timers
       activeTimers.add(taskName);
-      
+
       interval = setInterval(() => {
         if (seconds === 0) {
           if (minutes === 0) {
             setIsActive(false);
             if (!isBreak) {
-              setMinutes(5);  
+              setMinutes(5);
               setSeconds(0);
               setIsBreak(true);
-              setCycles(c => c + 1);
+              setCycles((c) => c + 1);
               document.title = `Break Time! - ${taskName}`;
               new Notification('Time for a break!', {
-                body: `Great work on "${taskName}"! Take 5 minutes to rest.`, 
+                body: `Great work on "${taskName}"! Take 5 minutes to rest.`,
                 icon: '/favicon.ico'
               });
             } else {
-              setMinutes(25); 
+              setMinutes(25);
               setSeconds(0);
               setIsBreak(false);
-              document.title = `25:00 - ${taskName}`; 
+              document.title = `25:00 - ${taskName}`;
               new Notification('Break finished!', {
                 body: 'Ready to focus on your task again?',
                 icon: '/favicon.ico'
@@ -83,18 +85,20 @@ const PomodoroTimer = ({ taskName }) => {
     if (!isActive) {
       // Check if another timer is running
       if (activeTimers.size > 0 && !activeTimers.has(taskName)) {
-        setErrorMessage('Another Pomodoro timer is already running. Please create a project to focus on multiple tasks at once!');
+        setErrorMessage(
+          'Another Pomodoro timer is already running. Please create a project to focus on multiple tasks at once!'
+        );
         return;
       }
-      
+
       if (Notification.permission === 'default') {
         Notification.requestPermission();
       }
     }
-    
+
     setIsActive(!isActive);
     if (!isActive) {
-      document.title = `25:00 - ${taskName}`;  
+      document.title = `25:00 - ${taskName}`;
     } else {
       document.title = originalTitle;
     }
@@ -103,7 +107,7 @@ const PomodoroTimer = ({ taskName }) => {
   const resetTimer = () => {
     setIsActive(false);
     setIsBreak(false);
-    setMinutes(25); 
+    setMinutes(25);
     setSeconds(0);
     setErrorMessage('');
     document.title = originalTitle;
@@ -119,11 +123,11 @@ const PomodoroTimer = ({ taskName }) => {
           </p>
         </div>
       )}
-      
+
       <div className="text-3xl font-mono mb-4 text-gray-800 dark:text-gray-200">
         {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
       </div>
-      
+
       <div className="flex items-center gap-2 mb-3">
         <button
           onClick={toggleTimer}

@@ -1,6 +1,6 @@
 import React from 'react';
 import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import 'react-datepicker/dist/react-datepicker.css';
 
 const RangeToggle = ({ startDate, endDate, onRangeChange }) => {
   const handleDateChange = (dates) => {
@@ -24,7 +24,7 @@ const RangeToggle = ({ startDate, endDate, onRangeChange }) => {
                   placeholder:text-gray-500 dark:placeholder:text-gray-400
                   focus:outline-none focus:ring-2 focus:ring-blue-500/20
                   hover:border-gray-300 dark:hover:border-gray-600
-                  pr-8" 
+                  pr-8"
         dateFormat="MMM d, yyyy"
         isClearable={true}
       />
@@ -34,17 +34,17 @@ const RangeToggle = ({ startDate, endDate, onRangeChange }) => {
         }
         .react-datepicker__close-icon::after {
           background-color: transparent;
-          color: #9CA3AF;
+          color: #9ca3af;
           font-size: 18px;
         }
         .dark .react-datepicker__close-icon::after {
-          color: #6B7280;
+          color: #6b7280;
         }
         .react-datepicker__close-icon:hover::after {
-          color: #4B5563;
+          color: #4b5563;
         }
         .dark .react-datepicker__close-icon:hover::after {
-          color: #9CA3AF;
+          color: #9ca3af;
         }
       `}</style>
     </div>

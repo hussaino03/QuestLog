@@ -16,7 +16,11 @@ const Integrations = ({ addTask }) => {
                  border border-gray-200 dark:border-gray-600"
       >
         <div className="flex items-center gap-3">
-          <img src="/integrations/todoist.png" alt="Todoist" className="w-5 h-5" />
+          <img
+            src="/integrations/todoist.png"
+            alt="Todoist"
+            className="w-5 h-5"
+          />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Todoist
           </span>
@@ -25,7 +29,7 @@ const Integrations = ({ addTask }) => {
           {isLoading ? 'Connecting...' : 'Connect'}
         </span>
       </button>
-      
+
       <button
         onClick={() => importFromTickTick(addTask, setIsLoading)}
         disabled={isLoading}
@@ -35,7 +39,11 @@ const Integrations = ({ addTask }) => {
                  border border-gray-200 dark:border-gray-600"
       >
         <div className="flex items-center gap-3">
-          <img src="/integrations/ticktick.jpg" alt="TickTick" className="w-5 h-5" />
+          <img
+            src="/integrations/ticktick.jpg"
+            alt="TickTick"
+            className="w-5 h-5"
+          />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             TickTick
           </span>

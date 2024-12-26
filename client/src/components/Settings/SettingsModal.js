@@ -6,19 +6,21 @@ const SettingsModal = ({ isOpen, onClose, isDark, onToggleTheme, addTask }) => {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 
                  flex items-center justify-center p-4 animate-fadeIn"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div 
+      <div
         className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full 
                    shadow-2xl transform scale-100 animate-modalSlide"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Settings</h2>
-          <button 
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Settings
+          </h2>
+          <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
           >
@@ -79,7 +81,10 @@ const SettingsModal = ({ isOpen, onClose, isDark, onToggleTheme, addTask }) => {
           <section className="mt-6 pt-6 border-t dark:border-gray-700">
             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>Version 1.3.0</span>
-              <a href="/legal/privacy" className="hover:text-gray-700 dark:hover:text-gray-300">
+              <a
+                href="/legal/privacy"
+                className="hover:text-gray-700 dark:hover:text-gray-300"
+              >
                 Privacy Policy
               </a>
             </div>

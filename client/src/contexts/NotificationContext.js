@@ -1,4 +1,10 @@
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useCallback,
+  useEffect
+} from 'react';
 
 const NotificationContext = createContext(null);
 const STORAGE_KEY = 'notifications';
@@ -22,9 +28,9 @@ export const NotificationProvider = ({ children }) => {
       read: false
     };
 
-    setNotifications(prev => {
+    setNotifications((prev) => {
       // Check if this ID is already in notifications
-      const existing = prev.find(n => n.id === notificationId);
+      const existing = prev.find((n) => n.id === notificationId);
       if (existing) {
         // If it's cleared or present, skip adding again
         return prev;
@@ -36,18 +42,18 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   const markAllAsRead = useCallback(() => {
-    setNotifications(prev => {
-      const updated = prev.map(n => ({ ...n, read: true }));
+    setNotifications((prev) => {
+      const updated = prev.map((n) => ({ ...n, read: true }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   }, []);
 
   const clearNotifications = useCallback(() => {
-    setNotifications(prev => {
-      const clearedNotifications = prev.map(n => ({ ...n, cleared: true }));
+    setNotifications((prev) => {
+      const clearedNotifications = prev.map((n) => ({ ...n, cleared: true }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(clearedNotifications));
-      return []; 
+      return [];
     });
   }, []);
 
@@ -55,21 +61,23 @@ export const NotificationProvider = ({ children }) => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const allNotifications = JSON.parse(stored);
-      const activeNotifications = allNotifications.filter(n => !n.cleared);
+      const activeNotifications = allNotifications.filter((n) => !n.cleared);
       setNotifications(activeNotifications);
     }
   }, []);
 
-  const hasUnread = notifications.some(n => !n.read);
+  const hasUnread = notifications.some((n) => !n.read);
 
   return (
-    <NotificationContext.Provider value={{
-      notifications,
-      hasUnread,
-      addNotification,
-      markAllAsRead,
-      clearNotifications
-    }}>
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        hasUnread,
+        addNotification,
+        markAllAsRead,
+        clearNotifications
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );
@@ -78,7 +86,9 @@ export const NotificationProvider = ({ children }) => {
 export const useNotification = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotification must be used within a NotificationProvider');
+    throw new Error(
+      'useNotification must be used within a NotificationProvider'
+    );
   }
   return context;
 };

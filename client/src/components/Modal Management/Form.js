@@ -11,27 +11,29 @@ const TaskForm = ({ addTask }) => {
     importance: 50,
     deadline: '',
     collaborative: false,
-    label: '' 
+    label: ''
   };
 
-  const MAX_LABEL_LENGTH = 15; 
+  const MAX_LABEL_LENGTH = 15;
 
   const [formState, setFormState] = useState(defaultFormState);
-  const [selectedDeadline, setSelectedDeadline] = useState(null); 
+  const [selectedDeadline, setSelectedDeadline] = useState(null);
   const [isProjectView, setIsProjectView] = useState(false);
   const [projectForm, setProjectForm] = useState({
     name: '',
     description: '',
-    deadline: '',
+    deadline: ''
   });
-  const [subTasks, setSubTasks] = useState([{
-    name: '',
-    difficulty: 50,
-    importance: 50,
-  }]);
+  const [subTasks, setSubTasks] = useState([
+    {
+      name: '',
+      difficulty: 50,
+      importance: 50
+    }
+  ]);
 
   const updateFormState = useCallback((field, value) => {
-    setFormState(prev => ({
+    setFormState((prev) => ({
       ...prev,
       [field]: value
     }));
@@ -45,27 +47,34 @@ const TaskForm = ({ addTask }) => {
       difficulty: formState.difficulty,
       importance: formState.importance,
       deadline: formState.deadline || null,
-      collaborative: formState.collaborative,  
-      label: formState.label || null,  
-      experience: (
-        (parseInt(formState.difficulty) + parseInt(formState.importance) + 20) * 5 + 
-        parseInt(parseInt(formState.difficulty) * parseInt(formState.importance) / 20) +
-        (formState.collaborative ? 150 : 0)  
-      ),
+      collaborative: formState.collaborative,
+      label: formState.label || null,
+      experience:
+        (parseInt(formState.difficulty) + parseInt(formState.importance) + 20) *
+          5 +
+        parseInt(
+          (parseInt(formState.difficulty) * parseInt(formState.importance)) / 20
+        ) +
+        (formState.collaborative ? 150 : 0),
       completion: false
     };
     addTask(newTask);
     // Reset form to default values
     setFormState(defaultFormState);
-    setSelectedDeadline(null); 
+    setSelectedDeadline(null);
     handleClose();
   };
 
   const handleProjectSubmit = (e) => {
     e.preventDefault();
     const totalXP = subTasks.reduce((sum, task) => {
-      return sum + ((parseInt(task.difficulty) + parseInt(task.importance) + 20) * 5 + 
-             parseInt(parseInt(task.difficulty) * parseInt(task.importance) / 20));
+      return (
+        sum +
+        ((parseInt(task.difficulty) + parseInt(task.importance) + 20) * 5 +
+          parseInt(
+            (parseInt(task.difficulty) * parseInt(task.importance)) / 20
+          ))
+      );
     }, 0);
 
     addTask({
@@ -109,15 +118,19 @@ const TaskForm = ({ addTask }) => {
 
   const handleDeadlineClick = (days, buttonType) => {
     const now = new Date();
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days);
-    
+    const date = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + days
+    );
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
-    
+
     if (isProjectView) {
-      setProjectForm(prev => ({...prev, deadline: formattedDate}));
+      setProjectForm((prev) => ({ ...prev, deadline: formattedDate }));
     } else {
       updateFormState('deadline', formattedDate);
     }
@@ -125,11 +138,14 @@ const TaskForm = ({ addTask }) => {
   };
 
   const addSubTask = () => {
-    setSubTasks([...subTasks, {
-      name: '',
-      difficulty: 50,
-      importance: 50,
-    }]);
+    setSubTasks([
+      ...subTasks,
+      {
+        name: '',
+        difficulty: 50,
+        importance: 50
+      }
+    ]);
   };
 
   const removeSubTask = (index) => {
@@ -152,18 +168,18 @@ const TaskForm = ({ addTask }) => {
   }, []);
 
   const modalContent = (
-    <div 
-      id="newtask-form" 
+    <div
+      id="newtask-form"
       className="hidden fixed inset-0 bg-black/50 backdrop-blur-sm
                  animate-fadeIn"
-      style={{ 
+      style={{
         display: 'none',
         zIndex: 9999
       }}
       onClick={handleOutsideClick}
     >
       <div className="flex items-center justify-center p-4 min-h-screen">
-        <form 
+        <form
           onSubmit={isProjectView ? handleProjectSubmit : handleSubmit}
           className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl
                     transform scale-100 animate-modalSlide max-h-[calc(100vh-2rem)] overflow-y-auto"
@@ -177,9 +193,10 @@ const TaskForm = ({ addTask }) => {
                   type="button"
                   onClick={() => setIsProjectView(false)}
                   className={`px-4 py-2 text-sm rounded-md transition-all duration-200 
-                    ${!isProjectView 
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm' 
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    ${
+                      !isProjectView
+                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                 >
                   <div className="flex items-center gap-2">
@@ -191,9 +208,10 @@ const TaskForm = ({ addTask }) => {
                   type="button"
                   onClick={() => setIsProjectView(true)}
                   className={`px-4 py-2 text-sm rounded-md transition-all duration-200
-                    ${isProjectView 
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm' 
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    ${
+                      isProjectView
+                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                 >
                   <div className="flex items-center gap-2">
@@ -207,7 +225,9 @@ const TaskForm = ({ addTask }) => {
                 onClick={handleClose}
                 className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
               >
-                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                <span className="text-red-600 dark:text-red-400 text-lg">
+                  ×
+                </span>
               </button>
             </div>
 
@@ -224,7 +244,9 @@ const TaskForm = ({ addTask }) => {
                     required
                     placeholder="What's the project name?"
                     value={projectForm.name}
-                    onChange={(e) => setProjectForm({...projectForm, name: e.target.value})}
+                    onChange={(e) =>
+                      setProjectForm({ ...projectForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 
                              dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
                              placeholder-gray-500 dark:placeholder-gray-400"
@@ -239,7 +261,12 @@ const TaskForm = ({ addTask }) => {
                   <textarea
                     placeholder="Add some details about this project..."
                     value={projectForm.description}
-                    onChange={(e) => setProjectForm({...projectForm, description: e.target.value})}
+                    onChange={(e) =>
+                      setProjectForm({
+                        ...projectForm,
+                        description: e.target.value
+                      })
+                    }
                     className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 
                              dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
                              placeholder-gray-500 dark:placeholder-gray-400"
@@ -258,9 +285,10 @@ const TaskForm = ({ addTask }) => {
                       onClick={() => handleDeadlineClick(1, 'tomorrow')}
                       className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
                                border transition-all duration-200
-                               ${selectedDeadline === 'tomorrow'
-                                 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
-                                 : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                               ${
+                                 selectedDeadline === 'tomorrow'
+                                   ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                                   : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
                                }`}
                     >
                       Tomorrow
@@ -270,9 +298,10 @@ const TaskForm = ({ addTask }) => {
                       onClick={() => handleDeadlineClick(2, 'dayAfter')}
                       className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
                                border transition-all duration-200
-                               ${selectedDeadline === 'dayAfter'
-                                 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
-                                 : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                               ${
+                                 selectedDeadline === 'dayAfter'
+                                   ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                                   : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
                                }`}
                     >
                       Day After
@@ -282,9 +311,10 @@ const TaskForm = ({ addTask }) => {
                       onClick={() => handleDeadlineClick(7, 'nextWeek')}
                       className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
                                border transition-all duration-200
-                               ${selectedDeadline === 'nextWeek'
-                                 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
-                                 : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                               ${
+                                 selectedDeadline === 'nextWeek'
+                                   ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                                   : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
                                }`}
                     >
                       Next Week
@@ -292,10 +322,13 @@ const TaskForm = ({ addTask }) => {
                   </div>
                   <input
                     type="date"
-                    value={projectForm.deadline}  
+                    value={projectForm.deadline}
                     onChange={(e) => {
-                      setProjectForm({...projectForm, deadline: e.target.value});  
-                      setSelectedDeadline(null);  
+                      setProjectForm({
+                        ...projectForm,
+                        deadline: e.target.value
+                      });
+                      setSelectedDeadline(null);
                     }}
                     min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                     className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
@@ -324,14 +357,21 @@ const TaskForm = ({ addTask }) => {
                     <div key={index} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Task {index + 1} <span className="text-red-500">*</span>
+                          Task {index + 1}{' '}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {(
-                              (parseInt(task.difficulty) + parseInt(task.importance) + 20) * 5 + 
-                              parseInt(parseInt(task.difficulty) * parseInt(task.importance) / 20)
-                            )} XP
+                            {(parseInt(task.difficulty) +
+                              parseInt(task.importance) +
+                              20) *
+                              5 +
+                              parseInt(
+                                (parseInt(task.difficulty) *
+                                  parseInt(task.importance)) /
+                                  20
+                              )}{' '}
+                            XP
                           </span>
                           {subTasks.length > 1 && (
                             <button
@@ -340,7 +380,9 @@ const TaskForm = ({ addTask }) => {
                               className="w-6 h-6 rounded-lg flex items-center justify-center 
                                        hover:bg-red-500/10 transition-colors"
                             >
-                              <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                              <span className="text-red-600 dark:text-red-400 text-lg">
+                                ×
+                              </span>
                             </button>
                           )}
                         </div>
@@ -350,7 +392,9 @@ const TaskForm = ({ addTask }) => {
                         required
                         placeholder="Subtask name"
                         value={task.name}
-                        onChange={(e) => updateSubTask(index, 'name', e.target.value)}
+                        onChange={(e) =>
+                          updateSubTask(index, 'name', e.target.value)
+                        }
                         className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 
                                  dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
                                  placeholder-gray-500 dark:placeholder-gray-400"
@@ -359,7 +403,9 @@ const TaskForm = ({ addTask }) => {
                         <div>
                           <CustomSlider
                             value={task.difficulty}
-                            onChange={(value) => updateSubTask(index, 'difficulty', value)}
+                            onChange={(value) =>
+                              updateSubTask(index, 'difficulty', value)
+                            }
                             snapPoints={[25, 50, 75]}
                             snapLabels={['Easy', 'Medium', 'Hard']}
                           />
@@ -370,7 +416,9 @@ const TaskForm = ({ addTask }) => {
                         <div>
                           <CustomSlider
                             value={task.importance}
-                            onChange={(value) => updateSubTask(index, 'importance', value)}
+                            onChange={(value) =>
+                              updateSubTask(index, 'importance', value)
+                            }
                             snapPoints={[25, 50, 75]}
                             snapLabels={['Low', 'Medium', 'High']}
                           />
@@ -416,11 +464,15 @@ const TaskForm = ({ addTask }) => {
                              focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                   />
                 </div>
-                
+
                 {/* Label Input */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Label <span className="text-xs text-gray-400">{MAX_LABEL_LENGTH - formState.label.length} characters remaining</span>
+                    Label{' '}
+                    <span className="text-xs text-gray-400">
+                      {MAX_LABEL_LENGTH - formState.label.length} characters
+                      remaining
+                    </span>
                   </label>
                   <div className="relative">
                     <input
@@ -428,7 +480,10 @@ const TaskForm = ({ addTask }) => {
                       placeholder="Label your tasks for easy sorting"
                       value={formState.label}
                       onChange={(e) => {
-                        const newValue = e.target.value.slice(0, MAX_LABEL_LENGTH);
+                        const newValue = e.target.value.slice(
+                          0,
+                          MAX_LABEL_LENGTH
+                        );
                         updateFormState('label', newValue);
                       }}
                       maxLength={MAX_LABEL_LENGTH}
@@ -438,9 +493,11 @@ const TaskForm = ({ addTask }) => {
                     />
                     {formState.label && (
                       <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                        <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
+                        <span
+                          className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
                                      text-blue-600 dark:text-blue-400 rounded-full border 
-                                     border-blue-200 dark:border-blue-800 text-xs">
+                                     border-blue-200 dark:border-blue-800 text-xs"
+                        >
                           {formState.label}
                         </span>
                       </div>
@@ -456,14 +513,16 @@ const TaskForm = ({ addTask }) => {
                   <textarea
                     placeholder="Add some details..."
                     value={formState.description}
-                    onChange={(e) => updateFormState('description', e.target.value)}
+                    onChange={(e) =>
+                      updateFormState('description', e.target.value)
+                    }
                     className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
                              rounded-lg text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400
                              focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                     rows={3}
                   />
                 </div>
-                
+
                 {/* Deadline */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -475,9 +534,10 @@ const TaskForm = ({ addTask }) => {
                       onClick={() => handleDeadlineClick(1, 'tomorrow')}
                       className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
                                border transition-all duration-200
-                               ${selectedDeadline === 'tomorrow'
-                                 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
-                                 : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                               ${
+                                 selectedDeadline === 'tomorrow'
+                                   ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                                   : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
                                }`}
                     >
                       Tomorrow
@@ -487,9 +547,10 @@ const TaskForm = ({ addTask }) => {
                       onClick={() => handleDeadlineClick(2, 'dayAfter')}
                       className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
                                border transition-all duration-200
-                               ${selectedDeadline === 'dayAfter'
-                                 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
-                                 : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                               ${
+                                 selectedDeadline === 'dayAfter'
+                                   ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                                   : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
                                }`}
                     >
                       Day After
@@ -499,9 +560,10 @@ const TaskForm = ({ addTask }) => {
                       onClick={() => handleDeadlineClick(7, 'nextWeek')}
                       className={`px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300 
                                border transition-all duration-200
-                               ${selectedDeadline === 'nextWeek'
-                                 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
-                                 : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
+                               ${
+                                 selectedDeadline === 'nextWeek'
+                                   ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                                   : 'border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50'
                                }`}
                     >
                       Next Week
@@ -512,7 +574,7 @@ const TaskForm = ({ addTask }) => {
                     value={formState.deadline}
                     onChange={(e) => {
                       updateFormState('deadline', e.target.value);
-                      setSelectedDeadline(null);  
+                      setSelectedDeadline(null);
                     }}
                     min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                     className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
@@ -523,7 +585,7 @@ const TaskForm = ({ addTask }) => {
                              [&::-webkit-calendar-picker-indicator]:dark:invert"
                   />
                 </div>
-                
+
                 {/* XP Controls Section */}
                 <div className="space-y-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -536,7 +598,9 @@ const TaskForm = ({ addTask }) => {
                       <div>
                         <CustomSlider
                           value={formState.difficulty}
-                          onChange={(value) => updateFormState('difficulty', value)}
+                          onChange={(value) =>
+                            updateFormState('difficulty', value)
+                          }
                           snapPoints={[25, 50, 75]}
                           snapLabels={['Easy', 'Medium', 'Hard']}
                         />
@@ -549,7 +613,9 @@ const TaskForm = ({ addTask }) => {
                       <div>
                         <CustomSlider
                           value={formState.importance}
-                          onChange={(value) => updateFormState('importance', value)}
+                          onChange={(value) =>
+                            updateFormState('importance', value)
+                          }
                           snapPoints={[25, 50, 75]}
                           snapLabels={['Low', 'Medium', 'High']}
                         />
@@ -565,33 +631,45 @@ const TaskForm = ({ addTask }) => {
                         type="button"
                         onClick={toggleCollaborative}
                         className={`flex-[1.2] px-3 py-2 rounded-lg border transition-all duration-200
-                          ${formState.collaborative 
-                            ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800' 
-                            : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
+                          ${
+                            formState.collaborative
+                              ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                              : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
                           }`}
                       >
                         <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                          {formState.collaborative ? '👥 Team Task' : '👤 Solo Task'}
+                          {formState.collaborative
+                            ? '👥 Team Task'
+                            : '👤 Solo Task'}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {formState.collaborative ? '+150 XP Bonus' : 'Base XP'}
+                          {formState.collaborative
+                            ? '+150 XP Bonus'
+                            : 'Base XP'}
                         </div>
                       </button>
 
                       <div className="flex-1 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-center">
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Total XP</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Total XP
+                        </div>
                         <div className="text-lg font-bold text-gray-700 dark:text-gray-200">
-                          {(
-                            (parseInt(formState.difficulty) + parseInt(formState.importance) + 20) * 5 + 
-                            parseInt(parseInt(formState.difficulty) * parseInt(formState.importance) / 20) +
-                            (formState.collaborative ? 150 : 0)
-                          )}
+                          {(parseInt(formState.difficulty) +
+                            parseInt(formState.importance) +
+                            20) *
+                            5 +
+                            parseInt(
+                              (parseInt(formState.difficulty) *
+                                parseInt(formState.importance)) /
+                                20
+                            ) +
+                            (formState.collaborative ? 150 : 0)}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Task Submit Button */}
                 <div className="pt-4">
                   <button

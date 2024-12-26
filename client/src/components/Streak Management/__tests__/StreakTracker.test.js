@@ -28,16 +28,24 @@ describe('StreakTracker Component', () => {
     };
 
     renderStreakTracker({ streakData: mockStreakData });
-    
-    expect(screen.getByText('Current Streak').nextElementSibling).toHaveTextContent('3');
-    expect(screen.getByText('Longest Streak').nextElementSibling).toHaveTextContent('5');
+
+    expect(
+      screen.getByText('Current Streak').nextElementSibling
+    ).toHaveTextContent('3');
+    expect(
+      screen.getByText('Longest Streak').nextElementSibling
+    ).toHaveTextContent('5');
   });
 
   it('renders zero streaks when no data provided', () => {
     renderStreakTracker();
-    
-    expect(screen.getByText('Current Streak').nextElementSibling).toHaveTextContent('0');
-    expect(screen.getByText('Longest Streak').nextElementSibling).toHaveTextContent('0');
+
+    expect(
+      screen.getByText('Current Streak').nextElementSibling
+    ).toHaveTextContent('0');
+    expect(
+      screen.getByText('Longest Streak').nextElementSibling
+    ).toHaveTextContent('0');
   });
 
   it('renders the Stats button', () => {
@@ -53,9 +61,11 @@ describe('StreakTracker Component', () => {
   it('opens dashboard when Stats button is clicked', () => {
     const { container } = renderStreakTracker();
     const statsButton = screen.getByText('Stats');
-    
+
     fireEvent.click(statsButton);
-    
-    expect(container.querySelector('[data-testid="dashboard"]')).toBeInTheDocument();
+
+    expect(
+      container.querySelector('[data-testid="dashboard"]')
+    ).toBeInTheDocument();
   });
 });
