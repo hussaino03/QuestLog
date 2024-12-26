@@ -8,8 +8,8 @@ const Footer = ({ userId }) => {
 
   useEffect(() => {
     fetch('https://api.github.com/repos/hussaino03/QuestLog')
-      .then(res => res.json())
-      .then(data => setStars(data.stargazers_count))
+      .then((res) => res.json())
+      .then((data) => setStars(data.stargazers_count))
       .catch(console.error);
   }, []);
 
@@ -58,9 +58,13 @@ const Footer = ({ userId }) => {
 
           {/* Legal Links */}
           <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-            <Link to="/legal/privacy" className="hover:underline">Privacy Policy</Link>
+            <Link to="/legal/privacy" className="hover:underline">
+              Privacy Policy
+            </Link>
             <span>•</span>
-            <Link to="/legal/terms" className="hover:underline">Terms of Service</Link>
+            <Link to="/legal/terms" className="hover:underline">
+              Terms of Service
+            </Link>
             <span>•</span>
             <span>© {new Date().getFullYear()} QuestLog</span>
           </div>

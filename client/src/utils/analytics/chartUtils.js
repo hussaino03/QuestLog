@@ -15,7 +15,7 @@ export const getChartFontSizes = (windowWidth) => ({
 const commonScaleConfig = {
   grid: { display: false },
   ticks: {
-    color: '#6B7280' 
+    color: '#6B7280'
   }
 };
 
@@ -26,9 +26,9 @@ const commonScaleConfig = {
 const commonPluginConfig = {
   legend: { display: false },
   tooltip: {
-    backgroundColor: '#1F2937', 
-    titleColor: '#F3F4F6',     
-    bodyColor: '#F3F4F6',     
+    backgroundColor: '#1F2937',
+    titleColor: '#F3F4F6',
+    bodyColor: '#F3F4F6',
     displayColors: false
   }
 };
@@ -43,9 +43,11 @@ const commonPluginConfig = {
  */
 export const createChartOptions = (startDate, endDate, colors, fontSizes) => {
   // Calculate days between dates for rotation logic
-  const days = startDate && endDate ? 
-    Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1 : 7;
-  
+  const days =
+    startDate && endDate
+      ? Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
+      : 7;
+
   return {
     xpChartOptions: {
       responsive: true,
@@ -74,8 +76,10 @@ export const createChartOptions = (startDate, endDate, colors, fontSizes) => {
             ...commonScaleConfig.ticks,
             maxRotation: days > 14 ? 65 : 45,
             minRotation: days > 14 ? 65 : 45,
-            callback: function(val, index) {
-              return days > 14 && index % 2 !== 0 ? '' : this.getLabelForValue(val);
+            callback: function (val, index) {
+              return days > 14 && index % 2 !== 0
+                ? ''
+                : this.getLabelForValue(val);
             },
             font: { size: fontSizes.small }
           }
@@ -126,15 +130,17 @@ export const createChartOptions = (startDate, endDate, colors, fontSizes) => {
  */
 export const createEmptyChartData = (colors) => ({
   labels: [],
-  datasets: [{
-    label: 'XP Gained',
-    data: [],
-    fill: false,
-    borderColor: colors.primary,
-    tension: 0.3,
-    pointBackgroundColor: colors.primary,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderRadius: 5
-  }]
+  datasets: [
+    {
+      label: 'XP Gained',
+      data: [],
+      fill: false,
+      borderColor: colors.primary,
+      tension: 0.3,
+      pointBackgroundColor: colors.primary,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderRadius: 5
+    }
+  ]
 });

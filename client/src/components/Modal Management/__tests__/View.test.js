@@ -27,7 +27,7 @@ describe('Task Component Overdue Tests', () => {
       deadline: overdueDeadline,
       difficulty: 5,
       importance: 5,
-      experience: 100,
+      experience: 100
     };
 
     render(
@@ -40,9 +40,11 @@ describe('Task Component Overdue Tests', () => {
       />
     );
 
-    expect(screen.getByText((content, element) => {
-      return content.includes('OVERDUE') && content.includes('-5 XP');
-    })).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => {
+        return content.includes('OVERDUE') && content.includes('-5 XP');
+      })
+    ).toBeInTheDocument();
   });
 
   test('displays correct overdue penalty for task 3 days overdue', () => {
@@ -57,7 +59,7 @@ describe('Task Component Overdue Tests', () => {
       deadline: overdueDeadline,
       difficulty: 5,
       importance: 5,
-      experience: 100,
+      experience: 100
     };
 
     render(
@@ -85,7 +87,7 @@ describe('Task Component Overdue Tests', () => {
       deadline: futureDeadline,
       difficulty: 5,
       importance: 5,
-      experience: 100,
+      experience: 100
     };
 
     render(

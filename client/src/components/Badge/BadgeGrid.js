@@ -26,14 +26,14 @@ export const BADGES = {
   },
   STREAK_MASTER: {
     id: 'streak_master',
-    name: 'Consistent',  
+    name: 'Consistent',
     icon: '🔥',
     description: 'Reach a 5-day streak',
     streakRequired: 5
   },
   TASK_ACHIEVER: {
     id: 'task_achiever',
-    name: 'Achiever',  
+    name: 'Achiever',
     icon: '✅',
     description: 'Complete 20 tasks',
     tasksRequired: 20
@@ -199,7 +199,7 @@ const BadgeGrid = ({ unlockedBadges }) => {
         {/* Progress Bar */}
         <div className="mt-2">
           <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 
                        rounded-full transition-all duration-300 ease-in-out"
               style={{ width: `${progress}%` }}

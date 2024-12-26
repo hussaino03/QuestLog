@@ -9,7 +9,7 @@ const AppControls = ({ isDark, onToggle, addTask }) => {
   return (
     <div className="flex items-center gap-2">
       <Notification />
-      
+
       <button
         onClick={() => setIsSettingsOpen(true)}
         className="p-2 rounded-lg bg-white dark:bg-gray-800 

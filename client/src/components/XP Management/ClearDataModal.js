@@ -10,7 +10,8 @@ const ClearDataModal = ({ show, onConfirm, onCancel }) => {
           Clear All Data?
         </h2>
         <p className="text-gray-700 dark:text-gray-300 mb-6">
-          This will permanently delete all your tasks and reset your progress. This action cannot be undone.
+          This will permanently delete all your tasks and reset your progress.
+          This action cannot be undone.
         </p>
         <div className="flex gap-4 justify-end">
           <button

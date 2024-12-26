@@ -7,7 +7,7 @@ export const importFromTodoist = async (addTask, setIsLoading) => {
       if (event.data.type === 'todoist-auth-success') {
         window.removeEventListener('message', messageHandler);
         if (event.data.tasks && Array.isArray(event.data.tasks)) {
-          const tasksToAdd = event.data.tasks.map(taskName => ({
+          const tasksToAdd = event.data.tasks.map((taskName) => ({
             name: taskName,
             desc: 'Imported from Todoist',
             difficulty: 5,
@@ -24,14 +24,14 @@ export const importFromTodoist = async (addTask, setIsLoading) => {
         setIsLoading(false);
       }
     };
-    
+
     window.addEventListener('message', messageHandler);
-    
+
     const width = 500;
     const height = 600;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
-    
+
     const popup = window.open(
       `${API_BASE_URL}/auth/todoist`,
       'Import from Todoist',
@@ -41,7 +41,6 @@ export const importFromTodoist = async (addTask, setIsLoading) => {
     if (!popup || popup.closed) {
       throw new Error('Popup blocked! Please allow popups for this site.');
     }
-
   } catch (error) {
     console.error('Todoist import failed:', error);
     setIsLoading(false);

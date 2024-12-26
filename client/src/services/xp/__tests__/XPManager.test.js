@@ -4,7 +4,10 @@ import useXPManager from '../XPManager';
 describe('XPManager Hook Tests', () => {
   test('Level up from 41 to 42 with correct XP', async () => {
     // Calculate total XP needed for level 41
-    const xpForLevel41 = Array.from({ length: 40 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    const xpForLevel41 = Array.from(
+      { length: 40 },
+      (_, i) => (i + 1) * 200
+    ).reduce((a, b) => a + b, 0);
     const { result } = renderHook(() => useXPManager());
 
     // Set initial XP directly
@@ -25,7 +28,10 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('XP gain without level up', async () => {
-    const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    const xpForLevel10 = Array.from(
+      { length: 9 },
+      (_, i) => (i + 1) * 200
+    ).reduce((a, b) => a + b, 0);
     const { result } = renderHook(() => useXPManager());
 
     await act(async () => {
@@ -45,7 +51,10 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('XP gain with level up', async () => {
-    const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    const xpForLevel10 = Array.from(
+      { length: 9 },
+      (_, i) => (i + 1) * 200
+    ).reduce((a, b) => a + b, 0);
     const { result } = renderHook(() => useXPManager());
 
     await act(async () => {
@@ -65,7 +74,11 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('XP gain with overdue penalty', async () => {
-    const initialXP = Array.from({ length: 4 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0) + 300;
+    const initialXP =
+      Array.from({ length: 4 }, (_, i) => (i + 1) * 200).reduce(
+        (a, b) => a + b,
+        0
+      ) + 300;
     const { result } = renderHook(() => useXPManager());
 
     await act(async () => {
@@ -87,7 +100,10 @@ describe('XPManager Hook Tests', () => {
   });
 
   test('Reset functionality', async () => {
-    const xpForLevel10 = Array.from({ length: 9 }, (_, i) => (i + 1) * 200).reduce((a, b) => a + b, 0);
+    const xpForLevel10 = Array.from(
+      { length: 9 },
+      (_, i) => (i + 1) * 200
+    ).reduce((a, b) => a + b, 0);
     const { result } = renderHook(() => useXPManager());
 
     await act(async () => {
@@ -231,7 +247,6 @@ describe('XPManager Hook Tests', () => {
 
     expect(result.current.getTotalXP()).toBe(initialXP);
   });
-
 });
 
 describe('Timezone-aware Overdue Tests', () => {
@@ -247,7 +262,7 @@ describe('Timezone-aware Overdue Tests', () => {
 
   test('Task becomes overdue at midnight local time', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const deadline = yesterday.toISOString().split('T')[0];
@@ -262,7 +277,7 @@ describe('Timezone-aware Overdue Tests', () => {
 
   test('Task is not overdue when completed on deadline day', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     const today = new Date();
     const deadline = today.toISOString().split('T')[0];
 
@@ -276,7 +291,7 @@ describe('Timezone-aware Overdue Tests', () => {
 
   test('Task is not overdue when deadline is tomorrow', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const deadline = tomorrow.toISOString().split('T')[0];
@@ -291,7 +306,7 @@ describe('Timezone-aware Overdue Tests', () => {
 
   test('Overdue penalty increases with each day', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     const daysOverdue = 3;
     const pastDate = new Date();
     pastDate.setDate(pastDate.getDate() - daysOverdue);
@@ -307,7 +322,7 @@ describe('Timezone-aware Overdue Tests', () => {
 
   test('Overdue calculation handles month boundaries correctly', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     const lastMonth = new Date();
     lastMonth.setDate(0); // Last day of previous month
     const deadline = lastMonth.toISOString().split('T')[0];
@@ -322,5 +337,4 @@ describe('Timezone-aware Overdue Tests', () => {
 
     expect(xpResult.overduePenalty).toBe(-5 * daysDiff);
   });
-
 });

@@ -1,8 +1,8 @@
 {
   "name": "smartlist",
   "scripts": {
-    "format:fix": "prettier --write --ignore-unknown ./server/**",
-    "format:check": "prettier --check ./server/**",
+    "format:fix": "prettier --write --ignore-unknown ./server/** ./client/**",
+    "format:check": "prettier --check --ignore-unknown ./server/** ./client/**",
     "prepare": "husky"
   },
   "dependencies": {

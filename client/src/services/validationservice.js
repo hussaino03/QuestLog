@@ -29,11 +29,12 @@ export const validateUserId = (userId) => {
     // Check if valid hex format (MongoDB ObjectId format)
     const validHexPattern = /^[0-9a-fA-F]{24}$/;
     if (!validHexPattern.test(userId)) {
-      throw new InvalidUserIdError('User ID must contain only hexadecimal characters');
+      throw new InvalidUserIdError(
+        'User ID must contain only hexadecimal characters'
+      );
     }
 
     return true;
-
   } catch (error) {
     if (error instanceof InvalidUserIdError) {
       throw error;

@@ -5,7 +5,8 @@ import { useNotification } from '../../contexts/NotificationContext';
 const Notification = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { notifications, hasUnread, markAllAsRead, clearNotifications } = useNotification();
+  const { notifications, hasUnread, markAllAsRead, clearNotifications } =
+    useNotification();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -38,16 +39,22 @@ const Notification = () => {
       >
         <Bell className="w-5 h-5 text-gray-800 dark:text-white" />
         {hasUnread && (
-          <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 
-                         ring-2 ring-white dark:ring-gray-800"/>
+          <span
+            className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 
+                         ring-2 ring-white dark:ring-gray-800"
+          />
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg 
-                      border-2 border-gray-800 z-50">
+        <div
+          className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg 
+                      border-2 border-gray-800 z-50"
+        >
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Notifications</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+              Notifications
+            </h3>
             <div className="flex gap-2">
               <button
                 onClick={markAllAsRead}
@@ -71,7 +78,7 @@ const Notification = () => {
               </div>
             ) : (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {notifications.map(notification => (
+                {notifications.map((notification) => (
                   <li
                     key={notification.id}
                     className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 
