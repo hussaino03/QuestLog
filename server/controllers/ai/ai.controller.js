@@ -75,7 +75,10 @@ async function getUserStats(userId) {
       return {
         title: task.title || task.name || 'Untitled Task',
         experience: task.experience || 0,
-        completedAt: new Date(task.completedAt).toLocaleDateString(),
+        completedAt: new Date(task.completedAt).toLocaleString('en-US', {
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        }),
         deadline: task.deadline
           ? new Date(task.deadline).toLocaleDateString()
           : 'No deadline',
