@@ -94,6 +94,12 @@ const useXPManager = () => {
     };
   };
 
+  const calculateBaseXP = (difficulty, importance, collaborative = false) => {
+    return (parseInt(difficulty) + parseInt(importance) + 20) * 5 +
+      parseInt((parseInt(difficulty) * parseInt(importance)) / 20) +
+      (collaborative ? 150 : 0);
+  };
+
   const resetXP = () => {
     setTotalExperience(0);
     setNewLevel(1);
@@ -127,6 +133,7 @@ const useXPManager = () => {
     getTotalXP,
     getXPForNextLevel,
     getLevelProgress,
+    calculateBaseXP,
     setTotalExperience: (xp) => {
       setTotalExperience(xp);
     }

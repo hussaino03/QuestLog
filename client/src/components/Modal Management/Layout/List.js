@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Task from './View';
-import CalendarView from './CalendarView';
+import View from './View';
+import CalendarView from '../CalendarView';
 import {
   LayoutList,
   Calendar,
@@ -290,7 +290,7 @@ const TaskList = ({
                   </div>
                   <ul className="w-full flex flex-col items-center">
                     {dateTasks.map((task) => (
-                      <Task
+                      <View
                         key={task.id}
                         task={task}
                         removeTask={removeTask}

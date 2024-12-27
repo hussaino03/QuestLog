@@ -338,3 +338,180 @@ describe('Timezone-aware Overdue Tests', () => {
     expect(xpResult.overduePenalty).toBe(-5 * daysDiff);
   });
 });
+
+describe('Task Form XP Calculations', () => {
+  test('calculates correct XP for solo task', async () => {
+    const { result } = renderHook(() => useXPManager());
+    const taskData = {
+      difficulty: 50,
+      importance: 50,
+      collaborative: false
+    };
+
+    const expectedXP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
+    const calculatedXP = result.current.calculateBaseXP(
+      taskData.difficulty,
+      taskData.importance,
+      taskData.collaborative
+    );
+
+    expect(calculatedXP).toBe(expectedXP);
+  });
+
+  test('adds collaborative bonus correctly', async () => {
+    const { result } = renderHook(() => useXPManager());
+    const taskData = {
+      difficulty: 50,
+      importance: 50,
+      collaborative: true
+    };
+
+    const baseXP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
+    const expectedXP = baseXP + 150; // Collaborative bonus
+    const calculatedXP = result.current.calculateBaseXP(
+      taskData.difficulty,
+      taskData.importance,
+      taskData.collaborative
+    );
+
+    expect(calculatedXP).toBe(expectedXP);
+  });
+
+  test('handles edge case XP values', async () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Min values - (0 + 0 + 20) * 5 + 0 = 100
+    expect(result.current.calculateBaseXP(0, 0, false)).toBe(100);
+    
+    // Max values calculation:
+    // Base: (100 + 100 + 20) * 5 = 1100
+    // Difficulty/Importance: (100 * 100) / 20 = 500
+    // Collaborative bonus: 150
+    // Total: 1100 + 500 + 150 = 1750
+    const maxXP = result.current.calculateBaseXP(100, 100, true);
+    expect(maxXP).toBe(1750);
+  });
+});
+
+describe('Project Form XP Calculations', () => {
+  test('calculates correct total XP for project with multiple subtasks', async () => {
+    const { result } = renderHook(() => useXPManager());
+    const projectData = {
+      subtasks: [
+        { difficulty: 50, importance: 50 },
+        { difficulty: 75, importance: 25 }
+      ]
+    };
+
+    const subtask1XP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
+    const subtask2XP = (75 + 25 + 20) * 5 + parseInt((75 * 25) / 20);
+    const expectedTotalXP = subtask1XP + subtask2XP;
+
+    let totalXP = 0;
+    await act(async () => {
+      totalXP = projectData.subtasks.reduce((sum, task) => {
+        return sum + result.current.calculateBaseXP(task.difficulty, task.importance, false);
+      }, 0);
+    });
+
+    expect(totalXP).toBe(expectedTotalXP);
+  });
+
+  test('handles project with single subtask', async () => {
+    const { result } = renderHook(() => useXPManager());
+    const projectData = {
+      subtasks: [
+        { difficulty: 50, importance: 50 }
+      ]
+    };
+
+    const expectedXP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
+    let totalXP = 0;
+
+    await act(async () => {
+      totalXP = result.current.calculateBaseXP(
+        projectData.subtasks[0].difficulty,
+        projectData.subtasks[0].importance,
+        false
+      );
+    });
+
+    expect(totalXP).toBe(expectedXP);
+  });
+
+  test('calculates XP for project with varying difficulty levels', async () => {
+    const { result } = renderHook(() => useXPManager());
+    const projectData = {
+      subtasks: [
+        { difficulty: 25, importance: 75 }, // Easy but important
+        { difficulty: 75, importance: 25 }, // Hard but less important
+        { difficulty: 50, importance: 50 }  // Medium balanced
+      ]
+    };
+
+    let totalXP = 0;
+    await act(async () => {
+      totalXP = projectData.subtasks.reduce((sum, task) => {
+        return sum + result.current.calculateBaseXP(task.difficulty, task.importance, false);
+      }, 0);
+    });
+
+    // Verify each subtask's XP contribution
+    const subtask1XP = (25 + 75 + 20) * 5 + parseInt((25 * 75) / 20);
+    const subtask2XP = (75 + 25 + 20) * 5 + parseInt((75 * 25) / 20);
+    const subtask3XP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
+    const expectedTotalXP = subtask1XP + subtask2XP + subtask3XP;
+
+    expect(totalXP).toBe(expectedTotalXP);
+  });
+});
+
+describe('XP Calculation with Form Integration', () => {
+  test('maintains XP consistency between task and project forms', async () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    // Same task configured as individual task and as project subtask
+    const taskConfig = {
+      difficulty: 50,
+      importance: 50,
+      collaborative: false
+    };
+
+    const taskXP = result.current.calculateBaseXP(
+      taskConfig.difficulty,
+      taskConfig.importance,
+      taskConfig.collaborative
+    );
+
+    const projectSubtaskXP = result.current.calculateBaseXP(
+      taskConfig.difficulty,
+      taskConfig.importance,
+      false // Projects don't have collaborative bonus per subtask
+    );
+
+    expect(taskXP).toBe(projectSubtaskXP);
+  });
+
+  test('correctly applies collaborative bonus only to tasks, not projects', async () => {
+    const { result } = renderHook(() => useXPManager());
+    
+    const config = {
+      difficulty: 50,
+      importance: 50
+    };
+
+    const taskXP = result.current.calculateBaseXP(
+      config.difficulty,
+      config.importance,
+      true // Collaborative task
+    );
+
+    const projectXP = result.current.calculateBaseXP(
+      config.difficulty,
+      config.importance,
+      false // Project subtask
+    );
+
+    expect(taskXP).toBe(projectXP + 150); // Difference should be collaborative bonus
+  });
+});

@@ -11,8 +11,8 @@ import {
 import Header from './components/Layout/Header';
 import ProgressBar from './components/XP Management/ProgressBar';
 import TaskButtons from './components/Modal Management/Buttons';
-import TaskForm from './components/Modal Management/Form';
-import TaskList from './components/Modal Management/List';
+import Form from './components/Modal Management/Layout/Form';
+import TaskList from './components/Modal Management/Layout/List';
 import LevelUpNoti from './components/XP Management/LevelUp';
 import StreakTracker from './components/Streak Management/StreakTracker';
 import Leaderboard from './components/Leaderboard/Leaderboard';
@@ -219,7 +219,7 @@ const AppContent = () => {
                               }
                               onClearDataClick={handleClearDataClick}
                             />
-                            <TaskForm addTask={taskManager.addTask} />
+                            <Form addTask={taskManager.addTask} />
                           </div>
                         </div>
 
