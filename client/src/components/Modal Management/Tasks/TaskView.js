@@ -178,14 +178,7 @@ const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => 
         {task.deadline && (
           <div className="flex items-center gap-2">
             <span>📅</span>
-            <span>
-              Due: {formatDeadline(task.deadline)}
-              {isOverdue(task.deadline) && !isCompleted && (
-                <span className="text-red-500 ml-1">
-                  ({calculateOverduePenalty(task.deadline)}xp)
-                </span>
-              )}
-            </span>
+            <span>Due: {formatDeadline(task.deadline)}</span>
           </div>
         )}
         <div className="flex items-center gap-2">
@@ -195,6 +188,11 @@ const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => 
             {isCompleted && task.earlyBonus > 0 && (
               <span className="text-green-600 dark:text-green-400 ml-1">
                 +{task.earlyBonus}xp bonus
+              </span>
+            )}
+            {!isCompleted && isOverdue(task.deadline) && (
+              <span className="text-red-500 ml-1">
+                ({calculateOverduePenalty(task.deadline)}xp)
               </span>
             )}
           </span>
