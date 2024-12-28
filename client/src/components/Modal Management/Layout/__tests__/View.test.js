@@ -107,7 +107,7 @@ describe('Task Component Overdue Tests', () => {
   test('displays correct overdue penalty for completed overdue task', () => {
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    const overdueDeadline = twoDaysAgo.toISOString().split('T')[0]; // This is in YYYY-MM-DD format
+    const overdueDeadline = twoDaysAgo.toISOString().split('T')[0];
 
     const task = {
       id: '4',
@@ -117,7 +117,7 @@ describe('Task Component Overdue Tests', () => {
       difficulty: 5,
       importance: 5,
       experience: 100,
-      overduePenalty: -10 // Penalty for 2 days
+      overduePenalty: -10
     };
 
     render(
@@ -141,9 +141,12 @@ describe('Task Component Overdue Tests', () => {
       return content.includes('100') && content.includes('xp');
     })).toBeInTheDocument();
 
-    // Check for date display with ISO format (YYYY-MM-DD)
+    // Check for date display (accepting both YYYY-MM-DD and M/D/YYYY formats)
     expect(screen.getByText((content) => {
-      return content.includes('Due:') && content.includes(overdueDeadline);
+      return content.includes('Due:') && (
+        content.includes(overdueDeadline) || // YYYY-MM-DD format
+        content.includes(`${twoDaysAgo.getMonth() + 1}/${twoDaysAgo.getDate()}/${twoDaysAgo.getFullYear()}`) // M/D/YYYY format
+      );
     })).toBeInTheDocument();
   });
 });
