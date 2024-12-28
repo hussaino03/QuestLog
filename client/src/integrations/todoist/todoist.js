@@ -13,7 +13,7 @@ export const importFromTodoist = async (addTask, setIsLoading) => {
             difficulty: 5,
             importance: 5,
             deadline: null,
-            collaborative: false,
+            urgent: false,
             experience: 150
           }));
           addTask(tasksToAdd);

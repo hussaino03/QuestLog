@@ -48,7 +48,7 @@ const ProjectForm = ({ addTask }) => {
       deadline: projectForm.deadline || null,
       difficulty: 50,
       importance: 50,
-      collaborative: false,
+      urgent: false,
       experience: totalXP,
       subtasks: subTasks
     });

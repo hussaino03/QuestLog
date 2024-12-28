@@ -30,7 +30,7 @@ const TaskList = ({
         difficulty: 5,
         importance: 5,
         deadline: null,
-        collaborative: false,
+        urgent: false,
         experience: 150
       });
       setQuickTaskInput('');
@@ -179,7 +179,7 @@ const TaskList = ({
                 <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5 sm:p-1">
                   <button
                     onClick={() => setActiveTab('tasks')}
-                    className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md transition-all duration-200 ${
                       activeTab === 'tasks'
                         ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -189,7 +189,7 @@ const TaskList = ({
                   </button>
                   <button
                     onClick={() => setActiveTab('projects')}
-                    className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all duration-200 ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md transition-all duration-200 ${
                       activeTab === 'projects'
                         ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -206,7 +206,7 @@ const TaskList = ({
                       onClick={() =>
                         setSortMethod(sortMethod === 'date' ? 'label' : 'date')
                       }
-                      className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
+                      className="px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md
                              bg-gray-100 dark:bg-gray-700
                              text-gray-600 dark:text-gray-400 
                              hover:text-gray-900 dark:hover:text-gray-200
@@ -223,7 +223,7 @@ const TaskList = ({
                   {/* Calendar/List View Toggle */}
                   <button
                     onClick={() => setIsCalendarView(!isCalendarView)}
-                    className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md
+                    className="px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-sm rounded-md
                            bg-gray-100 dark:bg-gray-700
                            text-gray-600 dark:text-gray-400 
                            hover:text-gray-900 dark:hover:text-gray-200

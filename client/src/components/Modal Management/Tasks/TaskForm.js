@@ -10,7 +10,7 @@ const TaskForm = ({ addTask }) => {
     difficulty: 50,
     importance: 50,
     deadline: '',
-    collaborative: false,
+    urgent: false, 
     label: ''
   };
 
@@ -34,12 +34,12 @@ const TaskForm = ({ addTask }) => {
       difficulty: formState.difficulty,
       importance: formState.importance,
       deadline: formState.deadline || null,
-      collaborative: formState.collaborative,
+      urgent: formState.urgent, 
       label: formState.label || null,
       experience: calculateBaseXP(
         formState.difficulty,
         formState.importance,
-        formState.collaborative
+        formState.urgent 
       ),
       completion: false
     };
@@ -64,8 +64,8 @@ const TaskForm = ({ addTask }) => {
     setSelectedDeadline(null);
   };
 
-  const toggleCollaborative = () => {
-    updateFormState('collaborative', !formState.collaborative);
+  const toggleUrgent = () => { 
+    updateFormState('urgent', !formState.urgent);
   };
 
   const handleDeadlineClick = (days, buttonType) => {
@@ -260,19 +260,19 @@ const TaskForm = ({ addTask }) => {
           <div className="flex items-center gap-4 pt-2">
             <button
               type="button"
-              onClick={toggleCollaborative}
+              onClick={toggleUrgent}
               className={`flex-[1.2] px-3 py-2 rounded-lg border transition-all duration-200
                 ${
-                  formState.collaborative
-                    ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-800'
+                  formState.urgent
+                    ? 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-800'
                     : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
                 }`}
             >
               <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                {formState.collaborative ? '👥 Team Task' : '👤 Solo Task'}
+                {formState.urgent ? '🚨 Urgent Task' : '⏱️ Regular Task'}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formState.collaborative ? '+150 XP Bonus' : 'Base XP'}
+                {formState.urgent ? '+150 XP Bonus' : 'Base XP'}
               </div>
             </button>
 
@@ -284,7 +284,7 @@ const TaskForm = ({ addTask }) => {
                 {calculateBaseXP(
                   formState.difficulty,
                   formState.importance,
-                  formState.collaborative
+                  formState.urgent 
                 )}
               </div>
             </div>
