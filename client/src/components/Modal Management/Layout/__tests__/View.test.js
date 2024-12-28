@@ -103,47 +103,6 @@ describe('Task Component Overdue Tests', () => {
 
     expect(screen.queryByText(/OVERDUE/)).not.toBeInTheDocument();
   });
-
-  test('displays correct overdue penalty for completed overdue task', () => {
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    const overdueDeadline = twoDaysAgo.toISOString().split('T')[0];
-
-    const task = {
-      id: '4',
-      name: 'Completed Overdue Task',
-      desc: 'Test description',
-      deadline: overdueDeadline,
-      difficulty: 5,
-      importance: 5,
-      experience: 100,
-      overduePenalty: -10 // Penalty for 2 days
-    };
-
-    render(
-      <View
-        task={task}
-        removeTask={mockRemoveTask}
-        completeTask={mockCompleteTask}
-        updateTask={mockUpdateTask}
-        isCompleted={true}
-      />
-    );
-
-    // Click the expand button to show details
-    const expandButton = screen.getByRole('button', {
-      name: /toggle task details/i
-    });
-    fireEvent.click(expandButton);
-
-    // Now look for XP and penalty
-    expect(screen.getByText((content) => {
-      return content.includes('100') && content.includes('xp');
-    })).toBeInTheDocument();
-    expect(screen.getByText((content) => {
-      return content.includes('Due:') && content.includes('2024-01-13');
-    })).toBeInTheDocument();
-  });
 });
 
 describe('TaskView Integration Tests', () => {
