@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatDeadline, isOverdue, calculateOverduePenalty } from '../../../utils/tasks/tasksUtils';
 
-const TaskView = ({ task, isCompleted, showDescription, setShowDescription, isTextTruncated, textRef, nameOnly }) => {
+const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => {
   const [showFullNameModal, setShowFullNameModal] = useState(false);
 
   const TaskName = () => (
@@ -85,41 +85,128 @@ const TaskView = ({ task, isCompleted, showDescription, setShowDescription, isTe
 
   return (
     <>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => setShowDescription(!showDescription)}
-          className="w-6 h-6 flex items-center justify-center focus:outline-none"
-        >
-          <svg
-            className="w-4 h-4 text-gray-400 transition-transform duration-300"
-            style={{
-              transform: showDescription ? 'rotate(-180deg)' : 'rotate(0)'
-            }}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-        <span>Details</span>
+      {/* Description Section */}
+      {task.desc && (
+        <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+            {task.desc}
+          </p>
+        </div>
+      )}
+
+      {/* Metrics Section */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="relative w-12 h-12">
+            <svg className="w-12 h-12 transform -rotate-90">
+              <circle
+                className="text-gray-200 dark:text-gray-700"
+                strokeWidth="3"
+                stroke="currentColor"
+                fill="transparent"
+                r="20"
+                cx="24"
+                cy="24"
+              />
+              <circle
+                className="text-blue-500 dark:text-blue-400"
+                strokeWidth="3"
+                strokeLinecap="round"
+                stroke="currentColor"
+                fill="transparent"
+                r="20"
+                cx="24"
+                cy="24"
+                strokeDasharray={`${task.difficulty * 1.256} 999`}
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300">
+              {task.difficulty}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Difficulty
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {task.difficulty < 33 ? 'Easy' : task.difficulty < 66 ? 'Medium' : 'Hard'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative w-12 h-12">
+            <svg className="w-12 h-12 transform -rotate-90">
+              <circle
+                className="text-gray-200 dark:text-gray-700"
+                strokeWidth="3"
+                stroke="currentColor"
+                fill="transparent"
+                r="20"
+                cx="24"
+                cy="24"
+              />
+              <circle
+                className="text-blue-500 dark:text-blue-400"
+                strokeWidth="3"
+                strokeLinecap="round"
+                stroke="currentColor"
+                fill="transparent"
+                r="20"
+                cx="24"
+                cy="24"
+                strokeDasharray={`${task.importance * 1.256} 999`}
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300">
+              {task.importance}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Importance
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {task.importance < 33 ? 'Low' : task.importance < 66 ? 'Medium' : 'High'}
+            </span>
+          </div>
+        </div>
       </div>
-      <div
-        className={`transition-all duration-300 ease-in-out ${
-          showDescription ? 'max-h-[300px]' : 'max-h-0'
-        } overflow-hidden pl-6`}
-      >
-        {task.desc.split('\n').map((line, index) => (
-          <React.Fragment key={index}>
-            {line}
-            <br />
-          </React.Fragment>
-        ))}
+
+      {/* Task Info Footer */}
+      <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 pt-2">
+        {task.deadline && (
+          <div className="flex items-center gap-2">
+            <span>📅</span>
+            <span>
+              Due: {formatDeadline(task.deadline)}
+              {isOverdue(task.deadline) && !isCompleted && (
+                <span className="text-red-500 ml-1">
+                  ({calculateOverduePenalty(task.deadline)}xp)
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <span>⭐</span>
+          <span>
+            {task.experience}xp
+            {isCompleted && task.earlyBonus > 0 && (
+              <span className="text-green-600 dark:text-green-400 ml-1">
+                +{task.earlyBonus}xp bonus
+              </span>
+            )}
+          </span>
+        </div>
+        <div className="flex items-center">
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+            ${task.urgent 
+              ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
+              : 'bg-gray-50 dark:bg-gray-500/10 text-gray-600 dark:text-gray-400'}`}>
+            {task.urgent ? '🚨 Urgent' : '⏱️ Regular'}
+          </span>
+        </div>
       </div>
 
       {showFullNameModal && (
@@ -153,24 +240,6 @@ const TaskView = ({ task, isCompleted, showDescription, setShowDescription, isTe
           </div>
         </div>
       )}
-
-      {task.deadline && <p>Due date: {formatDeadline(task.deadline)}</p>}
-      <p>Difficulty: {task.difficulty}%</p>
-      <p>Importance: {task.importance}%</p>
-      <p>Type: {task.collaborative ? '👥 Collaborative' : '👤 Individual'}</p>
-      <p>
-        Experience given: {task.experience}xp
-        {isCompleted && task.earlyBonus > 0 && (
-          <span className="text-green-600 dark:text-green-400">
-            {` + ${task.earlyBonus}xp early bonus!`}
-          </span>
-        )}
-        {task.deadline && isOverdue(task.deadline) && (
-          <span className="text-red-500">
-            {` ${calculateOverduePenalty(task.deadline)}xp`}
-          </span>
-        )}
-      </p>
     </>
   );
 };

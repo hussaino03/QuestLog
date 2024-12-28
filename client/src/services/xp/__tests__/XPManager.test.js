@@ -345,33 +345,33 @@ describe('Task Form XP Calculations', () => {
     const taskData = {
       difficulty: 50,
       importance: 50,
-      collaborative: false
+      urgent: false
     };
 
     const expectedXP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
     const calculatedXP = result.current.calculateBaseXP(
       taskData.difficulty,
       taskData.importance,
-      taskData.collaborative
+      taskData.urgent
     );
 
     expect(calculatedXP).toBe(expectedXP);
   });
 
-  test('adds collaborative bonus correctly', async () => {
+  test('adds urgent bonus correctly', async () => {
     const { result } = renderHook(() => useXPManager());
     const taskData = {
       difficulty: 50,
       importance: 50,
-      collaborative: true
+      urgent: true
     };
 
     const baseXP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
-    const expectedXP = baseXP + 150; // Collaborative bonus
+    const expectedXP = baseXP + 150; // urgent bonus
     const calculatedXP = result.current.calculateBaseXP(
       taskData.difficulty,
       taskData.importance,
-      taskData.collaborative
+      taskData.urgent
     );
 
     expect(calculatedXP).toBe(expectedXP);
@@ -386,7 +386,7 @@ describe('Task Form XP Calculations', () => {
     // Max values calculation:
     // Base: (100 + 100 + 20) * 5 = 1100
     // Difficulty/Importance: (100 * 100) / 20 = 500
-    // Collaborative bonus: 150
+    // urgent bonus: 150
     // Total: 1100 + 500 + 150 = 1750
     const maxXP = result.current.calculateBaseXP(100, 100, true);
     expect(maxXP).toBe(1750);
@@ -474,25 +474,25 @@ describe('XP Calculation with Form Integration', () => {
     const taskConfig = {
       difficulty: 50,
       importance: 50,
-      collaborative: false
+      urgent: false
     };
 
     const taskXP = result.current.calculateBaseXP(
       taskConfig.difficulty,
       taskConfig.importance,
-      taskConfig.collaborative
+      taskConfig.urgent
     );
 
     const projectSubtaskXP = result.current.calculateBaseXP(
       taskConfig.difficulty,
       taskConfig.importance,
-      false // Projects don't have collaborative bonus per subtask
+      false // Projects don't have urgent bonus per subtask
     );
 
     expect(taskXP).toBe(projectSubtaskXP);
   });
 
-  test('correctly applies collaborative bonus only to tasks, not projects', async () => {
+  test('correctly applies urgent bonus only to tasks, not projects', async () => {
     const { result } = renderHook(() => useXPManager());
     
     const config = {
@@ -503,7 +503,7 @@ describe('XP Calculation with Form Integration', () => {
     const taskXP = result.current.calculateBaseXP(
       config.difficulty,
       config.importance,
-      true // Collaborative task
+      true // urgent task
     );
 
     const projectXP = result.current.calculateBaseXP(
@@ -512,6 +512,6 @@ describe('XP Calculation with Form Integration', () => {
       false // Project subtask
     );
 
-    expect(taskXP).toBe(projectXP + 150); // Difference should be collaborative bonus
+    expect(taskXP).toBe(projectXP + 150); // Difference should be urgent bonus
   });
 });

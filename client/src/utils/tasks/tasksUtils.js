@@ -41,7 +41,7 @@ export const calculateOverduePenalty = (deadline) => {
  * @param {string} [editForm.deadline] - Optional deadline in YYYY-MM-DD format
  * @param {number} editForm.difficulty - Task difficulty (0-100)
  * @param {number} editForm.importance - Task importance (0-100)
- * @param {boolean} editForm.collaborative - Whether task is collaborative
+ * @param {boolean} editForm.urgent - Whether task is urgent
  * @param {string} [editForm.label] - Optional task label
  * @returns {Object} Updated task object with recalculated experience points
  */
@@ -51,7 +51,7 @@ export const handleEdit = (task, editForm) => {
         ...editForm,
         experience: (parseInt(editForm.difficulty) + parseInt(editForm.importance) + 20) * 5 +
             parseInt((parseInt(editForm.difficulty) * parseInt(editForm.importance)) / 20) +
-            (editForm.collaborative ? 150 : 0)
+            (editForm.urgent ? 150 : 0)
     };
 };
 

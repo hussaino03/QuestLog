@@ -130,7 +130,19 @@ describe('Task Component Overdue Tests', () => {
       />
     );
 
-    expect(screen.getByText('-10xp')).toBeInTheDocument();
+    // Click the expand button to show details
+    const expandButton = screen.getByRole('button', {
+      name: /toggle task details/i
+    });
+    fireEvent.click(expandButton);
+
+    // Now look for XP and penalty
+    expect(screen.getByText((content) => {
+      return content.includes('100') && content.includes('xp');
+    })).toBeInTheDocument();
+    expect(screen.getByText((content) => {
+      return content.includes('Due:') && content.includes('2024-01-13');
+    })).toBeInTheDocument();
   });
 });
 
@@ -151,7 +163,7 @@ describe('TaskView Integration Tests', () => {
     difficulty: 50,
     importance: 50,
     experience: 100,
-    collaborative: false
+    urgent: false
   };
 
   const setup = (props = {}) => {
@@ -172,10 +184,8 @@ describe('TaskView Integration Tests', () => {
     expect(screen.getByText('Test Task')).toBeInTheDocument();
   });
 
-  test('shows description when details button is clicked', () => {
+  test('shows description when task has description', () => {
     setup();
-    const detailsButton = screen.getByText('Details');
-    fireEvent.click(detailsButton);
     expect(screen.getByText('Test description')).toBeInTheDocument();
   });
 

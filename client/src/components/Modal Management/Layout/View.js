@@ -19,7 +19,7 @@ const View = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
     deadline: task.deadline || '',
     difficulty: task.difficulty,
     importance: task.importance,
-    collaborative: task.collaborative,
+    urgent: task.urgent,
     label: task.label || ''
   });
   const [showPomodoro, setShowPomodoro] = useState(false);
@@ -65,6 +65,7 @@ const View = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
         <button
           className="flex-shrink-0 w-8 h-8 flex items-center justify-center"
           onClick={() => setShowDetails(!showDetails)}
+          aria-label="Toggle task details"
         >
           <svg
             className="w-6 h-6 text-gray-400 transition-transform duration-300"
