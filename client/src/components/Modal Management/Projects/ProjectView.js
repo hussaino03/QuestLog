@@ -28,7 +28,7 @@ const ProjectView = ({ task, isCompleted, handleSubtaskToggle }) => {
           className="text-blue-500 hover:text-blue-600 dark:text-blue-400 
                     dark:hover:text-blue-300 text-sm font-medium"
         >
-          🤝 Share Project
+          🤝 Share Project (coming soon!)
         </button>
       </div>
 
