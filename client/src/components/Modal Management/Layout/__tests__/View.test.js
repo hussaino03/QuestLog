@@ -107,7 +107,7 @@ describe('Task Component Overdue Tests', () => {
   test('displays correct overdue penalty for completed overdue task', () => {
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    const overdueDeadline = twoDaysAgo.toISOString().split('T')[0];
+    const overdueDeadline = twoDaysAgo.toISOString().split('T')[0]; // This is in YYYY-MM-DD format
 
     const task = {
       id: '4',
@@ -136,12 +136,14 @@ describe('Task Component Overdue Tests', () => {
     });
     fireEvent.click(expandButton);
 
-    // Now look for XP and penalty
+    // Check for XP display
     expect(screen.getByText((content) => {
       return content.includes('100') && content.includes('xp');
     })).toBeInTheDocument();
+
+    // Check for date display with ISO format (YYYY-MM-DD)
     expect(screen.getByText((content) => {
-      return content.includes('Due:') && content.includes('2024-01-13');
+      return content.includes('Due:') && content.includes(overdueDeadline);
     })).toBeInTheDocument();
   });
 });
