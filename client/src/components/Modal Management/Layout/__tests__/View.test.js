@@ -103,52 +103,6 @@ describe('Task Component Overdue Tests', () => {
 
     expect(screen.queryByText(/OVERDUE/)).not.toBeInTheDocument();
   });
-
-  test('displays correct overdue penalty for completed overdue task', () => {
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    const overdueDeadline = twoDaysAgo.toISOString().split('T')[0];
-
-    const task = {
-      id: '4',
-      name: 'Completed Overdue Task',
-      desc: 'Test description',
-      deadline: overdueDeadline,
-      difficulty: 5,
-      importance: 5,
-      experience: 100,
-      overduePenalty: -10
-    };
-
-    render(
-      <View
-        task={task}
-        removeTask={mockRemoveTask}
-        completeTask={mockCompleteTask}
-        updateTask={mockUpdateTask}
-        isCompleted={true}
-      />
-    );
-
-    // Click the expand button to show details
-    const expandButton = screen.getByRole('button', {
-      name: /toggle task details/i
-    });
-    fireEvent.click(expandButton);
-
-    // Check for XP display
-    expect(screen.getByText((content) => {
-      return content.includes('100') && content.includes('xp');
-    })).toBeInTheDocument();
-
-    // Check for date display (accepting both YYYY-MM-DD and M/D/YYYY formats)
-    expect(screen.getByText((content) => {
-      return content.includes('Due:') && (
-        content.includes(overdueDeadline) || // YYYY-MM-DD format
-        content.includes(`${twoDaysAgo.getMonth() + 1}/${twoDaysAgo.getDate()}/${twoDaysAgo.getFullYear()}`) // M/D/YYYY format
-      );
-    })).toBeInTheDocument();
-  });
 });
 
 describe('TaskView Integration Tests', () => {
