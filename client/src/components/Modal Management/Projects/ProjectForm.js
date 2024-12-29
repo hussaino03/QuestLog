@@ -15,20 +15,28 @@ const ProjectForm = ({ addTask }) => {
       importance: 50
     }
   ]);
+  const [error, setError] = useState('');
+  const [subtaskErrors, setSubtaskErrors] = useState({});
 
   const handleProjectSubmit = (e) => {
     e.preventDefault();
 
-    // Add form validation
     if (!projectForm.name.trim()) {
-      alert('Project name is required');
+      setError('Project name is required');
       return;
     }
 
-    // Check if any subtask name is empty
-    const hasEmptySubtasks = subTasks.some(task => !task.name.trim());
+    const emptySubtasks = {};
+    const hasEmptySubtasks = subTasks.some((task, index) => {
+      if (!task.name.trim()) {
+        emptySubtasks[index] = 'Task name is required';
+        return true;
+      }
+      return false;
+    });
+
     if (hasEmptySubtasks) {
-      alert('All subtask names are required');
+      setSubtaskErrors(emptySubtasks);
       return;
     }
 
@@ -105,6 +113,14 @@ const ProjectForm = ({ addTask }) => {
     const updatedTasks = [...subTasks];
     updatedTasks[index] = { ...updatedTasks[index], [field]: value };
     setSubTasks(updatedTasks);
+    
+    // Clear error for this subtask when typing
+    if (field === 'name') {
+      setSubtaskErrors(prev => ({
+        ...prev,
+        [index]: ''
+      }));
+    }
   };
 
   return (
@@ -119,13 +135,19 @@ const ProjectForm = ({ addTask }) => {
           required
           placeholder="What's the project name?"
           value={projectForm.name}
-          onChange={(e) =>
-            setProjectForm({ ...projectForm, name: e.target.value })
-          }
+          onChange={(e) => {
+            setProjectForm({ ...projectForm, name: e.target.value });
+            setError('');
+          }}
           className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 
                    dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
                    placeholder-gray-500 dark:placeholder-gray-400"
         />
+        {error && (
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        )}
       </div>
 
       {/* Project Description */}
@@ -274,6 +296,11 @@ const ProjectForm = ({ addTask }) => {
                        dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 
                        placeholder-gray-500 dark:placeholder-gray-400"
             />
+            {subtaskErrors[index] && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {subtaskErrors[index]}
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <CustomSlider

@@ -1,9 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatDeadline, isOverdue, calculateOverduePenalty } from '../../../utils/tasks/tasksUtils';
+import ShareCode from './ShareCode';  
+import { Users } from 'lucide-react';
 
-const ProjectView = ({ task, isCompleted, handleSubtaskToggle }) => {
+const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, userId }) => {
+  const [collaborators, setCollaborators] = useState([]);
+
+  useEffect(() => {
+    if (task.isShared && task.sharedWith) {
+      const fetchCollaborators = async () => {
+        const collabData = await collaborationManager.fetchCollaboratorNames(
+          task.ownerId,
+          task.sharedWith
+        );
+        setCollaborators(collabData);
+      };
+      fetchCollaborators();
+    }
+  }, [task.isShared, task.sharedWith, task.ownerId, collaborationManager]);
+
   const completedSubtasks = task.subtasks.filter(subtask => subtask.completed).length;
   const progress = (completedSubtasks / task.subtasks.length) * 100;
+
+  const handleSubtaskToggleWithSync = async (index) => {
+    const newCompletedState = !task.subtasks[index].completed;
+    
+    // Always sync with server if it's a shared project, regardless of owner/collaborator
+    if (task.isShared) {
+      try {
+        console.log(`[SERVER] Syncing subtask ${index} to ${newCompletedState}`);
+        await collaborationManager.updateSharedProjectSubtask(
+          task.id,
+          index,
+          newCompletedState
+        );
+      } catch (error) {
+        console.error('[ERROR] Failed to sync subtask update:', error);
+        return; // Don't update local state if server sync fails
+      }
+    }
+    
+    // Update local state only after successful sync (or if not shared)
+    updateTask(task.id, {
+      ...task,
+      subtasks: task.subtasks.map((subtask, i) =>
+        i === index ? { ...subtask, completed: newCompletedState } : subtask
+      )
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -23,14 +67,37 @@ const ProjectView = ({ task, isCompleted, handleSubtaskToggle }) => {
             </span>
           </div>
         </div>
-        <button
-          onClick={() => {}} // Placeholder for future implementation
-          className="text-blue-500 hover:text-blue-600 dark:text-blue-400 
-                    dark:hover:text-blue-300 text-sm font-medium"
-        >
-          🤝 Share Project (coming soon!)
-        </button>
+        <ShareCode 
+          taskId={task.id} 
+          collaborationManager={collaborationManager} 
+          task={task}  
+          userId={userId}  
+        />
       </div>
+
+      {/* Collaborators Section */}
+      {task.isShared && (
+        <div className="flex flex-col gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <Users className="w-4 h-4" />
+            <span>Collaborators</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {collaborators.map((collaborator) => (
+              <div
+                key={collaborator.id}
+                className="px-2 py-1 rounded-full text-xs
+                  bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
+              >
+                {collaborator.name}
+                {collaborator.isOwner && (
+                  <span className="ml-1">👑</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Description Section */}
       {task.desc && (
@@ -64,7 +131,7 @@ const ProjectView = ({ task, isCompleted, handleSubtaskToggle }) => {
                                focus:outline-none focus:ring-2 focus:ring-blue-500/20
                                transition-all duration-200"
                       checked={subtask.completed || false}
-                      onChange={() => handleSubtaskToggle(index)}
+                      onChange={() => handleSubtaskToggleWithSync(index)}
                     />
                     <div className="absolute inset-0 pointer-events-none">
                       <div className="absolute top-1/2 w-full border-t border-white dark:border-gray-900

@@ -7,7 +7,8 @@ import {
   Trophy,
   Sparkles,
   ChartLine,
-  Flag
+  Flag,
+  Users
 } from 'lucide-react';
 import Footer from '../Layout/Footer';
 
@@ -155,9 +156,9 @@ const Landing = ({ isDark, onToggle }) => {
             {/* Secondary Content - Stats */}
             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               {[
-                { label: 'Active Users', value: '250+' },
-                { label: 'Tasks Completed', value: '500+' },
-                { label: 'Total XP Earned', value: '350K+' },
+                { label: 'Active Users', value: '270+' },
+                { label: 'Tasks Completed', value: '520+' },
+                { label: 'Total XP Earned', value: '360K+' },
                 { label: 'Badges Created', value: '30+' }
               ].map((stat, index) => (
                 <div
@@ -213,16 +214,16 @@ const Landing = ({ isDark, onToggle }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 {
-                  icon: <Brain className="w-8 h-8" />,
-                  title: 'AI Assistant',
-                  description:
-                    'Get personalized insights and quest optimization suggestions from our Gemini-powered AI'
-                },
-                {
                   icon: <Trophy className="w-8 h-8" />,
                   title: 'Gamified Progress',
                   description:
-                    'Earn XP, unlock achievements, and switch seamlessly between tasks and projects'
+                    'Earn XP, unlock achievements, and switch seamlessly between tasks and projects. Sync your progress across devices with cloud saves'
+                },
+                {
+                  icon: <Users className="w-8 h-8" />,
+                  title: 'Collaborative Projects',
+                  description:
+                    'Invite teammates via shareable codes and sync progress across your team in real-time'
                 },
                 {
                   icon: <ChartLine className="w-8 h-8" />,
@@ -243,10 +244,10 @@ const Landing = ({ isDark, onToggle }) => {
                     'Compete with others globally while maintaining privacy control'
                 },
                 {
-                  icon: <Rocket className="w-8 h-8" />,
-                  title: 'Cross-Platform',
+                  icon: <Brain className="w-8 h-8" />,
+                  title: 'AI Assistant',
                   description:
-                    'Sync your progress across devices with cloud saves'
+                    'Get personalized insights and quest optimization suggestions from our Gemini-powered AI'
                 }
               ].map((feature, index) => (
                 <div
@@ -293,3 +294,4 @@ const Landing = ({ isDark, onToggle }) => {
 };
 
 export default Landing;
+

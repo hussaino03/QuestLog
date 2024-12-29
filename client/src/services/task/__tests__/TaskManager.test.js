@@ -155,9 +155,9 @@ describe('TaskManager', () => {
   });
 
   describe('updateTask', () => {
-    it('should update an existing task', () => {
+    it('should update a non-shared task without server sync', async () => {
       const updatedTask = { id: '123', title: 'Updated Task' };
-      taskManager.updateTask('123', updatedTask);
+      await taskManager.updateTask('123', updatedTask);
 
       expect(mockSetTasks).toHaveBeenCalled();
       const setTasksCallback = mockSetTasks.mock.calls[0][0];
@@ -166,33 +166,54 @@ describe('TaskManager', () => {
       expect(result[0]).toEqual(updatedTask);
     });
 
-    it('should preserve existing task properties when updating', () => {
-      const existingTask = {
-        id: '123',
-        title: 'Old Task',
-        experience: 100,
-        createdAt: '2023-01-01'
+    it('should handle server sync for shared tasks', async () => {
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true })
+        })
+      );
+
+      const updatedTask = { 
+        id: '123', 
+        title: 'Updated Task',
+        isShared: true 
       };
-      const update = { title: 'Updated Task' };
 
-      mockSetTasks.mockImplementation((cb) => {
-        const result = cb([existingTask]);
-        expect(result[0]).toEqual({
-          ...existingTask,
-          ...update
-        });
-      });
+      await taskManager.updateTask('123', updatedTask);
 
-      taskManager.updateTask('123', update);
+      expect(global.fetch).toHaveBeenCalled();
       expect(mockSetTasks).toHaveBeenCalled();
     });
 
-    it('should handle errors during task update', () => {
+    it('should handle server sync errors for shared tasks', async () => {
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: false,
+          text: () => Promise.resolve('Server error')
+        })
+      );
+
+      const updatedTask = { 
+        id: '123', 
+        title: 'Updated Task',
+        isShared: true 
+      };
+
+      await expect(taskManager.updateTask('123', updatedTask))
+        .rejects
+        .toThrow('Failed to sync project update');
+    });
+
+    it('should handle local state update errors', async () => {
       mockSetTasks.mockImplementation(() => {
         throw new Error('Update error');
       });
 
-      taskManager.updateTask('123', { title: 'Updated Task' });
+      await expect(taskManager.updateTask('123', { title: 'Updated Task' }))
+        .rejects
+        .toThrow('Update error');
+      
       expect(mockSetError).toHaveBeenCalledWith('Update error');
     });
   });
