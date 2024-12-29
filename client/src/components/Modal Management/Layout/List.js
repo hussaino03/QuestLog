@@ -15,7 +15,9 @@ const TaskList = ({
   completeTask,
   isCompleted,
   addTask,
-  updateTask
+  updateTask,
+  collaborationManager,
+  userId 
 }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
@@ -297,6 +299,8 @@ const TaskList = ({
                         completeTask={completeTask}
                         isCompleted={isCompleted}
                         updateTask={updateTask}
+                        collaborationManager={collaborationManager}
+                        userId={userId} 
                       />
                     ))}
                   </ul>
@@ -324,7 +328,7 @@ const TaskList = ({
                       </p>
                       <p class="text-base text-center max-w-sm">
                         Use the Create+ button to add a new project with
-                        subtasks
+                        subtasks or join an existing one
                       </p>
                     </>
                   )}

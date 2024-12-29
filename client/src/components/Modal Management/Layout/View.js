@@ -9,7 +9,15 @@ import {
   checkTextTruncation 
 } from '../../../utils/tasks/tasksUtils';
 
-const View = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
+const View = ({ 
+  task, 
+  removeTask, 
+  completeTask, 
+  isCompleted, 
+  updateTask,
+  collaborationManager,
+  userId  
+}) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -43,16 +51,6 @@ const View = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
     const updatedTask = handleEdit(task, editForm, updateTask);
     updateTask(task.id, updatedTask);
     setIsEditing(false);
-  };
-
-  const handleSubtaskToggle = (index) => {
-    const updatedTask = {
-      ...task,
-      subtasks: task.subtasks.map((subtask, i) =>
-        i === index ? { ...subtask, completed: !subtask.completed } : subtask
-      )
-    };
-    updateTask(task.id, updatedTask);
   };
 
   const areAllSubtasksCompleted = task.subtasks?.every(
@@ -306,7 +304,9 @@ const View = ({ task, removeTask, completeTask, isCompleted, updateTask }) => {
             <ProjectView 
               task={task}
               isCompleted={isCompleted}
-              handleSubtaskToggle={handleSubtaskToggle}
+              updateTask={updateTask}
+              collaborationManager={collaborationManager}
+              userId={userId}  
             />
           ) : (
             <TaskView 

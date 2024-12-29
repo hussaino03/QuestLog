@@ -11,6 +11,13 @@ QuestLog is an AI-powered productivity platform that turns task/project manageme
 - Personalized task insights and recommendations
 - Analyzes task completion patterns, task completion rates, recent accomplishments, XP progression, and performance trends
 
+#### 👥 Collaborative Projects
+- Real-time project sharing and collaboration
+- Invite system via shareable codes
+- Synchronized progress across team members
+- Team activity tracking
+- Project-specific collaboration settings
+
 #### 📈 Progress System
 - Experience points (XP) and leveling
 - Achievement badges 
@@ -184,6 +191,10 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 - `GET /api/leaderboard`: Retrieve leaderboard data
 - `POST /api/auth/google`: Handle Google OAuth authentication
 - `GET /api/auth/<integrations>` : integrations OAuth import
+- `POST /api/projects/:id/share`: Generate project share code
+- `POST /api/projects/:id/join`: Join project via share code
+- `GET /api/projects/:id/collaborators`: Get project collaborators
+- `DELETE /api/projects/:id/collaborators/:userId`: Remove collaborator
 
 ## 💾 Data Persistence
 - All data synced with MongoDB

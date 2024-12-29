@@ -18,6 +18,7 @@ const TaskForm = ({ addTask }) => {
 
   const [formState, setFormState] = useState(defaultFormState);
   const [selectedDeadline, setSelectedDeadline] = useState(null);
+  const [error, setError] = useState('');
 
   const updateFormState = useCallback((field, value) => {
     setFormState((prev) => ({
@@ -28,6 +29,11 @@ const TaskForm = ({ addTask }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formState.name.trim()) {
+      setError('Task name is required');
+      return;
+    }
+    
     const newTask = {
       name: formState.name,
       desc: formState.description,
@@ -43,10 +49,6 @@ const TaskForm = ({ addTask }) => {
       ),
       completion: false
     };
-    if (!formState.name.trim()) {
-        alert('Task name is required');
-        return;
-      }
     addTask(newTask);
     // Reset form to default values
     setFormState(defaultFormState);
@@ -96,12 +98,20 @@ const TaskForm = ({ addTask }) => {
           type="text"
           placeholder="What needs to be done?"
           value={formState.name}
-          onChange={(e) => updateFormState('name', e.target.value)}
+          onChange={(e) => {
+            updateFormState('name', e.target.value);
+            setError('');
+          }}
           required
           className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
                    rounded-lg text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
         />
+        {error && (
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        )}
       </div>
 
       {/* Label Input */}

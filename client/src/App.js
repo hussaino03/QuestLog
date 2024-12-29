@@ -1,5 +1,6 @@
 import './styles/globals.css';
 import React, { useState, useEffect, useMemo } from 'react';
+import { Users } from 'lucide-react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -31,6 +32,7 @@ import ThemeManager from './services/theme/ThemeManager';
 import StreakManager from './services/streak/StreakManager';
 import ViewManager from './services/view/ViewManager';
 import BadgeManager from './services/badge/BadgeManager';
+import CollaborationManager from './services/collaboration/CollaborationManager';
 
 const AppContent = () => {
   const [isDark, setIsDark] = useState(false);
@@ -47,6 +49,7 @@ const AppContent = () => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [loading, setLoading] = useState(true);
   const [streakData, setStreakData] = useState({ current: 0, longest: 0 });
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   const {
     level,
@@ -86,6 +89,10 @@ const AppContent = () => {
   const badgeManager = useMemo(
     () => new BadgeManager(setUnlockedBadges, addNotification),
     [addNotification]
+  );
+  const collaborationManager = useMemo(
+    () => new CollaborationManager(setTasks, setError),
+    []
   );
 
   useEffect(() => {
@@ -145,6 +152,36 @@ const AppContent = () => {
     }
   }, [userId, userName, addNotification]);
 
+  // Temporary announcement banner starts
+  useEffect(() => {
+    if (userId) {
+      const stored = localStorage.getItem('announcements');
+      const allAnnouncements = stored ? JSON.parse(stored) : [];
+      const collaborationAnnouncementSeen = allAnnouncements.some(
+        (a) => a.type === 'collaboration' && a.seen === true
+      );
+
+      if (!collaborationAnnouncementSeen) {
+        setShowAnnouncement(true);
+      }
+    }
+  }, [userId]);
+
+  const dismissAnnouncement = () => {
+    const stored = localStorage.getItem('announcements');
+    const allAnnouncements = stored ? JSON.parse(stored) : [];
+    
+    allAnnouncements.push({
+      type: 'collaboration',
+      seen: true,
+      timestamp: new Date().toISOString()
+    });
+    
+    localStorage.setItem('announcements', JSON.stringify(allAnnouncements));
+    setShowAnnouncement(false);
+  };
+  // Temporary announcement banner ends
+
   const handleClearDataClick = () => {
     setShowClearDataModal(true);
   };
@@ -198,6 +235,36 @@ const AppContent = () => {
                   </div>
                 )}
 
+                {/* Temporary announcement banner */}
+                {showAnnouncement && (
+                  <div className="relative bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 dark:from-blue-400/10 dark:via-purple-400/10 dark:to-blue-400/10 border-b border-blue-200 dark:border-blue-800">
+                    <div className="max-w-7xl mx-auto py-3 px-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 dark:bg-blue-400/10">
+                            <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              New Feature: Collaborative Projects
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Share and collaborate on projects with your team in real-time
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={dismissAnnouncement}
+                          className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+                          aria-label="Dismiss announcement"
+                        >
+                          <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Main Layout Container */}
                 <div className="flex flex-col min-h-screen">
                   <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
@@ -219,7 +286,10 @@ const AppContent = () => {
                               }
                               onClearDataClick={handleClearDataClick}
                             />
-                            <Form addTask={taskManager.addTask} />
+                            <Form 
+                              addTask={taskManager.addTask} 
+                              taskManager={taskManager} 
+                            />
                           </div>
                         </div>
 
@@ -242,6 +312,8 @@ const AppContent = () => {
                                       isCompleted={false}
                                       addTask={taskManager.addTask}
                                       updateTask={taskManager.updateTask}
+                                      collaborationManager={collaborationManager}
+                                      userId={userId} 
                                     />
                                   )}
                                   {currentView === 'completed' && (
