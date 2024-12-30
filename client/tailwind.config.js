@@ -38,6 +38,10 @@ module.exports = {
         expandWidth: {
           '0%': { width: '0%', opacity: '0' },
           '100%': { width: '100%', opacity: '1' }
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' }
         }
       },
       animation: {
@@ -47,7 +51,8 @@ module.exports = {
         float: 'float 6s ease-in-out infinite',
         scale: 'scale 0.5s ease-out',
         shimmer: 'shimmer 2s infinite linear',
-        expandWidth: 'expandWidth 0.8s ease-out forwards'
+        expandWidth: 'expandWidth 0.8s ease-out forwards',
+        slideUp: 'slideUp 0.3s ease-out forwards'
       }
     }
   },

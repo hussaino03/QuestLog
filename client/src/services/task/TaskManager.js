@@ -100,8 +100,6 @@ class TaskManager {
           console.error('[UPDATE-TASK] Server error:', errorText);
           throw new Error(`Failed to sync project update: ${response.status}`);
         }
-
-        const result = await response.json();
       }
 
       // Update local state after successful sync (or if not shared)

@@ -3,7 +3,6 @@ import {
   Sun,
   Moon,
   Brain,
-  Rocket,
   Trophy,
   Sparkles,
   ChartLine,
