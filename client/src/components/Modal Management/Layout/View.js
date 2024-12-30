@@ -115,13 +115,22 @@ const View = ({
                   Project
                 </span>
               )}
-              {task.label && (
+              {task.label ? (
                 <span
-                  className="inline-flex text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 
-                             text-blue-600 dark:text-blue-400 rounded-full border 
-                             border-blue-200 dark:border-blue-800 whitespace-nowrap"
+                  className={`inline-flex text-xs px-1.5 py-0.5 ${
+                    task.urgent ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' 
+                    : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                  } rounded-full border whitespace-nowrap`}
                 >
                   {task.label}
+                </span>
+              ) : task.urgent && (
+                <span
+                  className="inline-flex text-xs px-1.5 py-0.5 bg-red-50 dark:bg-red-500/10 
+                             text-red-600 dark:text-red-400 rounded-full border 
+                             border-red-200 dark:border-red-800 whitespace-nowrap"
+                >
+                  Urgent
                 </span>
               )}
               {!isCompleted && task.deadline && isOverdue(task.deadline) && (

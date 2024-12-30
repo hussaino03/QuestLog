@@ -34,6 +34,17 @@ const TaskForm = ({ addTask }) => {
       return;
     }
     
+    // Handle urgent label
+    let finalLabel = formState.label;
+    if (formState.urgent) {
+      if (!finalLabel) {
+        finalLabel = 'urgent';
+      } else if (!finalLabel.toLowerCase().includes('urgent')) {
+        const urgentSuffix = ' | urgent';
+        finalLabel = (finalLabel + urgentSuffix).slice(0, MAX_LABEL_LENGTH);
+      }
+    }
+    
     const newTask = {
       name: formState.name,
       desc: formState.description,
@@ -41,7 +52,7 @@ const TaskForm = ({ addTask }) => {
       importance: formState.importance,
       deadline: formState.deadline || null,
       urgent: formState.urgent, 
-      label: formState.label || null,
+      label: finalLabel,
       experience: calculateBaseXP(
         formState.difficulty,
         formState.importance,
