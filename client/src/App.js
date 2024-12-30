@@ -33,6 +33,7 @@ import StreakManager from './services/streak/StreakManager';
 import ViewManager from './services/view/ViewManager';
 import BadgeManager from './services/badge/BadgeManager';
 import CollaborationManager from './services/collaboration/CollaborationManager';
+import SupportReminder from './components/Modal Management/SupportReminder';
 
 const AppContent = () => {
   const [isDark, setIsDark] = useState(false);
@@ -391,6 +392,7 @@ const AppContent = () => {
                   onConfirm={handleConfirmClear}
                   onCancel={() => setShowClearDataModal(false)}
                 />
+                <SupportReminder />
                 <Analytics />
               </div>
             ) : (
