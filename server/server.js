@@ -12,7 +12,6 @@ app.use(express.json());
 
 const { connectToDatabase } = require('./db');
 
-// MongoDB connection for session store
 const mongoUri = process.env.MONGODB_URI;
 if (!mongoUri) {
   console.error('MONGO_URI not found in environment variables');
