@@ -73,11 +73,18 @@ const AppContent = () => {
     resetXP
   });
 
+  const { addNotification } = useNotification();
+  const badgeManager = useMemo(
+    () => new BadgeManager(setUnlockedBadges, addNotification),
+    [addNotification]
+  );
+
   const taskManager = new TaskManager(
     calculateXP,
     setTasks,
     setCompletedTasks,
-    setError
+    setError,
+    badgeManager 
   );
 
   const themeManager = useMemo(() => new ThemeManager(setIsDark), []);
@@ -85,11 +92,6 @@ const AppContent = () => {
   const viewManager = useMemo(
     () => new ViewManager(setShowCompleted, setCurrentView),
     []
-  );
-  const { addNotification } = useNotification();
-  const badgeManager = useMemo(
-    () => new BadgeManager(setUnlockedBadges, addNotification),
-    [addNotification]
   );
   const collaborationManager = useMemo(
     () => new CollaborationManager(setTasks, setError),
@@ -122,13 +124,17 @@ const AppContent = () => {
   }, [userId, tasks, completedTasks, experience, level, unlockedBadges]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    badgeManager.checkAndUpdateBadges(
+    const updatedBadges = badgeManager.checkForNewBadges(
       level,
       currentStreak,
       completedTasks,
       unlockedBadges
     );
-  }, [level, currentStreak, completedTasks, unlockedBadges, badgeManager]);
+
+    if (updatedBadges.length !== unlockedBadges.length) {
+      setUnlockedBadges(updatedBadges);
+    }
+  }, [level, currentStreak]); 
 
   useEffect(() => {
     const newStreakData = streakManager.calculateStreak(completedTasks);
@@ -188,6 +194,7 @@ const AppContent = () => {
   };
 
   const handleConfirmClear = async () => {
+    badgeManager.clearNotificationHistory(); 
     await dataManager.clearAllData(userId);
     setShowClearDataModal(false);
   };

@@ -6,14 +6,16 @@ jest.mock('../../../utils/badges/badgeUtils');
 describe('BadgeManager', () => {
   let badgeManager;
   let mockSetUnlockedBadges;
+  let mockAddNotification;
 
   beforeEach(() => {
     mockSetUnlockedBadges = jest.fn();
-    badgeManager = new BadgeManager(mockSetUnlockedBadges);
+    mockAddNotification = jest.fn();
+    badgeManager = new BadgeManager(mockSetUnlockedBadges, mockAddNotification);
     checkBadgeUnlocks.mockReset();
   });
 
-  describe('checkAndUpdateBadges', () => {
+  describe('checkForNewBadges', () => {
     it('should update badges when new badges are unlocked', () => {
       const currentUnlockedBadges = ['badge1'];
       const newUnlockedBadges = ['badge1', 'badge2'];
@@ -21,18 +23,18 @@ describe('BadgeManager', () => {
 
       checkBadgeUnlocks.mockReturnValue(newUnlockedBadges);
 
-      badgeManager.checkAndUpdateBadges(
-        5, // level
-        3, // currentStreak
-        completedTasks, // completedTasks array
-        currentUnlockedBadges // current badges
+      badgeManager.checkForNewBadges(
+        5,
+        3,
+        completedTasks,
+        currentUnlockedBadges
       );
 
       expect(checkBadgeUnlocks).toHaveBeenCalledWith(
-        5, // level
-        3, // streak
-        10, // tasks length
-        completedTasks // tasks array
+        5,
+        3,
+        10,
+        completedTasks
       );
       expect(mockSetUnlockedBadges).toHaveBeenCalledWith(newUnlockedBadges);
     });
@@ -42,7 +44,7 @@ describe('BadgeManager', () => {
 
       checkBadgeUnlocks.mockReturnValue(['badge1']);
 
-      badgeManager.checkAndUpdateBadges(
+      badgeManager.checkForNewBadges(
         5,
         3,
         Array(10).fill({ id: 'task' }),
@@ -57,13 +59,13 @@ describe('BadgeManager', () => {
       const emptyTasks = [];
       checkBadgeUnlocks.mockReturnValue([]);
 
-      badgeManager.checkAndUpdateBadges(1, 0, emptyTasks, []);
+      badgeManager.checkForNewBadges(1, 0, emptyTasks, []);
 
       expect(checkBadgeUnlocks).toHaveBeenCalledWith(
-        1, // level
-        0, // streak
-        0, // tasks length
-        emptyTasks // tasks array
+        1,
+        0,
+        0,
+        emptyTasks
       );
       expect(mockSetUnlockedBadges).not.toHaveBeenCalled();
     });
@@ -71,17 +73,17 @@ describe('BadgeManager', () => {
     it('should pass correct parameters to checkBadgeUnlocks', () => {
       const completedTasks = Array(5).fill({ id: 'task' });
 
-      badgeManager.checkAndUpdateBadges(
-        10, // level
-        7, // streak
+      badgeManager.checkForNewBadges(
+        10,
+        7,
         completedTasks,
-        [] // current badges
+        []
       );
 
       expect(checkBadgeUnlocks).toHaveBeenCalledWith(
-        10, // level
-        7, // streak
-        5, // completed tasks count
+        10,
+        7,
+        5,
         completedTasks
       );
     });
@@ -90,7 +92,7 @@ describe('BadgeManager', () => {
       const newUnlockedBadges = ['badge1'];
       checkBadgeUnlocks.mockReturnValue(newUnlockedBadges);
 
-      badgeManager.checkAndUpdateBadges(1, 0, [], undefined);
+      badgeManager.checkForNewBadges(1, 0, [], undefined);
 
       expect(checkBadgeUnlocks).toHaveBeenCalled();
       expect(mockSetUnlockedBadges).toHaveBeenCalledWith(newUnlockedBadges);
@@ -118,7 +120,7 @@ describe('BadgeManager', () => {
       scenarios.forEach((scenario) => {
         checkBadgeUnlocks.mockReturnValue(scenario.new);
 
-        badgeManager.checkAndUpdateBadges(10, 5, [], scenario.current);
+        badgeManager.checkForNewBadges(10, 5, [], scenario.current);
 
         if (scenario.shouldUpdate) {
           expect(mockSetUnlockedBadges).toHaveBeenCalledWith(scenario.new);
