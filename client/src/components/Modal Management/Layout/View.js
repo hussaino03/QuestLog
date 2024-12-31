@@ -283,7 +283,7 @@ const View = ({
           showDetails ? 'max-h-[500px] py-3' : 'max-h-0'
         } overflow-hidden`}
       >
-        <div className="px-4 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
+        <div className="px-4 space-y-1.5 text-sm text-gray-600 dark:text-gray-300 max-h-[450px] overflow-y-auto">
           {!isCompleted && (
             <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">
               <button
