@@ -134,6 +134,7 @@ const AppContent = () => {
     if (updatedBadges.length !== unlockedBadges.length) {
       setUnlockedBadges(updatedBadges);
     }
+    // eslint-disable-next-line
   }, [level, currentStreak]); 
 
   useEffect(() => {
