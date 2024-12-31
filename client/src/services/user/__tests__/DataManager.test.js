@@ -139,6 +139,8 @@ describe('DataManager', () => {
       expect(mockSetters.setTasks).toHaveBeenCalledWith([]);
       expect(mockSetters.setCompletedTasks).toHaveBeenCalledWith([]);
       expect(mockSetters.resetXP).toHaveBeenCalled();
+      expect(mockSetters.setUnlockedBadges).toHaveBeenCalledWith([]); 
+
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/users/test-123'),
         expect.objectContaining({
@@ -147,7 +149,8 @@ describe('DataManager', () => {
             xp: 0,
             level: 1,
             tasks: [],
-            completedTasks: []
+            completedTasks: [],
+            unlockedBadges: []
           })
         })
       );

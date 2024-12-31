@@ -62,7 +62,8 @@ router.get('/current_user', authenticateToken, (req, res) => {
     level: req.user.level || 1,
     tasks: req.user.tasks || [],
     completedTasks: req.user.completedTasks || [],
-    isOptIn: req.user.isOptIn || false
+    isOptIn: req.user.isOptIn || false,
+    unlockedBadges: req.user.unlockedBadges || []
   });
 });
 

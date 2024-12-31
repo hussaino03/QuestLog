@@ -2,11 +2,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { startConfetti } from '../../utils/other/confettiUtils';
 
 class TaskManager {
-  constructor(calculateXP, setTasks, setCompletedTasks, setError) {
+  constructor(calculateXP, setTasks, setCompletedTasks, setError, badgeManager = null) {
     this.calculateXP = calculateXP;
     this.setTasks = setTasks;
     this.setCompletedTasks = setCompletedTasks;
     this.setError = setError;
+    this.badgeManager = badgeManager;
   }
 
   handleError(error, message) {
@@ -47,7 +48,18 @@ class TaskManager {
       completedTask.earlyBonus = xpResult.earlyBonus;
       completedTask.overduePenalty = xpResult.overduePenalty;
 
-      this.setCompletedTasks((prev) => [...prev, completedTask]);
+      // Update completed tasks and check for badges
+      this.setCompletedTasks((prev) => {
+        const updatedTasks = [...prev, completedTask];
+        if (this.badgeManager) {
+          this.badgeManager.checkForNewBadges(
+            undefined, 
+            undefined, 
+            updatedTasks 
+          );
+        }
+        return updatedTasks;
+      });
     } catch (error) {
       this.handleError(error, 'Error completing task:');
     }

@@ -8,6 +8,8 @@ class BadgeManager {
     this.notifiedBadges = new Set(
       JSON.parse(localStorage.getItem('notifiedBadges') || '[]')
     );
+    
+    this.notifyNewBadge = this.notifyNewBadge.bind(this);
   }
 
   notifyNewBadge(badgeId) {
@@ -28,28 +30,39 @@ class BadgeManager {
     }
   }
 
-  checkAndUpdateBadges(
+  checkForNewBadges(
     level,
     currentStreak,
     completedTasks,
     currentUnlockedBadges = []
   ) {
-    const tasksLength = Array.isArray(completedTasks)
-      ? completedTasks.length
-      : 0;
+    const tasksLength = Array.isArray(completedTasks) ? completedTasks.length : 0;
 
-    const newUnlockedBadges =
-      checkBadgeUnlocks(level, currentStreak, tasksLength, completedTasks) ||
-      [];
+    const newlyUnlockedBadges = checkBadgeUnlocks(
+      level,
+      currentStreak,
+      tasksLength,
+      completedTasks
+    ) || [];
 
-    newUnlockedBadges.forEach(this.notifyNewBadge.bind(this));
+    const uniqueNewBadges = newlyUnlockedBadges.filter(
+      (badge) => !currentUnlockedBadges.includes(badge)
+    );
 
-    if (
-      JSON.stringify(newUnlockedBadges) !==
-      JSON.stringify(currentUnlockedBadges)
-    ) {
-      this.setUnlockedBadges(newUnlockedBadges);
+    if (uniqueNewBadges.length > 0) {
+      uniqueNewBadges.forEach(this.notifyNewBadge);
+
+      const updatedBadges = [...new Set([...currentUnlockedBadges, ...uniqueNewBadges])];
+      this.setUnlockedBadges(updatedBadges);
+      return updatedBadges;
     }
+
+    return currentUnlockedBadges;
+  }
+
+  clearNotificationHistory() {
+    this.notifiedBadges.clear();
+    localStorage.removeItem('notifiedBadges');
   }
 }
 

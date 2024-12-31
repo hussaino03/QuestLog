@@ -18,9 +18,7 @@ class DataManager {
   };
 
   handleUserDataLoad = (userData) => {
-    // pull data from server
     if (!userData) return;
-
     const {
       setUserId,
       setTotalExperience,
@@ -35,7 +33,9 @@ class DataManager {
     setTasks(userData.tasks || []);
     setCompletedTasks(userData.completedTasks || []);
     setUserName(userData.name || null);
-    setUnlockedBadges(userData.unlockedBadges || []);
+    if (Array.isArray(userData.unlockedBadges)) {
+      setUnlockedBadges(userData.unlockedBadges);
+    }
   };
 
   async checkAuth(setLoading) {
@@ -87,17 +87,19 @@ class DataManager {
 
   async clearAllData(userId) {
     try {
-      const { setTasks, setCompletedTasks, resetXP } = this.setters;
+      const { setTasks, setCompletedTasks, resetXP, setUnlockedBadges } = this.setters;
 
       setTasks([]);
       setCompletedTasks([]);
       resetXP();
+      setUnlockedBadges([]); 
 
       await this.updateUserData(userId, {
         xp: 0,
         level: 1,
         tasks: [],
-        completedTasks: []
+        completedTasks: [],
+        unlockedBadges: [] 
       });
     } catch (error) {
       this.handleError(error, 'Error clearing data:', this.setters.setError);
@@ -105,24 +107,21 @@ class DataManager {
   }
 
   async syncUserData(userData) {
-    // send local data to server
     if (!userData.userId) return;
 
     try {
+      const currentBadges = userData.unlockedBadges || [];
+      
       await this.updateUserData(userData.userId, {
         xp: userData.getTotalXP(),
         level: userData.level,
         tasksCompleted: userData.completedTasks.length,
         tasks: userData.tasks,
         completedTasks: userData.completedTasks,
-        unlockedBadges: userData.unlockedBadges
+        ...(currentBadges.length > 0 && { unlockedBadges: currentBadges })
       });
     } catch (error) {
-      this.handleError(
-        error,
-        'Error syncing user data:',
-        this.setters.setError
-      );
+      this.handleError(error, 'Error syncing user data:', this.setters.setError);
     }
   }
 

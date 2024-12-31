@@ -44,6 +44,15 @@ async function updateUser(req, res) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
+    // Get existing user data
+    const existingUser = await usersCollection.findOne({ _id: userId });
+    const existingBadges = existingUser?.unlockedBadges || [];
+
+    // Only merge badges if they're not being explicitly cleared
+    const mergedBadges = req.body.unlockedBadges === undefined
+      ? [...new Set([...existingBadges, ...(req.body.unlockedBadges || [])])]
+      : req.body.unlockedBadges; 
+
     const result = await usersCollection.updateOne(
       { _id: userId },
       {
@@ -53,7 +62,7 @@ async function updateUser(req, res) {
           level: numLevel,
           tasks: sanitizedTasks,
           completedTasks: sanitizedCompletedTasks,
-          unlockedBadges: Array.isArray(unlockedBadges) ? unlockedBadges : [],
+          unlockedBadges: mergedBadges,
           updatedAt: new Date()
         }
       }
@@ -98,7 +107,6 @@ async function getUser(req, res) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    console.log(`Retrieved user: ${req.params.id}`);
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
