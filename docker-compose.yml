@@ -1,6 +1,16 @@
 version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    environment:
+      - MONGO_INITDB_DATABASE=questlog_test
+
   client:
     build:
       context: ./client
@@ -20,7 +30,7 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_URI=${MONGODB_URI} 
       - CLIENT=${CLIENT}
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
@@ -34,4 +44,8 @@ services:
       - TICKTICK_CLIENT_SECRET=${TICKTICK_CLIENT_SECRET}
       - TICKTICK_REDIRECT_URL=${TICKTICK_REDIRECT_URL}
       - GEMINI_API_KEY=$(GEMINI_API_KEY)
-      
+    depends_on:
+      - mongodb
+
+volumes:
+  mongodb_data:

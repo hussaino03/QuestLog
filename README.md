@@ -141,9 +141,8 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
 ## 🚀 Quick Start
 ### Prerequisites
 - Node.js (v14.0.0 or later)
-- npm (v6.0.0 or later)
-- MongoDB account and database
-- Google Cloud Platform account for OAuth
+- Docker and Docker Compose
+- Google OAuth credentials from Google Cloud Console
 
 ### Installation
 
@@ -153,36 +152,27 @@ classDef database fill:#4479a1,stroke:#333,stroke-width:2px
    cd QuestLog
    ```
 
-2. Set up environment variables:
+2. Set up environment:
    ```bash
    # Copy the example environment file
-   cp example.env .env
+   cp example.env .env.test
 
-   # Open .env and update all the required variables with your values
-   # Make sure to set:
-   # - MONGODB_URI for your database
-   # - Google OAuth credentials
-   # - Integration API keys
-   # - Other required variables
+   # Only required changes:
+   # - GOOGLE_CLIENT_ID=your_client_id_from_google_cloud_console
+   # - GOOGLE_CLIENT_SECRET=your_client_secret_from_google_cloud_console
+   # - REACT_APP_GOOGLE_CLIENT_ID=same_as_GOOGLE_CLIENT_ID
    ```
 
-3. Build and start with Docker:
+3. Start with Docker:
    ```bash
-   # Build and start all services
-   docker-compose up --build
-
-   # Or run in detached mode
-   docker-compose up -d
+   docker-compose --env-file .env.test up --build
    ```
 
 4. Access the application:
-   - Frontend: `http://localhost:3000`
-   - Backend API: `http://localhost:3001`
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:3001
 
-5. To stop the application:
-   ```bash
-   docker-compose down
-   ```
+The example.env includes working test values for all other configurations. You only need to provide Google OAuth credentials to get started.
 
 ## 🔧 API Endpoints
 - `POST /api/users`: Create or retrieve a user
