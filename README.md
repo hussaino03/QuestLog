@@ -1,6 +1,6 @@
 # QuestLog
 
-![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-231-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-364,647-red?logo=zap&logoColor=white) ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/smart-listapp)
+![Current Authorized Users](https://img.shields.io/badge/Current%20Authorized%20Users-267-blue?logo=mongodb&logoColor=white) ![Total User XP](https://img.shields.io/badge/Total%20User%20XP-364,761-red?logo=zap&logoColor=white) ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/smart-listapp)
 <!-- These values update automatically every 1st and 15th of the month -->
 
 QuestLog is an AI-powered productivity platform that turns task/project management into a rewarding progression system. Through XP points, achievement tracking, and smart insights, it creates an engaging framework that helps users maximize their daily productivity while making personal growth measurable and motivating!
