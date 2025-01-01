@@ -2,6 +2,36 @@
 
 Thank you for your interest in contributing to QuestLog! Here's how you can help:
 
+## Development Setup
+
+1. Clone your fork:
+   ```bash
+   git clone https://github.com/yourusername/QuestLog.git
+   cd QuestLog
+   ```
+
+2. Set up environment:
+   ```bash
+   # Copy the example environment file
+   cp example.env .env.test
+
+   # Required: Update only these values in .env.test
+   GOOGLE_CLIENT_ID=your_client_id_from_google_cloud_console
+   GOOGLE_CLIENT_SECRET=your_client_secret_from_google_cloud_console
+   REACT_APP_GOOGLE_CLIENT_ID=same_as_GOOGLE_CLIENT_ID
+   ```
+
+3. Start the application:
+   ```bash
+   docker-compose --env-file .env.test up --build
+   ```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+
+All other configuration values in example.env are pre-configured for development.
+
 ## How to Contribute
 
 1. Fork the repository
@@ -11,27 +41,6 @@ Thank you for your interest in contributing to QuestLog! Here's how you can help
 5. Commit your changes (`git commit -am 'Add new feature'`)
 6. Push to the branch (`git push origin feature/your-feature`)
 7. Create a Pull Request
-
-## Development Setup
-
-1. Clone your fork:
-   ```bash
-   git clone https://github.com/yourusername/QuestLog.git
-   cd QuestLog
-   ```
-2. Copy and configure environment variables:
-   ```bash
-   cp example.env .env
-   # Update .env with your values
-   ```
-3. Build and start with Docker:
-   ```bash
-   docker-compose up --build
-   ```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
 
 ## Pull Request Guidelines
 
