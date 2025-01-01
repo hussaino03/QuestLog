@@ -5,9 +5,15 @@ class BadgeManager {
   constructor(setUnlockedBadges, addNotification) {
     this.setUnlockedBadges = setUnlockedBadges;
     this.addNotification = addNotification;
-    this.notifiedBadges = new Set(
-      JSON.parse(localStorage.getItem('notifiedBadges') || '[]')
-    );
+    
+    try {
+      this.notifiedBadges = new Set(
+        JSON.parse(localStorage.getItem('notifiedBadges') || '[]')
+      );
+    } catch (error) {
+      console.error('Failed to parse notified badges:', error);
+      this.notifiedBadges = new Set();
+    }
     
     this.notifyNewBadge = this.notifyNewBadge.bind(this);
   }

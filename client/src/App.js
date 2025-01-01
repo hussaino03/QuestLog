@@ -83,8 +83,7 @@ const AppContent = () => {
     calculateXP,
     setTasks,
     setCompletedTasks,
-    setError,
-    badgeManager 
+    setError
   );
 
   const themeManager = useMemo(() => new ThemeManager(setIsDark), []);
@@ -134,8 +133,7 @@ const AppContent = () => {
     if (updatedBadges.length !== unlockedBadges.length) {
       setUnlockedBadges(updatedBadges);
     }
-    // eslint-disable-next-line
-  }, [level, currentStreak]); 
+  }, [level, currentStreak, completedTasks, badgeManager, unlockedBadges]); 
 
   useEffect(() => {
     const newStreakData = streakManager.calculateStreak(completedTasks);
