@@ -10,6 +10,7 @@ import {
   Users
 } from 'lucide-react';
 import Footer from '../Layout/Footer';
+import ReviewCards from './ReviewCards';
 
 const ThemeToggle = ({ isDark, onToggle }) => (
   <button
@@ -66,6 +67,7 @@ const Landing = ({ isDark, onToggle }) => {
 
   return (
     <>
+      <ReviewCards />
       {showCookieWarning && (
         <div className="fixed top-0 left-0 right-0 bg-gray-100/90 dark:bg-gray-800/90 p-3 text-center z-[100] shadow-sm border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
