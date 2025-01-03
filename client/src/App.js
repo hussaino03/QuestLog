@@ -33,7 +33,7 @@ import StreakManager from './services/streak/StreakManager';
 import ViewManager from './services/view/ViewManager';
 import BadgeManager from './services/badge/BadgeManager';
 import CollaborationManager from './services/collaboration/CollaborationManager';
-import SupportReminder from './components/Modal Management/SupportReminder';
+import SupportReminder from './components/Layout/SupportReminder';
 
 const AppContent = () => {
   const [isDark, setIsDark] = useState(false);
