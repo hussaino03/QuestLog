@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 
 async function sendFeedback(req, res) {
-  const { ratings, feedback } = req.body;
+  const { ratings, feedback, role } = req.body;
 
   try {
     if (!req.isAuthenticated()) {
@@ -39,7 +39,8 @@ async function sendFeedback(req, res) {
       from: userEmail,
       to: process.env.EMAIL_USER,
       subject: 'QuestLog Feedback',
-      text: `From: ${userName} (${userEmail})\n\nRatings:\n${ratingsSummary}\n\nFeedback:\n${feedback}`
+      text: `From: ${userName} (${userEmail}) ${role ? `\nRole: ${role}` : ''} \n Ratings: \n ${ratingsSummary} \
+      \n Feedback: ${feedback}`
     };
 
     await transporter.sendMail(mailOptions);

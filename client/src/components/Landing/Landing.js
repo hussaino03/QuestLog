@@ -7,9 +7,12 @@ import {
   Sparkles,
   ChartLine,
   Flag,
-  Users
+  Users,
+  Star
 } from 'lucide-react';
 import Footer from '../Layout/Footer';
+import ReviewCards from './ReviewCards';
+import { reviews } from './ReviewCards';
 
 const ThemeToggle = ({ isDark, onToggle }) => (
   <button
@@ -66,6 +69,7 @@ const Landing = ({ isDark, onToggle }) => {
 
   return (
     <>
+      <ReviewCards />
       {showCookieWarning && (
         <div className="fixed top-0 left-0 right-0 bg-gray-100/90 dark:bg-gray-800/90 p-3 text-center z-[100] shadow-sm border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -269,7 +273,8 @@ const Landing = ({ isDark, onToggle }) => {
             </div>
           </div>
 
-          <div className="mt-32 text-center opacity-0 animate-[scale_0.4s_ease-out_2.2s_forwards]">
+          {/* Ready to Level Up section */}
+          <div className="mt-24 text-center opacity-0 animate-[scale_0.4s_ease-out_2.2s_forwards]">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
               Ready to Level Up?
             </h2>
@@ -283,6 +288,93 @@ const Landing = ({ isDark, onToggle }) => {
               Begin Your Journey
             </button>
           </div>
+        </div>
+
+        {/* Mobile Reviews Section */}
+        <div className="sm:hidden mt-24">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8 opacity-0 animate-[scale_0.4s_ease-out_0.2s_forwards] px-4">
+            What Users Say
+          </h2>
+          
+          {/* Featured Reviews */}
+          <div className="px-4 space-y-4 mb-8">
+            {reviews.slice(0, 3).map((review, index) => (
+              <div
+                key={index}
+                className="opacity-0 animate-[scale_0.4s_ease-out_forwards] bg-white/25 dark:bg-gray-800/25 
+                         rounded-lg p-4 shadow-sm"
+                style={{ animationDelay: `${0.3 + index * 0.1}s` }}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold">
+                      {review.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      {review.name}
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                      {review.role}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 mb-2">
+                  {[...Array(review.rating)].map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-current text-yellow-500" />
+                  ))}
+                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-200">
+                  {review.content}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* More Reviews */}
+          {reviews.length > 3 && (
+            <>
+              <p className="text-sm text-center text-gray-600 dark:text-gray-400 mb-4">
+                Swipe for more reviews
+              </p>
+              <div className="flex overflow-x-auto pb-6 px-4 gap-4 scrollbar-none snap-x snap-mandatory">
+                {reviews.slice(3).map((review, index) => (
+                  <div
+                    key={index + 3}
+                    className="opacity-0 animate-[scale_0.4s_ease-out_forwards] bg-white/25 dark:bg-gray-800/25 
+                             rounded-lg p-4 shadow-sm flex-none w-[85%] snap-center"
+                    style={{ animationDelay: `${0.6 + index * 0.1}s` }}
+                  >
+                    {/* Same review card content */}
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
+                          {review.name.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                          {review.name}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
+                          {review.role}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mb-2">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-current text-yellow-500" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-200">
+                      {review.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
