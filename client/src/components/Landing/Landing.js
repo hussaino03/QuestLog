@@ -154,6 +154,11 @@ const Landing = ({ isDark, onToggle }) => {
               >
                 Start Your Quest
               </button>
+              <div className="mt-4 flex justify-center">
+                <a href="https://www.producthunt.com/posts/questlog?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-questlog" target="_blank" rel="noopener noreferrer">
+                  <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=704944&theme=dark&t=1737137945715" alt="QuestLog - Turning productivity into progress & achievements | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" />
+                </a>
+              </div>
             </div>
 
             {/* Secondary Content - Stats */}
