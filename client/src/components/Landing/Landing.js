@@ -154,6 +154,9 @@ const Landing = ({ isDark, onToggle }) => {
               >
                 Start Your Quest
               </button>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                $0.99 per year · Secure payment via Stripe
+              </p>
               <div className="mt-4 flex justify-center">
                 <a
                   href="https://www.producthunt.com/posts/questlog?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-questlog"
@@ -302,6 +305,9 @@ const Landing = ({ isDark, onToggle }) => {
             >
               Begin Your Journey
             </button>
+            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+              $0.99 per year · All features included
+            </p>
           </div>
         </div>
 
