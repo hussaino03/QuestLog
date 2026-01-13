@@ -110,6 +110,9 @@ export const checkBadgeUnlocks = (
 ) => {
   const unlockedBadges = [];
 
+  // Ensure completedTasks is an array
+  const tasks = Array.isArray(completedTasks) ? completedTasks : [];
+
   Object.values(BADGES).forEach((badge) => {
     // Level achievements
     if (badge.level && level >= badge.level) {
@@ -128,7 +131,7 @@ export const checkBadgeUnlocks = (
 
     // Early completion badges
     if (badge.earlyCompletions) {
-      const earlyCount = completedTasks.filter((task) => {
+      const earlyCount = tasks.filter((task) => {
         const completedDate = new Date(task.completedAt);
         const deadline = new Date(task.deadline);
         return completedDate < deadline;
@@ -140,7 +143,7 @@ export const checkBadgeUnlocks = (
 
     // Night owl badges (10 PM - 4 AM)
     if (badge.nightCompletions) {
-      const nightCount = completedTasks.filter((task) => {
+      const nightCount = tasks.filter((task) => {
         const completedHour = new Date(task.completedAt).getHours();
         return completedHour >= 22 || completedHour <= 4;
       }).length;
@@ -151,7 +154,7 @@ export const checkBadgeUnlocks = (
 
     // Daily achievement badges
     if (badge.tasksPerDay) {
-      const tasksPerDayMap = completedTasks.reduce((acc, task) => {
+      const tasksPerDayMap = tasks.reduce((acc, task) => {
         const date = new Date(task.completedAt).toDateString();
         acc[date] = (acc[date] || 0) + 1;
         return acc;
@@ -167,7 +170,7 @@ export const checkBadgeUnlocks = (
 
     // Weekend warrior badges
     if (badge.weekendCompletions) {
-      const weekendCount = completedTasks.filter((task) => {
+      const weekendCount = tasks.filter((task) => {
         const day = new Date(task.completedAt).getDay();
         return day === 0 || day === 6; // Sunday or Saturday
       }).length;
@@ -178,7 +181,7 @@ export const checkBadgeUnlocks = (
 
     // Deadline precision badges (within 1 hour)
     if (badge.exactDeadlines) {
-      const exactCount = completedTasks.filter((task) => {
+      const exactCount = tasks.filter((task) => {
         const completedDate = new Date(task.completedAt);
         const deadline = new Date(task.deadline);
         return Math.abs(completedDate - deadline) < 1000 * 60 * 60;
