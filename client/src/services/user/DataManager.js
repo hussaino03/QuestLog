@@ -87,19 +87,20 @@ class DataManager {
 
   async clearAllData(userId) {
     try {
-      const { setTasks, setCompletedTasks, resetXP, setUnlockedBadges } = this.setters;
+      const { setTasks, setCompletedTasks, resetXP, setUnlockedBadges } =
+        this.setters;
 
       setTasks([]);
       setCompletedTasks([]);
       resetXP();
-      setUnlockedBadges([]); 
+      setUnlockedBadges([]);
 
       await this.updateUserData(userId, {
         xp: 0,
         level: 1,
         tasks: [],
         completedTasks: [],
-        unlockedBadges: [] 
+        unlockedBadges: []
       });
     } catch (error) {
       this.handleError(error, 'Error clearing data:', this.setters.setError);
@@ -111,7 +112,7 @@ class DataManager {
 
     try {
       const currentBadges = userData.unlockedBadges || [];
-      
+
       await this.updateUserData(userData.userId, {
         xp: userData.getTotalXP(),
         level: userData.level,
@@ -121,7 +122,11 @@ class DataManager {
         ...(currentBadges.length > 0 && { unlockedBadges: currentBadges })
       });
     } catch (error) {
-      this.handleError(error, 'Error syncing user data:', this.setters.setError);
+      this.handleError(
+        error,
+        'Error syncing user data:',
+        this.setters.setError
+      );
     }
   }
 

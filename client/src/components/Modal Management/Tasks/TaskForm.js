@@ -10,7 +10,7 @@ const TaskForm = ({ addTask }) => {
     difficulty: 50,
     importance: 50,
     deadline: '',
-    urgent: false, 
+    urgent: false,
     label: ''
   };
 
@@ -33,7 +33,7 @@ const TaskForm = ({ addTask }) => {
       setError('Task name is required');
       return;
     }
-    
+
     // Handle urgent label
     let finalLabel = formState.label;
     if (formState.urgent) {
@@ -44,19 +44,19 @@ const TaskForm = ({ addTask }) => {
         finalLabel = (finalLabel + urgentSuffix).slice(0, MAX_LABEL_LENGTH);
       }
     }
-    
+
     const newTask = {
       name: formState.name,
       desc: formState.description,
       difficulty: formState.difficulty,
       importance: formState.importance,
       deadline: formState.deadline || null,
-      urgent: formState.urgent, 
+      urgent: formState.urgent,
       label: finalLabel,
       experience: calculateBaseXP(
         formState.difficulty,
         formState.importance,
-        formState.urgent 
+        formState.urgent
       ),
       completion: false
     };
@@ -77,7 +77,7 @@ const TaskForm = ({ addTask }) => {
     setSelectedDeadline(null);
   };
 
-  const toggleUrgent = () => { 
+  const toggleUrgent = () => {
     updateFormState('urgent', !formState.urgent);
   };
 
@@ -119,9 +119,7 @@ const TaskForm = ({ addTask }) => {
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
         />
         {error && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-            {error}
-          </p>
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
       </div>
 
@@ -305,7 +303,7 @@ const TaskForm = ({ addTask }) => {
                 {calculateBaseXP(
                   formState.difficulty,
                   formState.importance,
-                  formState.urgent 
+                  formState.urgent
                 )}
               </div>
             </div>

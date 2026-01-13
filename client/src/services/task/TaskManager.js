@@ -80,8 +80,9 @@ class TaskManager {
     try {
       // First check if this is a shared project update
       if (updatedTask.isShared) {
-        const baseUrl = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
-        
+        const baseUrl =
+          process.env.REACT_APP_PROD || 'http://localhost:3001/api';
+
         // Sync the update with server first
         const response = await fetch(
           `${baseUrl}/collaboration/projects/${taskId}/details`,
@@ -89,9 +90,9 @@ class TaskManager {
             method: 'PUT',
             credentials: 'include',
             headers: {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify(updatedTask),
+            body: JSON.stringify(updatedTask)
           }
         );
 
@@ -120,23 +121,26 @@ class TaskManager {
   async joinProject(shareCode) {
     try {
       const baseUrl = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
-      const response = await fetch(`${baseUrl}/collaboration/projects/${shareCode}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${baseUrl}/collaboration/projects/${shareCode}`,
+        {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
 
       if (!response.ok) {
         return false;
       }
 
       const project = await response.json();
-      
-      this.setTasks(currentTasks => {
-        const exists = currentTasks.some(t => t.id === project.id);
+
+      this.setTasks((currentTasks) => {
+        const exists = currentTasks.some((t) => t.id === project.id);
         if (!exists) {
           return [...currentTasks, project];
         }
@@ -154,11 +158,12 @@ class TaskManager {
     console.log(`[SYNC] Starting sync for project: ${taskId}`);
     let syncAttempts = 0;
     const maxAttempts = 3;
-    
+
     const syncInterval = setInterval(async () => {
       try {
         console.log(`[SYNC] Polling updates for project ${taskId}`);
-        const baseUrl = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
+        const baseUrl =
+          process.env.REACT_APP_PROD || 'http://localhost:3001/api';
         const url = `${baseUrl}/collaboration/projects/${taskId}`;
         console.log(`[SYNC] Making request to: ${url}`);
 
@@ -166,22 +171,27 @@ class TaskManager {
           method: 'GET',
           credentials: 'include',
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
           }
         });
 
         if (!response.ok) {
           syncAttempts++;
           const errorText = await response.text();
-          console.error(`[SYNC] Server error response (attempt ${syncAttempts}/${maxAttempts}):`, errorText);
-          
+          console.error(
+            `[SYNC] Server error response (attempt ${syncAttempts}/${maxAttempts}):`,
+            errorText
+          );
+
           if (syncAttempts >= maxAttempts) {
-            console.error(`[SYNC] Max retry attempts reached for project ${taskId}`);
+            console.error(
+              `[SYNC] Max retry attempts reached for project ${taskId}`
+            );
             clearInterval(syncInterval);
             return;
           }
-          
+
           throw new Error(`Failed to sync project: ${response.status}`);
         }
 
@@ -200,27 +210,26 @@ class TaskManager {
         }
 
         console.log(`[SYNC] Received project update:`, project);
-        
+
         // Update the task in state if it exists and has changed
-        this.setTasks(currentTasks => {
-          const taskIndex = currentTasks.findIndex(t => t.id === taskId);
+        this.setTasks((currentTasks) => {
+          const taskIndex = currentTasks.findIndex((t) => t.id === taskId);
           if (taskIndex === -1) {
             console.log(`[SYNC] Task ${taskId} not found in current tasks`);
             return currentTasks;
           }
-          
+
           const currentTask = currentTasks[taskIndex];
           if (JSON.stringify(currentTask) === JSON.stringify(project)) {
             console.log(`[SYNC] No changes detected for project ${taskId}`);
             return currentTasks;
           }
-          
+
           console.log(`[SYNC] Updating local state for project ${taskId}`);
           const newTasks = [...currentTasks];
           newTasks[taskIndex] = project;
           return newTasks;
         });
-        
       } catch (error) {
         console.error('[SYNC] Project sync error:', error);
       }

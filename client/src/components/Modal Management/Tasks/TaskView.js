@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { formatDeadline, isOverdue, calculateOverduePenalty } from '../../../utils/tasks/tasksUtils';
+import {
+  formatDeadline,
+  isOverdue,
+  calculateOverduePenalty
+} from '../../../utils/tasks/tasksUtils';
 
-const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => {
+const TaskView = ({
+  task,
+  isCompleted,
+  isTextTruncated,
+  textRef,
+  nameOnly
+}) => {
   const [showFullNameModal, setShowFullNameModal] = useState(false);
 
   const TaskName = () => (
@@ -68,7 +78,9 @@ const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => 
                   onClick={() => setShowFullNameModal(false)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
                 >
-                  <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                  <span className="text-red-600 dark:text-red-400 text-lg">
+                    ×
+                  </span>
                 </button>
               </div>
               <div className="p-6 text-left">
@@ -129,7 +141,11 @@ const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => 
               Difficulty
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {task.difficulty < 33 ? 'Easy' : task.difficulty < 66 ? 'Medium' : 'Hard'}
+              {task.difficulty < 33
+                ? 'Easy'
+                : task.difficulty < 66
+                  ? 'Medium'
+                  : 'Hard'}
             </span>
           </div>
         </div>
@@ -167,7 +183,11 @@ const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => 
               Importance
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {task.importance < 33 ? 'Low' : task.importance < 66 ? 'Medium' : 'High'}
+              {task.importance < 33
+                ? 'Low'
+                : task.importance < 66
+                  ? 'Medium'
+                  : 'High'}
             </span>
           </div>
         </div>
@@ -198,10 +218,14 @@ const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => 
           </span>
         </div>
         <div className="flex items-center">
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
-            ${task.urgent 
-              ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
-              : 'bg-gray-50 dark:bg-gray-500/10 text-gray-600 dark:text-gray-400'}`}>
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+            ${
+              task.urgent
+                ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
+                : 'bg-gray-50 dark:bg-gray-500/10 text-gray-600 dark:text-gray-400'
+            }`}
+          >
             {task.urgent ? '🚨 Urgent' : '⏱️ Regular'}
           </span>
         </div>
@@ -226,7 +250,9 @@ const TaskView = ({ task, isCompleted, isTextTruncated, textRef, nameOnly }) => 
                 onClick={() => setShowFullNameModal(false)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
               >
-                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                <span className="text-red-600 dark:text-red-400 text-lg">
+                  ×
+                </span>
               </button>
             </div>
 

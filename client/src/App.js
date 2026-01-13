@@ -133,7 +133,7 @@ const AppContent = () => {
     if (updatedBadges.length !== unlockedBadges.length) {
       setUnlockedBadges(updatedBadges);
     }
-  }, [level, currentStreak, completedTasks, badgeManager, unlockedBadges]); 
+  }, [level, currentStreak, completedTasks, badgeManager, unlockedBadges]);
 
   useEffect(() => {
     const newStreakData = streakManager.calculateStreak(completedTasks);
@@ -176,13 +176,13 @@ const AppContent = () => {
   const dismissAnnouncement = () => {
     const stored = localStorage.getItem('announcements');
     const allAnnouncements = stored ? JSON.parse(stored) : [];
-    
+
     allAnnouncements.push({
       type: 'collaboration',
       seen: true,
       timestamp: new Date().toISOString()
     });
-    
+
     localStorage.setItem('announcements', JSON.stringify(allAnnouncements));
     setShowAnnouncement(false);
   };
@@ -193,7 +193,7 @@ const AppContent = () => {
   };
 
   const handleConfirmClear = async () => {
-    badgeManager.clearNotificationHistory(); 
+    badgeManager.clearNotificationHistory();
     await dataManager.clearAllData(userId);
     setShowClearDataModal(false);
   };
@@ -256,7 +256,8 @@ const AppContent = () => {
                               New Feature: Collaborative Projects
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Share and collaborate on projects with your team in real-time
+                              Share and collaborate on projects with your team
+                              in real-time
                             </p>
                           </div>
                         </div>
@@ -265,7 +266,9 @@ const AppContent = () => {
                           className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
                           aria-label="Dismiss announcement"
                         >
-                          <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                          <span className="text-red-600 dark:text-red-400 text-lg">
+                            ×
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -293,9 +296,9 @@ const AppContent = () => {
                               }
                               onClearDataClick={handleClearDataClick}
                             />
-                            <Form 
-                              addTask={taskManager.addTask} 
-                              taskManager={taskManager} 
+                            <Form
+                              addTask={taskManager.addTask}
+                              taskManager={taskManager}
                             />
                           </div>
                         </div>
@@ -319,8 +322,10 @@ const AppContent = () => {
                                       isCompleted={false}
                                       addTask={taskManager.addTask}
                                       updateTask={taskManager.updateTask}
-                                      collaborationManager={collaborationManager}
-                                      userId={userId} 
+                                      collaborationManager={
+                                        collaborationManager
+                                      }
+                                      userId={userId}
                                     />
                                   )}
                                   {currentView === 'completed' && (

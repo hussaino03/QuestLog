@@ -2,21 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import PomodoroTimer from '../../Timer/PomodoroTimer';
 import TaskView from '../Tasks/TaskView';
 import ProjectView from '../Projects/ProjectView';
-import { 
-  isOverdue, 
-  calculateOverduePenalty, 
-  handleEdit, 
-  checkTextTruncation 
+import {
+  isOverdue,
+  calculateOverduePenalty,
+  handleEdit,
+  checkTextTruncation
 } from '../../../utils/tasks/tasksUtils';
 
-const View = ({ 
-  task, 
-  removeTask, 
-  completeTask, 
-  isCompleted, 
+const View = ({
+  task,
+  removeTask,
+  completeTask,
+  isCompleted,
   updateTask,
   collaborationManager,
-  userId  
+  userId
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
@@ -96,7 +96,7 @@ const View = ({
           </form>
         ) : (
           <span className="flex-1 min-w-0 text-center text-gray-700 dark:text-gray-200 mx-2 flex items-center justify-center gap-2 flex-wrap">
-            <TaskView 
+            <TaskView
               task={task}
               isCompleted={isCompleted}
               showDescription={showDescription}
@@ -118,20 +118,23 @@ const View = ({
               {task.label ? (
                 <span
                   className={`inline-flex text-xs px-1.5 py-0.5 ${
-                    task.urgent ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' 
-                    : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                    task.urgent
+                      ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+                      : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
                   } rounded-full border whitespace-nowrap`}
                 >
                   {task.label}
                 </span>
-              ) : task.urgent && (
-                <span
-                  className="inline-flex text-xs px-1.5 py-0.5 bg-red-50 dark:bg-red-500/10 
+              ) : (
+                task.urgent && (
+                  <span
+                    className="inline-flex text-xs px-1.5 py-0.5 bg-red-50 dark:bg-red-500/10 
                              text-red-600 dark:text-red-400 rounded-full border 
                              border-red-200 dark:border-red-800 whitespace-nowrap"
-                >
-                  Urgent
-                </span>
+                  >
+                    Urgent
+                  </span>
+                )
               )}
               {!isCompleted && task.deadline && isOverdue(task.deadline) && (
                 <span
@@ -310,15 +313,15 @@ const View = ({
           )}
 
           {task.subtasks ? (
-            <ProjectView 
+            <ProjectView
               task={task}
               isCompleted={isCompleted}
               updateTask={updateTask}
               collaborationManager={collaborationManager}
-              userId={userId}  
+              userId={userId}
             />
           ) : (
-            <TaskView 
+            <TaskView
               task={task}
               isCompleted={isCompleted}
               showDescription={showDescription}

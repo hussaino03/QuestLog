@@ -154,7 +154,7 @@ describe('TaskView Integration Tests', () => {
       name: 'This is a very very very very very long task name that should be truncated'
     };
     setup({ task: longNameTask });
-    
+
     // Find the eye icon button by its SVG path
     const viewButton = screen.getByRole('button', {
       name: /View full name/i
@@ -195,7 +195,7 @@ describe('Edit Mode Tests', () => {
       name: '✎'
     });
     fireEvent.click(editButton);
-    
+
     expect(screen.getByDisplayValue('Test Task')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test description')).toBeInTheDocument();
     expect(screen.getByDisplayValue('test-label')).toBeInTheDocument();

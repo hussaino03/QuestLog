@@ -17,7 +17,7 @@ const TaskList = ({
   addTask,
   updateTask,
   collaborationManager,
-  userId 
+  userId
 }) => {
   const [quickTaskInput, setQuickTaskInput] = useState('');
   const [isCalendarView, setIsCalendarView] = useState(false);
@@ -300,7 +300,7 @@ const TaskList = ({
                         isCompleted={isCompleted}
                         updateTask={updateTask}
                         collaborationManager={collaborationManager}
-                        userId={userId} 
+                        userId={userId}
                       />
                     ))}
                   </ul>

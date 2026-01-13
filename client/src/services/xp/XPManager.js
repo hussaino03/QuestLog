@@ -95,9 +95,11 @@ const useXPManager = () => {
   };
 
   const calculateBaseXP = (difficulty, importance, urgent = false) => {
-    return (parseInt(difficulty) + parseInt(importance) + 20) * 5 +
+    return (
+      (parseInt(difficulty) + parseInt(importance) + 20) * 5 +
       parseInt((parseInt(difficulty) * parseInt(importance)) / 20) +
-      (urgent ? 150 : 0);
+      (urgent ? 150 : 0)
+    );
   };
 
   const resetXP = () => {

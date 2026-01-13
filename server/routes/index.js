@@ -4,7 +4,7 @@ const userRoutes = require('./users/users.routes');
 const leaderboardRoutes = require('./leaderboard/leaderboard.routes');
 const feedbackRoutes = require('./feedback/feedback.routes');
 const aiRoutes = require('./ai/ai.routes');
-const collaborationRoutes = require('./collaboration/collaboration.routes')
+const collaborationRoutes = require('./collaboration/collaboration.routes');
 
 router.use('/users', userRoutes);
 router.use('/leaderboard', leaderboardRoutes);
