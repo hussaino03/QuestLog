@@ -346,7 +346,12 @@ const AppContent = () => {
                       {/* Side Panel - Desktop */}
                       <div className="hidden lg:flex lg:flex-col space-y-6 h-full pt-[102px]">
                         <div className="flex-shrink-0">
-                          <BadgeGrid unlockedBadges={unlockedBadges} />
+                          <BadgeGrid
+                            unlockedBadges={unlockedBadges}
+                            level={level}
+                            currentStreak={streakData.current}
+                            completedTasks={completedTasks}
+                          />
                         </div>
                         <div className="flex-shrink-0">
                           <StreakTracker
@@ -366,7 +371,12 @@ const AppContent = () => {
                       {/* Side Panel - Mobile */}
                       <div className="lg:hidden mt-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <BadgeGrid unlockedBadges={unlockedBadges} />
+                          <BadgeGrid
+                            unlockedBadges={unlockedBadges}
+                            level={level}
+                            currentStreak={streakData.current}
+                            completedTasks={completedTasks}
+                          />
                           <StreakTracker
                             completedTasks={completedTasks}
                             streakData={streakData}

@@ -2,8 +2,17 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import Badge from './Badge.js';
 import { Trophy } from 'lucide-react';
+import { calculateBadgeProgress } from '../../utils/badges/badgeUtils';
 
-const BadgesModal = ({ isOpen, onClose, badges, unlockedBadges }) => {
+const BadgesModal = ({
+  isOpen,
+  onClose,
+  badges,
+  unlockedBadges,
+  level = 0,
+  currentStreak = 0,
+  completedTasks = []
+}) => {
   if (!isOpen) return null;
 
   return createPortal(
@@ -46,13 +55,24 @@ const BadgesModal = ({ isOpen, onClose, badges, unlockedBadges }) => {
         >
           <div className="p-6">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-              {Object.values(badges).map((badge) => (
-                <Badge
-                  key={badge.id}
-                  badge={badge}
-                  isUnlocked={unlockedBadges.includes(badge.id)}
-                />
-              ))}
+              {Object.values(badges).map((badge) => {
+                const isUnlocked = unlockedBadges.includes(badge.id);
+                const badgeProgress = calculateBadgeProgress(
+                  badge,
+                  level,
+                  currentStreak,
+                  completedTasks.length,
+                  completedTasks
+                );
+                return (
+                  <Badge
+                    key={badge.id}
+                    badge={badge}
+                    isUnlocked={isUnlocked}
+                    progress={badgeProgress}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
