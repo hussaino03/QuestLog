@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const {
-    shareProject,
-    getSharedProject,
-    updateSharedProject,
-    updateSharedProjectDetails
+  shareProject,
+  getSharedProject,
+  updateSharedProject,
+  updateSharedProjectDetails
 } = require('../../controllers/collaboration/collaboration.controller');
 
 router.post('/projects/:taskId/share', shareProject);

@@ -379,10 +379,10 @@ describe('Task Form XP Calculations', () => {
 
   test('handles edge case XP values', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     // Min values - (0 + 0 + 20) * 5 + 0 = 100
     expect(result.current.calculateBaseXP(0, 0, false)).toBe(100);
-    
+
     // Max values calculation:
     // Base: (100 + 100 + 20) * 5 = 1100
     // Difficulty/Importance: (100 * 100) / 20 = 500
@@ -410,7 +410,14 @@ describe('Project Form XP Calculations', () => {
     let totalXP = 0;
     await act(async () => {
       totalXP = projectData.subtasks.reduce((sum, task) => {
-        return sum + result.current.calculateBaseXP(task.difficulty, task.importance, false);
+        return (
+          sum +
+          result.current.calculateBaseXP(
+            task.difficulty,
+            task.importance,
+            false
+          )
+        );
       }, 0);
     });
 
@@ -420,9 +427,7 @@ describe('Project Form XP Calculations', () => {
   test('handles project with single subtask', async () => {
     const { result } = renderHook(() => useXPManager());
     const projectData = {
-      subtasks: [
-        { difficulty: 50, importance: 50 }
-      ]
+      subtasks: [{ difficulty: 50, importance: 50 }]
     };
 
     const expectedXP = (50 + 50 + 20) * 5 + parseInt((50 * 50) / 20);
@@ -445,14 +450,21 @@ describe('Project Form XP Calculations', () => {
       subtasks: [
         { difficulty: 25, importance: 75 }, // Easy but important
         { difficulty: 75, importance: 25 }, // Hard but less important
-        { difficulty: 50, importance: 50 }  // Medium balanced
+        { difficulty: 50, importance: 50 } // Medium balanced
       ]
     };
 
     let totalXP = 0;
     await act(async () => {
       totalXP = projectData.subtasks.reduce((sum, task) => {
-        return sum + result.current.calculateBaseXP(task.difficulty, task.importance, false);
+        return (
+          sum +
+          result.current.calculateBaseXP(
+            task.difficulty,
+            task.importance,
+            false
+          )
+        );
       }, 0);
     });
 
@@ -469,7 +481,7 @@ describe('Project Form XP Calculations', () => {
 describe('XP Calculation with Form Integration', () => {
   test('maintains XP consistency between task and project forms', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     // Same task configured as individual task and as project subtask
     const taskConfig = {
       difficulty: 50,
@@ -494,7 +506,7 @@ describe('XP Calculation with Form Integration', () => {
 
   test('correctly applies urgent bonus only to tasks, not projects', async () => {
     const { result } = renderHook(() => useXPManager());
-    
+
     const config = {
       difficulty: 50,
       importance: 50

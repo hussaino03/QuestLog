@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Clipboard, Check } from 'lucide-react';  
+import { Clipboard, Check } from 'lucide-react';
 
-const ShareCode = ({ taskId, collaborationManager, task, userId }) => {  
+const ShareCode = ({ taskId, collaborationManager, task, userId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copying, setCopying] = useState(false);
 
   const handleShare = async () => {
     const shareCode = taskId;
-    
+
     try {
       const updatedTask = {
         ...task,
         isShared: true,
-        sharedWith: task.sharedWith || [userId] 
+        sharedWith: task.sharedWith || [userId]
       };
 
       console.log('[SHARE] Initializing project sharing:', {
@@ -22,13 +22,15 @@ const ShareCode = ({ taskId, collaborationManager, task, userId }) => {
       });
 
       // Update the project details first
-      await collaborationManager.updateSharedProjectDetails(taskId, updatedTask);
-      
+      await collaborationManager.updateSharedProjectDetails(
+        taskId,
+        updatedTask
+      );
+
       // Copy to clipboard
       await navigator.clipboard.writeText(shareCode);
       setCopying(true);
       setTimeout(() => setCopying(false), 2000);
-
     } catch (error) {
       console.error('[SHARE] Failed to share project:', error);
     }
@@ -57,7 +59,9 @@ const ShareCode = ({ taskId, collaborationManager, task, userId }) => {
                 onClick={() => setIsModalOpen(false)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
               >
-                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                <span className="text-red-600 dark:text-red-400 text-lg">
+                  ×
+                </span>
               </button>
             </div>
 

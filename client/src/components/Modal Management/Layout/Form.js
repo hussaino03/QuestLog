@@ -32,7 +32,7 @@ const Form = ({ addTask, taskManager }) => {
       setError('Please enter a project code');
       return;
     }
-    
+
     const success = await taskManager.joinProject(joinCode.trim());
     if (success) {
       handleClose();
@@ -48,9 +48,11 @@ const Form = ({ addTask, taskManager }) => {
       style={{ display: 'none', zIndex: 9999 }}
     >
       <div className="flex items-center justify-center p-4 min-h-screen">
-        <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl
+        <div
+          className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl
                     transform scale-100 animate-modalSlide max-h-[calc(100vh-2rem)] overflow-y-auto"
-          onClick={(e) => e.stopPropagation()}>
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="p-6 space-y-6">
             {/* Toggle Buttons */}
             <div className="flex items-center justify-between">
@@ -59,9 +61,10 @@ const Form = ({ addTask, taskManager }) => {
                   type="button"
                   onClick={() => setCurrentView('task')}
                   className={`px-4 py-2 text-sm rounded-md transition-all duration-200 
-                    ${currentView === 'task'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    ${
+                      currentView === 'task'
+                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                 >
                   <div className="flex items-center gap-2">
@@ -73,9 +76,10 @@ const Form = ({ addTask, taskManager }) => {
                   type="button"
                   onClick={() => setCurrentView('project')}
                   className={`px-4 py-2 text-sm rounded-md transition-all duration-200
-                    ${currentView === 'project'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    ${
+                      currentView === 'project'
+                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                 >
                   <div className="flex items-center gap-2">
@@ -87,9 +91,10 @@ const Form = ({ addTask, taskManager }) => {
                   type="button"
                   onClick={() => setCurrentView('join')}
                   className={`px-4 py-2 text-sm rounded-md transition-all duration-200
-                    ${currentView === 'join'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    ${
+                      currentView === 'join'
+                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                 >
                   <div className="flex items-center gap-2">
@@ -104,7 +109,9 @@ const Form = ({ addTask, taskManager }) => {
                 onClick={handleClose}
                 className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
               >
-                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                <span className="text-red-600 dark:text-red-400 text-lg">
+                  ×
+                </span>
               </button>
             </div>
 
@@ -120,7 +127,7 @@ const Form = ({ addTask, taskManager }) => {
                       value={joinCode}
                       onChange={(e) => {
                         setJoinCode(e.target.value);
-                        setError(''); 
+                        setError('');
                       }}
                       placeholder="Paste project code here"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 

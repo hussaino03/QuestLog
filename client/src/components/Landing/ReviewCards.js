@@ -3,8 +3,8 @@ import { Star } from 'lucide-react';
 
 export const reviews = [
   {
-    name: "Ashvin",
-    role: "Developer",
+    name: 'Ashvin',
+    role: 'Developer',
     content: "Great work, I'm in love with the UI 💫",
     rating: 5,
     position: { left: '8%', top: '25%' },
@@ -12,52 +12,56 @@ export const reviews = [
     delay: 0
   },
   {
-    name: "Sarah",
-    role: "Student",
-    content: "I have ADHD, and normal task managers don't work for me, but gamifying them definitely helps!",
+    name: 'Sarah',
+    role: 'Student',
+    content:
+      "I have ADHD, and normal task managers don't work for me, but gamifying them definitely helps!",
     rating: 5,
     position: { right: '12%', top: '35%' },
     scale: 1,
     delay: 1
   },
   {
-    name: "Liam",
-    role: "Project Lead",
-    content: "This is exactly what I needed! This tool perfectly fits my needs.",
+    name: 'Liam',
+    role: 'Project Lead',
+    content:
+      'This is exactly what I needed! This tool perfectly fits my needs.',
     rating: 5,
     position: { left: '15%', top: '60%' },
     scale: 0.9,
     delay: 2
   },
   {
-    name: "Luteyla",
-    role: "Student",
-    content: "Much needed app! Love the gamification aspect 🎮",
+    name: 'Luteyla',
+    role: 'Student',
+    content: 'Much needed app! Love the gamification aspect 🎮',
     rating: 5,
     position: { right: '8%', top: '70%' },
     scale: 0.85,
     delay: 1.5
   },
   {
-    name: "Anwar M.",
-    role: "Developer",
-    content: "Great app! I like the UI and the gamification aspect, definitely adding this to my current workflow",
+    name: 'Anwar M.',
+    role: 'Developer',
+    content:
+      'Great app! I like the UI and the gamification aspect, definitely adding this to my current workflow',
     rating: 5,
     scale: 0.9,
     delay: 2.5
   },
   {
-    name: "Usman",
-    role: "Student",
-    content: "The project collaboration feature is a nice addition!",
+    name: 'Usman',
+    role: 'Student',
+    content: 'The project collaboration feature is a nice addition!',
     rating: 4,
     scale: 0.95,
     delay: 1.8
   },
   {
-    name: "David",
-    role: "Designer",
-    content: "Clean interface, smart features. Makes task & project management actually fun!",
+    name: 'David',
+    role: 'Designer',
+    content:
+      'Clean interface, smart features. Makes task & project management actually fun!',
     rating: 4,
     scale: 0.88,
     delay: 0.5
@@ -97,10 +101,10 @@ const ReviewCards = () => {
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden hidden sm:block">
       {reviews.map((review, index) => {
         const position = getPosition(index);
-        if (!position) return null; 
+        if (!position) return null;
 
         const baseOpacity = 0.55;
-        const scrollFactor = Math.max(0, 1 - (scrollY * 0.0015));
+        const scrollFactor = Math.max(0, 1 - scrollY * 0.0015);
         const finalOpacity = baseOpacity * scrollFactor;
 
         return (
@@ -110,10 +114,10 @@ const ReviewCards = () => {
             style={{
               ...position,
               width: windowWidth <= 640 ? '180px' : '220px',
-              transform: `scale(${windowWidth <= 640 ? review.scale * 0.7 : review.scale * 0.85})`,
+              transform: `scale(${windowWidth <= 640 ? review.scale * 0.7 : review.scale * 0.85})`
             }}
           >
-            <div 
+            <div
               className="opacity-0 animate-fadeIn"
               style={{
                 animationDelay: `${0.5 + index * 0.1}s`,
@@ -121,12 +125,12 @@ const ReviewCards = () => {
                 animationFillMode: 'forwards'
               }}
             >
-              <div 
+              <div
                 className="animate-float"
                 style={{
                   opacity: finalOpacity,
                   transition: 'opacity 0.3s ease-out',
-                  animationDelay: `${1 + index * 0.2}s`, // Start floating after fade-in
+                  animationDelay: `${1 + index * 0.2}s` // Start floating after fade-in
                 }}
               >
                 <div className="bg-white/20 dark:bg-gray-800/20 rounded-lg p-3 shadow-sm transition-all duration-300 hover:opacity-100">
@@ -147,9 +151,9 @@ const ReviewCards = () => {
                   </div>
                   <div className="flex items-center gap-1 mb-1.5">
                     {[...Array(review.rating)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className="w-2.5 h-2.5 fill-current text-yellow-500" 
+                      <Star
+                        key={i}
+                        className="w-2.5 h-2.5 fill-current text-yellow-500"
                       />
                     ))}
                   </div>

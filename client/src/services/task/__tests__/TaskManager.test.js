@@ -174,10 +174,10 @@ describe('TaskManager', () => {
         })
       );
 
-      const updatedTask = { 
-        id: '123', 
+      const updatedTask = {
+        id: '123',
         title: 'Updated Task',
-        isShared: true 
+        isShared: true
       };
 
       await taskManager.updateTask('123', updatedTask);
@@ -194,15 +194,15 @@ describe('TaskManager', () => {
         })
       );
 
-      const updatedTask = { 
-        id: '123', 
+      const updatedTask = {
+        id: '123',
         title: 'Updated Task',
-        isShared: true 
+        isShared: true
       };
 
-      await expect(taskManager.updateTask('123', updatedTask))
-        .rejects
-        .toThrow('Failed to sync project update');
+      await expect(taskManager.updateTask('123', updatedTask)).rejects.toThrow(
+        'Failed to sync project update'
+      );
     });
 
     it('should handle local state update errors', async () => {
@@ -210,10 +210,10 @@ describe('TaskManager', () => {
         throw new Error('Update error');
       });
 
-      await expect(taskManager.updateTask('123', { title: 'Updated Task' }))
-        .rejects
-        .toThrow('Update error');
-      
+      await expect(
+        taskManager.updateTask('123', { title: 'Updated Task' })
+      ).rejects.toThrow('Update error');
+
       expect(mockSetError).toHaveBeenCalledWith('Update error');
     });
   });

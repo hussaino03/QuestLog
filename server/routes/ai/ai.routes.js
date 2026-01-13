@@ -3,9 +3,14 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const router = express.Router();
 const {
   getProductivityInsights,
-  chatWithAI
+  chatWithAI,
+  getAIStatus
 } = require('../../controllers/ai/ai.controller');
 const { authenticateToken } = require('../../middleware/auth');
+const {
+  aiChatLimiter,
+  aiInsightsLimiter
+} = require('../../middleware/ai-rate-limit');
 
 // Add health check endpoint
 router.get('/health', async (req, res) => {
@@ -38,7 +43,16 @@ router.get('/health', async (req, res) => {
   }
 });
 
-router.get('/insights', authenticateToken, getProductivityInsights);
-router.post('/chat', authenticateToken, chatWithAI);
+// AI endpoints with rate limiting
+router.get(
+  '/insights',
+  authenticateToken,
+  aiInsightsLimiter,
+  getProductivityInsights
+);
+router.post('/chat', authenticateToken, aiChatLimiter, chatWithAI);
+
+// Status endpoint to check AI availability
+router.get('/status', authenticateToken, getAIStatus);
 
 module.exports = router;

@@ -11,6 +11,13 @@ jest.mock('../../Analytics/Dashboard', () => ({
   }
 }));
 
+jest.mock('../../AI/Chat', () => ({
+  __esModule: true,
+  default: function MockChat({ isOpen, onClose }) {
+    return isOpen ? <div data-testid="chat-modal">Chat Component</div> : null;
+  }
+}));
+
 describe('StreakTracker Component', () => {
   const renderStreakTracker = (props = {}) => {
     const defaultProps = {
@@ -59,13 +66,11 @@ describe('StreakTracker Component', () => {
   });
 
   it('opens dashboard when Stats button is clicked', () => {
-    const { container } = renderStreakTracker();
+    renderStreakTracker();
     const statsButton = screen.getByText('Stats');
 
     fireEvent.click(statsButton);
 
-    expect(
-      container.querySelector('[data-testid="dashboard"]')
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard')).toBeInTheDocument();
   });
 });

@@ -62,7 +62,7 @@ passport.use(
           tasksCompleted: 0,
           tasks: [],
           completedTasks: [],
-          unlockedBadges: [], 
+          unlockedBadges: [],
           isOptIn: false,
           createdAt: new Date(),
           lastLogin: new Date()

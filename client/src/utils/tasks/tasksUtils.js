@@ -4,13 +4,13 @@
  * @returns {boolean} True if the deadline has passed, false otherwise
  */
 export const isOverdue = (deadline) => {
-    if (!deadline) return false;
+  if (!deadline) return false;
 
-    const [year, month, day] = deadline.split('-').map(Number);
-    const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
+  const [year, month, day] = deadline.split('-').map(Number);
+  const deadlineDate = new Date(year, month - 1, day, 23, 59, 59); // Set to end of deadline day
 
-    const now = new Date();
-    return now > deadlineDate;
+  const now = new Date();
+  return now > deadlineDate;
 };
 
 /**
@@ -19,17 +19,20 @@ export const isOverdue = (deadline) => {
  * @returns {number} The experience penalty (-5XP per day overdue, 0 if not overdue)
  */
 export const calculateOverduePenalty = (deadline) => {
-    if (!deadline) return 0;
+  if (!deadline) return 0;
 
-    const [year, month, day] = deadline.split('-').map(Number);
-    const now = new Date();
+  const [year, month, day] = deadline.split('-').map(Number);
+  const now = new Date();
 
-    // Use UTC to avoid timezone issues
-    const normalizedDeadline = Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
-    const normalizedNow = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / (1000 * 60 * 60 * 24);
+  // Use UTC to avoid timezone issues
+  const normalizedDeadline =
+    Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
+  const normalizedNow =
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) /
+    (1000 * 60 * 60 * 24);
 
-    const daysOverdue = Math.floor(normalizedNow - normalizedDeadline);
-    return daysOverdue > 0 ? -5 * daysOverdue : 0;
+  const daysOverdue = Math.floor(normalizedNow - normalizedDeadline);
+  return daysOverdue > 0 ? -5 * daysOverdue : 0;
 };
 
 /**
@@ -46,13 +49,16 @@ export const calculateOverduePenalty = (deadline) => {
  * @returns {Object} Updated task object with recalculated experience points
  */
 export const handleEdit = (task, editForm) => {
-    return {
-        ...task,
-        ...editForm,
-        experience: (parseInt(editForm.difficulty) + parseInt(editForm.importance) + 20) * 5 +
-            parseInt((parseInt(editForm.difficulty) * parseInt(editForm.importance)) / 20) +
-            (editForm.urgent ? 150 : 0)
-    };
+  return {
+    ...task,
+    ...editForm,
+    experience:
+      (parseInt(editForm.difficulty) + parseInt(editForm.importance) + 20) * 5 +
+      parseInt(
+        (parseInt(editForm.difficulty) * parseInt(editForm.importance)) / 20
+      ) +
+      (editForm.urgent ? 150 : 0)
+  };
 };
 
 /**
@@ -61,12 +67,12 @@ export const handleEdit = (task, editForm) => {
  * @returns {string} Localized date string or empty string if no deadline
  */
 export const formatDeadline = (deadline) => {
-    if (!deadline) return '';
+  if (!deadline) return '';
 
-    const [year, month, day] = deadline.split('-').map(Number);
-    const date = new Date(year, month - 1, day); // month is 0-based in Date constructor
+  const [year, month, day] = deadline.split('-').map(Number);
+  const date = new Date(year, month - 1, day); // month is 0-based in Date constructor
 
-    return date.toLocaleDateString();
+  return date.toLocaleDateString();
 };
 
 /**
@@ -75,8 +81,8 @@ export const formatDeadline = (deadline) => {
  * @returns {boolean} True if the text is truncated, false otherwise
  */
 export const checkTextTruncation = (element) => {
-    if (element) {
-        return element.scrollWidth > element.offsetWidth;
-    }
-    return false;
+  if (element) {
+    return element.scrollWidth > element.offsetWidth;
+  }
+  return false;
 };

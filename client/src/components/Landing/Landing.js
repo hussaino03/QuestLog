@@ -155,8 +155,18 @@ const Landing = ({ isDark, onToggle }) => {
                 Start Your Quest
               </button>
               <div className="mt-4 flex justify-center">
-                <a href="https://www.producthunt.com/posts/questlog?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-questlog" target="_blank" rel="noopener noreferrer">
-                  <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=704944&theme=dark&t=1737137945715" alt="QuestLog - Turning productivity into progress & achievements | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" />
+                <a
+                  href="https://www.producthunt.com/posts/questlog?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-questlog"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=704944&theme=dark&t=1737137945715"
+                    alt="QuestLog - Turning productivity into progress & achievements | Product Hunt"
+                    style={{ width: '250px', height: '54px' }}
+                    width="250"
+                    height="54"
+                  />
                 </a>
               </div>
             </div>
@@ -300,7 +310,7 @@ const Landing = ({ isDark, onToggle }) => {
           <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8 opacity-0 animate-[scale_0.4s_ease-out_0.2s_forwards] px-4">
             What Users Say
           </h2>
-          
+
           {/* Featured Reviews */}
           <div className="px-4 space-y-4 mb-8">
             {reviews.slice(0, 3).map((review, index) => (
@@ -327,7 +337,10 @@ const Landing = ({ isDark, onToggle }) => {
                 </div>
                 <div className="flex items-center gap-1 mb-2">
                   {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-current text-yellow-500" />
+                    <Star
+                      key={i}
+                      className="w-3.5 h-3.5 fill-current text-yellow-500"
+                    />
                   ))}
                 </div>
                 <p className="text-sm text-gray-700 dark:text-gray-200">
@@ -369,7 +382,10 @@ const Landing = ({ isDark, onToggle }) => {
                     </div>
                     <div className="flex items-center gap-1 mb-2">
                       {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-current text-yellow-500" />
+                        <Star
+                          key={i}
+                          className="w-3.5 h-3.5 fill-current text-yellow-500"
+                        />
                       ))}
                     </div>
                     <p className="text-sm text-gray-700 dark:text-gray-200">
@@ -390,4 +406,3 @@ const Landing = ({ isDark, onToggle }) => {
 };
 
 export default Landing;
-

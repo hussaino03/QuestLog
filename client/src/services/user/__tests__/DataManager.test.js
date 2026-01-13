@@ -139,7 +139,7 @@ describe('DataManager', () => {
       expect(mockSetters.setTasks).toHaveBeenCalledWith([]);
       expect(mockSetters.setCompletedTasks).toHaveBeenCalledWith([]);
       expect(mockSetters.resetXP).toHaveBeenCalled();
-      expect(mockSetters.setUnlockedBadges).toHaveBeenCalledWith([]); 
+      expect(mockSetters.setUnlockedBadges).toHaveBeenCalledWith([]);
 
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/users/test-123'),

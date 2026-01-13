@@ -49,9 +49,10 @@ async function updateUser(req, res) {
     const existingBadges = existingUser?.unlockedBadges || [];
 
     // Only merge badges if they're not being explicitly cleared
-    const mergedBadges = req.body.unlockedBadges === undefined
-      ? [...new Set([...existingBadges, ...(req.body.unlockedBadges || [])])]
-      : req.body.unlockedBadges; 
+    const mergedBadges =
+      req.body.unlockedBadges === undefined
+        ? [...new Set([...existingBadges, ...(req.body.unlockedBadges || [])])]
+        : req.body.unlockedBadges;
 
     const result = await usersCollection.updateOne(
       { _id: userId },

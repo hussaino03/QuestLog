@@ -1,12 +1,23 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { connectToDatabase } = require('../../db');
 const { ObjectId } = require('mongodb');
+const NodeCache = require('node-cache');
+
+// Initialize cache with 10 minute TTL
+const responseCache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
+
+// Track API usage
+let apiUsageStats = {
+  requestsToday: 0,
+  quotaExceeded: false,
+  lastResetDate: new Date().toDateString()
+};
 
 // Log initial setup
 console.log('Initializing Gemini AI model...');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash-exp',
+  model: 'gemini-3-flash-preview',
   safetySettings: [
     {
       category: 'HARM_CATEGORY_HARASSMENT',
@@ -29,7 +40,34 @@ Conversation Guidelines:
 - Always reference specific tasks and stats from the user's data
 - Maintain context from the previous messages when provided
 
-Remember: Be concise and avoid repetitive patterns.`;
+Formatting Guidelines (use markdown):
+- Use **bold** for important metrics, key points, task names, and percentages
+- Use bullet lists (- or *) for tips and suggestions
+- Keep percentages inline with text (e.g. "Your completion rate is **75%**")
+- Use numbered lists (1. 2. 3.) for sequential steps
+- Use ### for section headings when organizing longer responses
+- Keep responses structured and scannable
+- Do NOT use backticks/code formatting - use **bold** instead
+
+Remember: Be concise, visual, and avoid repetitive patterns.`;
+
+// Reset daily stats if it's a new day
+function checkAndResetDailyStats() {
+  const today = new Date().toDateString();
+  if (apiUsageStats.lastResetDate !== today) {
+    apiUsageStats = {
+      requestsToday: 0,
+      quotaExceeded: false,
+      lastResetDate: today
+    };
+    console.log('Daily API stats reset');
+  }
+}
+
+function generateCacheKey(prompt) {
+  const normalized = prompt.toLowerCase().trim().substring(0, 200);
+  return `ai_response_${Buffer.from(normalized).toString('base64').substring(0, 50)}`;
+}
 
 async function getUserStats(userId) {
   console.log('-------- Getting User Stats --------');
@@ -115,21 +153,70 @@ async function getUserStats(userId) {
   }
 }
 
-// Helper function to handle AI model interaction
-async function generateAIResponse(prompt, systemPrompt = SYSTEM_PROMPT) {
-  const result = await model.generateContent([systemPrompt, prompt]);
+// Helper function to handle AI model interaction with error handling
+async function generateAIResponse(
+  prompt,
+  systemPrompt = SYSTEM_PROMPT,
+  cacheKey = null
+) {
+  // Check if we've exceeded quota today
+  checkAndResetDailyStats();
 
-  if (!result || !result.response) {
-    throw new Error('Invalid response from AI model');
+  if (apiUsageStats.quotaExceeded) {
+    console.log('Quota exceeded - returning cached/fallback response');
+    throw new Error('QUOTA_EXCEEDED');
   }
 
-  const response = await result.response.text();
-
-  if (!response) {
-    throw new Error('Empty response from AI model');
+  // Check cache first
+  if (cacheKey) {
+    const cached = responseCache.get(cacheKey);
+    if (cached) {
+      console.log('Returning cached response');
+      return cached;
+    }
   }
 
-  return response;
+  try {
+    const result = await model.generateContent([systemPrompt, prompt]);
+
+    if (!result || !result.response) {
+      throw new Error('Invalid response from AI model');
+    }
+
+    const response = await result.response.text();
+
+    if (!response) {
+      throw new Error('Empty response from AI model');
+    }
+
+    // Track successful request
+    apiUsageStats.requestsToday++;
+    console.log(
+      `API request successful. Total today: ${apiUsageStats.requestsToday}`
+    );
+
+    // Cache the response
+    if (cacheKey) {
+      responseCache.set(cacheKey, response);
+      console.log('Response cached');
+    }
+
+    return response;
+  } catch (error) {
+    // Handle quota exceeded errors
+    if (
+      error.status === 429 ||
+      error.message?.includes('quota') ||
+      error.message?.includes('rate limit')
+    ) {
+      console.error('Gemini API quota exceeded:', error.message);
+      apiUsageStats.quotaExceeded = true;
+      throw new Error('QUOTA_EXCEEDED');
+    }
+
+    // Handle other errors
+    throw error;
+  }
 }
 
 async function getProductivityInsights(req, res) {
@@ -145,8 +232,26 @@ async function getProductivityInsights(req, res) {
     Provide a brief, encouraging analysis of their productivity patterns and 1-2 specific suggestions 
     for improvement. Keep it under 150 words.`;
 
-    const response = await generateAIResponse(prompt);
-    res.json({ insights: response });
+    const cacheKey = generateCacheKey(prompt);
+
+    try {
+      const response = await generateAIResponse(
+        prompt,
+        SYSTEM_PROMPT,
+        cacheKey
+      );
+      res.json({ insights: response, cached: false });
+    } catch (error) {
+      if (error.message === 'QUOTA_EXCEEDED') {
+        return res.status(429).json({
+          error:
+            'The AI assistant is currently experiencing high demand. Please try again in a few minutes.',
+          retryAfter: 300 // 5 minutes
+        });
+      } else {
+        throw error;
+      }
+    }
   } catch (error) {
     console.error('AI Insights Error:', error);
     res.status(500).json({ error: 'Failed to generate insights' });
@@ -196,22 +301,46 @@ async function chatWithAI(req, res) {
     3. Specific encouragement based on actual completed tasks
     4. Actionable next steps`;
 
-    console.log('Sending prompt to AI:', contextPrompt);
-    const response = await generateAIResponse(contextPrompt);
-    console.log('AI Response received:', response);
+    // Generate cache key from message + basic stats
+    const cacheKey = generateCacheKey(
+      message + stats.currentLevel + stats.totalTasksCompleted
+    );
 
-    console.log('-------- End Chat Request --------');
-    res.json({
-      response,
-      conversationContext: {
-        performance:
-          stats.taskCompletionRate > 70
-            ? 'high'
-            : stats.taskCompletionRate > 40
-              ? 'medium'
-              : 'getting_started'
+    console.log('Sending prompt to AI:', contextPrompt);
+
+    try {
+      const response = await generateAIResponse(
+        contextPrompt,
+        SYSTEM_PROMPT,
+        cacheKey
+      );
+      console.log('AI Response received:', response);
+
+      console.log('-------- End Chat Request --------');
+      res.json({
+        response,
+        conversationContext: {
+          performance:
+            stats.taskCompletionRate > 70
+              ? 'high'
+              : stats.taskCompletionRate > 40
+                ? 'medium'
+                : 'getting_started'
+        },
+        cached: false
+      });
+    } catch (error) {
+      if (error.message === 'QUOTA_EXCEEDED') {
+        console.log('Quota exceeded - returning error message');
+        return res.status(429).json({
+          error:
+            'The AI assistant is currently experiencing high demand. Please try again in a few minutes.',
+          retryAfter: 300 // 5 minutes
+        });
+      } else {
+        throw error;
       }
-    });
+    }
   } catch (error) {
     console.error('-------- Chat Error --------');
     console.error('Error details:', error);
@@ -224,7 +353,20 @@ async function chatWithAI(req, res) {
   }
 }
 
+// Endpoint to check AI service status
+async function getAIStatus(req, res) {
+  checkAndResetDailyStats();
+
+  res.json({
+    available: !apiUsageStats.quotaExceeded,
+    requestsToday: apiUsageStats.requestsToday,
+    cacheSize: responseCache.keys().length,
+    lastReset: apiUsageStats.lastResetDate
+  });
+}
+
 module.exports = {
   getProductivityInsights,
-  chatWithAI
+  chatWithAI,
+  getAIStatus
 };

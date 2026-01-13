@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Star, Send, Code, Paintbrush, GraduationCap, User, BookOpen, Plus } from 'lucide-react';
+import {
+  Heart,
+  Star,
+  Send,
+  Code,
+  Paintbrush,
+  GraduationCap,
+  User,
+  BookOpen,
+  Plus
+} from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 const REMINDER_INTERVAL = 5 * 24 * 60 * 60 * 1000;
@@ -10,7 +20,7 @@ const SupportReminder = () => {
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
-  const [selectedRole, setRole] = useState(''); 
+  const [selectedRole, setRole] = useState('');
   const [showRoles, setShowRoles] = useState(false);
 
   const roles = [
@@ -26,7 +36,7 @@ const SupportReminder = () => {
       const lastReminder = localStorage.getItem('lastSupportReminder');
       const now = Date.now();
 
-      if (!lastReminder || (now - parseInt(lastReminder)) > REMINDER_INTERVAL) {
+      if (!lastReminder || now - parseInt(lastReminder) > REMINDER_INTERVAL) {
         setIsVisible(true);
         localStorage.setItem('lastSupportReminder', now.toString());
       }
@@ -47,9 +57,9 @@ const SupportReminder = () => {
     try {
       const feedbackData = {
         ratings: {
-          overall: rating,
+          overall: rating
         },
-        feedback,
+        feedback
       };
 
       if (selectedRole) {
@@ -75,7 +85,10 @@ const SupportReminder = () => {
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={handleClose}
+      />
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 max-w-sm w-[calc(100%-2rem)] animate-slideUp">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
           <div className="space-y-4">
@@ -92,7 +105,9 @@ const SupportReminder = () => {
                 onClick={handleClose}
                 className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
               >
-                <span className="text-red-600 dark:text-red-400 text-lg">×</span>
+                <span className="text-red-600 dark:text-red-400 text-lg">
+                  ×
+                </span>
               </button>
             </div>
 
@@ -107,11 +122,12 @@ const SupportReminder = () => {
                     onMouseLeave={() => setHoveredStar(0)}
                     className="group"
                   >
-                    <Star 
+                    <Star
                       className={`w-5 h-5 transition-all duration-200 ease-out
-                        ${value <= (hoveredStar || rating)
-                          ? 'fill-current text-blue-500 transform scale-105' 
-                          : 'text-gray-300 dark:text-gray-600'
+                        ${
+                          value <= (hoveredStar || rating)
+                            ? 'fill-current text-blue-500 transform scale-105'
+                            : 'text-gray-300 dark:text-gray-600'
                         } group-hover:scale-110`}
                     />
                   </button>
@@ -127,18 +143,24 @@ const SupportReminder = () => {
                              hover:bg-gray-200 dark:hover:bg-gray-600 
                              transition-colors flex items-center gap-2"
                   >
-                    {selectedRole 
-                      ? React.createElement(roles.find(r => r.id === selectedRole)?.icon, {
-                          className: "w-4 h-4 text-gray-600 dark:text-gray-300"
-                        })
-                      : <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                    }
+                    {selectedRole ? (
+                      React.createElement(
+                        roles.find((r) => r.id === selectedRole)?.icon,
+                        {
+                          className: 'w-4 h-4 text-gray-600 dark:text-gray-300'
+                        }
+                      )
+                    ) : (
+                      <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                    )}
                   </button>
-                  
+
                   {showRoles && (
-                    <div className="absolute bottom-full mb-2 left-0 w-48 py-2 
+                    <div
+                      className="absolute bottom-full mb-2 left-0 w-48 py-2 
                                   bg-white dark:bg-gray-800 rounded-lg shadow-lg 
-                                  border border-gray-200 dark:border-gray-700">
+                                  border border-gray-200 dark:border-gray-700"
+                    >
                       {roles.map((roleOption) => (
                         <button
                           key={roleOption.id}
@@ -151,7 +173,8 @@ const SupportReminder = () => {
                                     ${selectedRole === roleOption.id ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
                         >
                           {React.createElement(roleOption.icon, {
-                            className: "w-4 h-4 text-gray-600 dark:text-gray-300"
+                            className:
+                              'w-4 h-4 text-gray-600 dark:text-gray-300'
                           })}
                           <span className="text-sm text-gray-700 dark:text-gray-300">
                             {roleOption.label}
@@ -177,10 +200,16 @@ const SupportReminder = () => {
                              text-gray-900 dark:text-gray-100 border-0
                              focus:ring-1 focus:ring-blue-500 pr-16"
                   />
-                  <span className={`absolute right-12 top-1/2 -translate-y-1/2 text-sm font-medium
-                                  ${feedback.length >= 80 ? 'text-orange-500 dark:text-orange-400' : 
-                                   feedback.length >= 70 ? 'text-blue-500 dark:text-blue-400' : 
-                                   'text-gray-700 dark:text-gray-300'}`}>
+                  <span
+                    className={`absolute right-12 top-1/2 -translate-y-1/2 text-sm font-medium
+                                  ${
+                                    feedback.length >= 80
+                                      ? 'text-orange-500 dark:text-orange-400'
+                                      : feedback.length >= 70
+                                        ? 'text-blue-500 dark:text-blue-400'
+                                        : 'text-gray-700 dark:text-gray-300'
+                                  }`}
+                  >
                     {84 - feedback.length}
                   </span>
                   {rating > 0 && feedback && (

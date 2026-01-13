@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { formatDeadline, isOverdue, calculateOverduePenalty } from '../../../utils/tasks/tasksUtils';
-import ShareCode from './ShareCode';  
+import {
+  formatDeadline,
+  isOverdue,
+  calculateOverduePenalty
+} from '../../../utils/tasks/tasksUtils';
+import ShareCode from './ShareCode';
 import { Users, Plus, X, Dumbbell, Target } from 'lucide-react';
 
-const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, userId }) => {
+const ProjectView = ({
+  task,
+  isCompleted,
+  updateTask,
+  collaborationManager,
+  userId
+}) => {
   const [collaborators, setCollaborators] = useState([]);
   const [showAddSubtask, setShowAddSubtask] = useState(false);
   const [newSubtask, setNewSubtask] = useState({
@@ -27,16 +37,20 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
     }
   }, [task.isShared, task.sharedWith, task.ownerId, collaborationManager]);
 
-  const completedSubtasks = task.subtasks.filter(subtask => subtask.completed).length;
+  const completedSubtasks = task.subtasks.filter(
+    (subtask) => subtask.completed
+  ).length;
   const progress = (completedSubtasks / task.subtasks.length) * 100;
 
   const handleSubtaskToggleWithSync = async (index) => {
     const newCompletedState = !task.subtasks[index].completed;
-    
+
     // Always sync with server if it's a shared project, regardless of owner/collaborator
     if (task.isShared) {
       try {
-        console.log(`[SERVER] Syncing subtask ${index} to ${newCompletedState}`);
+        console.log(
+          `[SERVER] Syncing subtask ${index} to ${newCompletedState}`
+        );
         await collaborationManager.updateSharedProjectSubtask(
           task.id,
           index,
@@ -47,7 +61,7 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
         return; // Don't update local state if server sync fails
       }
     }
-    
+
     // Update local state only after successful sync (or if not shared)
     updateTask(task.id, {
       ...task,
@@ -72,12 +86,20 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
     try {
       if (task.isShared) {
         // Sync with server first
-        await collaborationManager.updateSharedProjectDetails(task.id, updatedTask);
+        await collaborationManager.updateSharedProjectDetails(
+          task.id,
+          updatedTask
+        );
       }
 
       // Update local state after successful sync (or if not shared)
       updateTask(task.id, updatedTask);
-      setNewSubtask({ name: '', difficulty: 50, importance: 50, completed: false });
+      setNewSubtask({
+        name: '',
+        difficulty: 50,
+        importance: 50,
+        completed: false
+      });
       setShowAddSubtask(false);
       setError('');
     } catch (error) {
@@ -87,8 +109,12 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
   };
 
   const calculateSubtaskXP = (subtask) => {
-    return ((parseInt(subtask.difficulty) + parseInt(subtask.importance) + 20) * 5 +
-      parseInt((parseInt(subtask.difficulty) * parseInt(subtask.importance)) / 20));
+    return (
+      (parseInt(subtask.difficulty) + parseInt(subtask.importance) + 20) * 5 +
+      parseInt(
+        (parseInt(subtask.difficulty) * parseInt(subtask.importance)) / 20
+      )
+    );
   };
 
   const renderAddSubtaskInterface = () => {
@@ -139,13 +165,17 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
                 type="range"
                 min="0"
                 max="100"
-                value={(parseInt(newSubtask.difficulty) + parseInt(newSubtask.importance)) / 2}
+                value={
+                  (parseInt(newSubtask.difficulty) +
+                    parseInt(newSubtask.importance)) /
+                  2
+                }
                 onChange={(e) => {
                   const value = Number(e.target.value);
-                  setNewSubtask({ 
-                    ...newSubtask, 
+                  setNewSubtask({
+                    ...newSubtask,
                     difficulty: value,
-                    importance: value 
+                    importance: value
                   });
                 }}
                 className="flex-1 h-1 appearance-none bg-gray-200 dark:bg-gray-700 rounded-full
@@ -168,14 +198,19 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
                 min="0"
                 max="100"
                 value={newSubtask.difficulty}
-                onChange={(e) => setNewSubtask({ ...newSubtask, difficulty: Number(e.target.value) })}
+                onChange={(e) =>
+                  setNewSubtask({
+                    ...newSubtask,
+                    difficulty: Number(e.target.value)
+                  })
+                }
                 className="w-16 h-1 appearance-none bg-gray-200 dark:bg-gray-700 rounded-full
                          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 
                          [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full 
                          [&::-webkit-slider-thumb]:bg-blue-500 dark:[&::-webkit-slider-thumb]:bg-blue-400"
               />
               <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 w-4 text-right">
-                {Math.round(newSubtask.difficulty/10)}
+                {Math.round(newSubtask.difficulty / 10)}
               </span>
             </div>
 
@@ -186,14 +221,19 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
                 min="0"
                 max="100"
                 value={newSubtask.importance}
-                onChange={(e) => setNewSubtask({ ...newSubtask, importance: Number(e.target.value) })}
+                onChange={(e) =>
+                  setNewSubtask({
+                    ...newSubtask,
+                    importance: Number(e.target.value)
+                  })
+                }
                 className="w-16 h-1 appearance-none bg-gray-200 dark:bg-gray-700 rounded-full
                          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 
                          [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full 
                          [&::-webkit-slider-thumb]:bg-blue-500 dark:[&::-webkit-slider-thumb]:bg-blue-400"
               />
               <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 w-4 text-right">
-                {Math.round(newSubtask.importance/10)}
+                {Math.round(newSubtask.importance / 10)}
               </span>
             </div>
 
@@ -245,10 +285,12 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
       {/* Progress Bar and Share Button */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
-          <span className="text-gray-600 dark:text-gray-400 text-sm">Progress</span>
+          <span className="text-gray-600 dark:text-gray-400 text-sm">
+            Progress
+          </span>
           <div className="flex items-center gap-2">
             <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-blue-500 dark:bg-blue-400 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
@@ -258,11 +300,11 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
             </span>
           </div>
         </div>
-        <ShareCode 
-          taskId={task.id} 
-          collaborationManager={collaborationManager} 
-          task={task}  
-          userId={userId}  
+        <ShareCode
+          taskId={task.id}
+          collaborationManager={collaborationManager}
+          task={task}
+          userId={userId}
         />
       </div>
 
@@ -281,9 +323,7 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
                   bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
               >
                 {collaborator.name}
-                {collaborator.isOwner && (
-                  <span className="ml-1">👑</span>
-                )}
+                {collaborator.isOwner && <span className="ml-1">👑</span>}
               </div>
             ))}
           </div>
@@ -303,11 +343,11 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
       <div className="border dark:border-gray-700 rounded-lg overflow-hidden">
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {task.subtasks.map((subtask, index) => (
-            <div 
+            <div
               key={index}
               className={`p-3 transition-colors ${
-                subtask.completed 
-                  ? 'bg-gray-50 dark:bg-gray-800/50' 
+                subtask.completed
+                  ? 'bg-gray-50 dark:bg-gray-800/50'
                   : 'bg-white dark:bg-gray-800'
               }`}
             >
@@ -325,16 +365,20 @@ const ProjectView = ({ task, isCompleted, updateTask, collaborationManager, user
                       onChange={() => handleSubtaskToggleWithSync(index)}
                     />
                     <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute top-1/2 w-full border-t border-white dark:border-gray-900
-                                    opacity-0 peer-checked:opacity-100 transition-opacity duration-200"/>
+                      <div
+                        className="absolute top-1/2 w-full border-t border-white dark:border-gray-900
+                                    opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
+                      />
                     </div>
                   </div>
                 )}
-                <span className={`text-sm ${
-                  subtask.completed || isCompleted
-                    ? 'text-gray-400 dark:text-gray-500 line-through'
-                    : 'text-gray-900 dark:text-gray-100'
-                }`}>
+                <span
+                  className={`text-sm ${
+                    subtask.completed || isCompleted
+                      ? 'text-gray-400 dark:text-gray-500 line-through'
+                      : 'text-gray-900 dark:text-gray-100'
+                  }`}
+                >
                   {subtask.name}
                 </span>
               </div>

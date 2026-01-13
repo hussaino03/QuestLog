@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
+    "@google/generative-ai": "^0.24.1",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "connect-mongo": "^5.1.0",
@@ -22,6 +22,7 @@
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^5.5.0",
+    "node-cache": "^5.1.2",
     "nodemailer": "^6.9.16",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",

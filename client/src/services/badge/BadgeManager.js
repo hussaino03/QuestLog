@@ -5,7 +5,7 @@ class BadgeManager {
   constructor(setUnlockedBadges, addNotification) {
     this.setUnlockedBadges = setUnlockedBadges;
     this.addNotification = addNotification;
-    
+
     try {
       this.notifiedBadges = new Set(
         JSON.parse(localStorage.getItem('notifiedBadges') || '[]')
@@ -14,7 +14,7 @@ class BadgeManager {
       console.error('Failed to parse notified badges:', error);
       this.notifiedBadges = new Set();
     }
-    
+
     this.notifyNewBadge = this.notifyNewBadge.bind(this);
   }
 
@@ -42,14 +42,13 @@ class BadgeManager {
     completedTasks,
     currentUnlockedBadges = []
   ) {
-    const tasksLength = Array.isArray(completedTasks) ? completedTasks.length : 0;
+    const tasksLength = Array.isArray(completedTasks)
+      ? completedTasks.length
+      : 0;
 
-    const newlyUnlockedBadges = checkBadgeUnlocks(
-      level,
-      currentStreak,
-      tasksLength,
-      completedTasks
-    ) || [];
+    const newlyUnlockedBadges =
+      checkBadgeUnlocks(level, currentStreak, tasksLength, completedTasks) ||
+      [];
 
     const uniqueNewBadges = newlyUnlockedBadges.filter(
       (badge) => !currentUnlockedBadges.includes(badge)
@@ -58,7 +57,9 @@ class BadgeManager {
     if (uniqueNewBadges.length > 0) {
       uniqueNewBadges.forEach(this.notifyNewBadge);
 
-      const updatedBadges = [...new Set([...currentUnlockedBadges, ...uniqueNewBadges])];
+      const updatedBadges = [
+        ...new Set([...currentUnlockedBadges, ...uniqueNewBadges])
+      ];
       this.setUnlockedBadges(updatedBadges);
       return updatedBadges;
     }
