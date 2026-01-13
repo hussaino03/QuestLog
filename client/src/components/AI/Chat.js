@@ -129,17 +129,19 @@ const MessageContent = ({ content, type }) => {
   );
 };
 
-const Chat = ({ isOpen, onClose }) => {
+const Chat = ({ isOpen = true, onClose = () => {} }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [conversationContext, setConversationContext] = useState(null);
+  const [isMinimized, setIsMinimized] = useState(true); // Start minimized by default
   const messagesEndRef = useRef(null);
   const modalRef = useRef(null);
 
   const commonPrompts = [
-    'How am I doing with my tasks today?',
     "What's my productivity trend?",
+    'How do I compare to other users?',
+    'How far am I from the top of the leaderboard?',
     'Tips to improve my task completion rate',
     'Show me my recent achievements'
   ];
@@ -154,39 +156,37 @@ const Chat = ({ isOpen, onClose }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle click outside modal
+  // Handle click outside modal to minimize
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
+        setIsMinimized(true);
       }
     };
 
-    if (isOpen) {
+    if (!isMinimized) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isMinimized]);
 
-  // Handle escape key
+  // Handle escape key to minimize
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
+      if (e.key === 'Escape' && !isMinimized) {
+        setIsMinimized(true);
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-    }
+    document.addEventListener('keydown', handleEscape);
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [isMinimized]);
 
   const sendMessage = async (e, promptOverride = null) => {
     e?.preventDefault();
@@ -263,42 +263,72 @@ const Chat = ({ isOpen, onClose }) => {
     }
   };
 
-  if (!isOpen) return null;
+  // Minimized view
+  if (isMinimized) {
+    return (
+      <button
+        onClick={() => setIsMinimized(false)}
+        className="fixed bottom-6 right-6 z-50 
+                 w-14 h-14 rounded-full
+                 bg-gradient-to-r from-blue-500 to-blue-600 
+                 hover:from-blue-600 hover:to-blue-700
+                 text-white shadow-xl hover:shadow-2xl
+                 transition-all duration-200 hover:scale-110
+                 flex items-center justify-center group animate-fadeIn"
+        title="Open Productivity Assistant"
+      >
+        <svg
+          className="w-7 h-7"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+          />
+        </svg>
+      </button>
+    );
+  }
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn"
       aria-modal="true"
       role="dialog"
+      onClick={(e) => e.target === e.currentTarget && setIsMinimized(true)}
     >
       <div
         ref={modalRef}
-        className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full h-[700px] flex flex-col shadow-2xl transform scale-100 animate-modalSlide"
+        className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full 
+                   h-[600px] max-h-[85vh] flex flex-col 
+                   shadow-2xl transform scale-100 animate-modalSlide overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <span className="text-white text-lg font-bold">AI</span>
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Productivity Assistant
-            </h2>
-          </div>
+        <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Productivity Assistant
+          </h2>
           <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 transition-colors"
+            onClick={() => setIsMinimized(true)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center 
+                     bg-red-500/10 hover:bg-red-500/20 transition-colors"
+            title="Close"
           >
             <span className="text-red-600 dark:text-red-400 text-lg">×</span>
           </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 dark:bg-gray-900">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
           {messages.length === 0 && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <p className="text-gray-600 dark:text-gray-400 mb-1">
+            <div className="space-y-5">
+              <div className="text-center pt-4">
+                <p className="text-gray-600 dark:text-gray-400 mb-1 text-base">
                   👋 Hi! I'm your productivity assistant
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-500">
@@ -310,16 +340,26 @@ const Chat = ({ isOpen, onClose }) => {
                   <button
                     key={idx}
                     onClick={() => handlePromptClick(prompt)}
-                    className="text-left px-4 py-3 rounded-lg bg-white dark:bg-gray-800
-                             border border-gray-200 dark:border-gray-700 
-                             hover:border-blue-300 dark:hover:border-blue-600
-                             hover:shadow-md transition-all duration-200
-                             text-gray-800 dark:text-gray-200 group"
+                    className="group text-left px-4 py-3 rounded-lg 
+                             bg-gradient-to-r from-gray-50 to-gray-100/50
+                             dark:from-gray-800 dark:to-gray-700/50
+                             border border-gray-200 dark:border-gray-700
+                             hover:border-blue-300 dark:hover:border-blue-500
+                             hover:shadow-md hover:shadow-blue-500/10
+                             transition-all duration-200
+                             text-gray-700 dark:text-gray-200 text-sm
+                             relative overflow-hidden"
                   >
-                    <span className="inline-block mr-2 text-blue-500 group-hover:translate-x-1 transition-transform">
-                      →
+                    <div
+                      className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 
+                                  opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    ></div>
+                    <span className="relative flex items-center gap-2">
+                      <span className="text-blue-500 dark:text-blue-400 opacity-60 group-hover:opacity-100 transition-opacity">
+                        →
+                      </span>
+                      <span className="flex-1">{prompt}</span>
                     </span>
-                    {prompt}
                   </button>
                 ))}
               </div>
@@ -345,7 +385,10 @@ const Chat = ({ isOpen, onClose }) => {
           ))}
           {isLoading && (
             <div className="flex justify-start animate-fadeIn">
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 flex items-center gap-2">
+              <div
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
+                            rounded-lg px-4 py-3 flex items-center gap-2 shadow-sm"
+              >
                 <div className="flex gap-1">
                   <div
                     className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
@@ -372,7 +415,7 @@ const Chat = ({ isOpen, onClose }) => {
         {/* Input Form */}
         <form
           onSubmit={sendMessage}
-          className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+          className="p-4 border-t dark:border-gray-700"
         >
           <div className="flex gap-2">
             <input

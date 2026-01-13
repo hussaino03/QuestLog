@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Dashboard from '../Analytics/Dashboard';
 import { ChartBarIcon } from '@heroicons/react/24/outline';
-import { Bot } from 'lucide-react';
 import Chat from '../AI/Chat';
 import { createFireElement } from '../../utils/other/animationsUtils';
 
 const StreakTracker = ({ completedTasks, streakData }) => {
   const [openDashboard, setOpenDashboard] = React.useState(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [showFireAnimation, setShowFireAnimation] = useState(false);
   const [prevStreak, setPrevStreak] = useState(streakData.current);
 
@@ -60,36 +58,24 @@ const StreakTracker = ({ completedTasks, streakData }) => {
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
             XP Growth
           </h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => openDashboard?.()}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg
-                                    bg-white dark:bg-gray-800 font-medium text-sm
-                                    border-2 border-gray-800 text-gray-800 dark:text-gray-200 
-                                    shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
-                                    hover:translate-y-0.5 transition-all duration-200"
-            >
-              <ChartBarIcon className="w-4 h-4 text-gray-900 dark:text-white" />
-              Stats
-            </button>
-            <button
-              onClick={() => setIsChatOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg
-                                    bg-white dark:bg-gray-800 font-medium text-sm
-                                    border-2 border-gray-800 text-gray-800 dark:text-gray-200 
-                                    shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
-                                    hover:translate-y-0.5 transition-all duration-200"
-            >
-              <Bot className="w-4 h-4 text-gray-900 dark:text-white" />
-            </button>
-          </div>
+          <button
+            onClick={() => openDashboard?.()}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg
+                                  bg-white dark:bg-gray-800 font-medium text-sm
+                                  border-2 border-gray-800 text-gray-800 dark:text-gray-200 
+                                  shadow-[2px_2px_#2563EB] hover:shadow-none hover:translate-x-0.5 
+                                  hover:translate-y-0.5 transition-all duration-200"
+          >
+            <ChartBarIcon className="w-4 h-4 text-gray-900 dark:text-white" />
+            Stats
+          </button>
         </div>
         <Dashboard
           completedTasks={completedTasks}
           onOpenDashboard={handleOpenDashboard}
         />
       </div>
-      <Chat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <Chat />
     </div>
   );
 };

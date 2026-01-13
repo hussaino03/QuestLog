@@ -13,8 +13,8 @@ jest.mock('../../Analytics/Dashboard', () => ({
 
 jest.mock('../../AI/Chat', () => ({
   __esModule: true,
-  default: function MockChat({ isOpen, onClose }) {
-    return isOpen ? <div data-testid="chat-modal">Chat Component</div> : null;
+  default: function MockChat() {
+    return <div data-testid="chat-modal">Chat Component</div>;
   }
 }));
 

@@ -27,18 +27,26 @@ const model = genAI.getGenerativeModel({
 });
 console.log('Gemini AI model initialized');
 
-const SYSTEM_PROMPT = `You are a friendly and dynamic productivity assistant. Your responses should be:
+const SYSTEM_PROMPT = `You are a friendly and dynamic productivity assistant with access to both personal and community data. Your responses should be:
 - Natural and contextual (adapt based on conversation flow)
 - Direct and personal without unnecessary greetings after the first message
 - Focused on user's actual task data and performance
-- Mix of analysis and actionable advice
-- Professional but warm
+- Mix of analysis, competitive insights, and actionable advice
+- Professional but warm and motivating
 
 Conversation Guidelines:
 - First message: Include a brief greeting
 - Follow-up messages: Skip greetings, respond directly to the question/topic
 - Always reference specific tasks and stats from the user's data
 - Maintain context from the previous messages when provided
+- When discussing competitive insights, be encouraging and motivating
+
+Comparative Analysis Capabilities:
+- Compare user's performance to community averages
+- Provide leaderboard position and ranking insights
+- Highlight how they compare to top performers
+- Celebrate achievements relative to peers
+- Suggest areas for improvement based on community benchmarks
 
 Formatting Guidelines (use markdown):
 - Use **bold** for important metrics, key points, task names, and percentages
@@ -49,7 +57,7 @@ Formatting Guidelines (use markdown):
 - Keep responses structured and scannable
 - Do NOT use backticks/code formatting - use **bold** instead
 
-Remember: Be concise, visual, and avoid repetitive patterns.`;
+Remember: Be concise, visual, motivating, and avoid repetitive patterns.`;
 
 // Reset daily stats if it's a new day
 function checkAndResetDailyStats() {
@@ -99,6 +107,48 @@ async function getUserStats(userId) {
     const completedTasks = user.completedTasks || [];
     const pendingTasks = user.tasks || [];
 
+    // Get leaderboard data for competitive insights
+    const leaderboard = await db
+      .collection('users')
+      .find(
+        { isOptIn: true },
+        { projection: { name: 1, xp: 1, level: 1, tasksCompleted: 1 } }
+      )
+      .sort({ xp: -1 })
+      .limit(100)
+      .toArray();
+
+    // Find user's rank
+    const userRank =
+      leaderboard.findIndex((u) => u._id.toString() === userId.toString()) + 1;
+
+    // Get community stats
+    const communityStats = await db
+      .collection('users')
+      .aggregate([
+        {
+          $group: {
+            _id: null,
+            totalUsers: { $sum: 1 },
+            totalXP: { $sum: '$xp' },
+            avgXP: { $avg: '$xp' },
+            avgLevel: { $avg: '$level' },
+            totalTasks: {
+              $sum: { $size: { $ifNull: ['$completedTasks', []] } }
+            }
+          }
+        }
+      ])
+      .toArray();
+
+    const community = communityStats[0] || {
+      totalUsers: 0,
+      totalXP: 0,
+      avgXP: 0,
+      avgLevel: 1,
+      totalTasks: 0
+    };
+
     console.log(
       'Processing completed tasks. Sample:',
       completedTasks.slice(-2).map((t) => ({
@@ -127,6 +177,9 @@ async function getUserStats(userId) {
 
     console.log('Processed recent completions:', recentCompletions);
 
+    const userXP = user.xp || 0;
+    const userLevel = user.level || 1;
+
     const stats = {
       taskCompletionRate:
         completedTasks.length + pendingTasks.length > 0
@@ -137,10 +190,38 @@ async function getUserStats(userId) {
             ).toFixed(1)
           : 0,
       totalTasksCompleted: completedTasks.length,
-      currentLevel: user.level || 1,
-      experiencePoints: user.xp || 0,
+      currentLevel: userLevel,
+      experiencePoints: userXP,
       recentCompletions,
-      totalActiveTasks: pendingTasks.length
+      totalActiveTasks: pendingTasks.length,
+      badges: user.unlockedBadges || [],
+
+      // Competitive insights
+      leaderboard: {
+        userRank: userRank || 'Not ranked',
+        totalPlayers: leaderboard.length,
+        isOptedIn: user.isOptIn || false,
+        topPlayer: leaderboard[0]
+          ? {
+              name: leaderboard[0].name,
+              xp: leaderboard[0].xp,
+              level: leaderboard[0].level
+            }
+          : null,
+        xpDifferenceFromTop: leaderboard[0] ? leaderboard[0].xp - userXP : 0,
+        xpDifferenceFromAvg: userXP - community.avgXP
+      },
+
+      // Community comparison
+      community: {
+        totalUsers: community.totalUsers,
+        totalCommunityXP: community.totalXP,
+        avgXP: Math.round(community.avgXP),
+        avgLevel: Math.round(community.avgLevel),
+        totalCommunityTasks: community.totalTasks,
+        userVsAvgXP: userXP > community.avgXP ? 'above' : 'below',
+        userVsAvgLevel: userLevel > community.avgLevel ? 'above' : 'below'
+      }
     };
 
     console.log('Final stats prepared:', stats);
@@ -277,6 +358,7 @@ async function chatWithAI(req, res) {
     - Current level: ${stats.currentLevel}
     - Total XP: ${stats.experiencePoints}
     - Active tasks: ${stats.totalActiveTasks}
+    - Badges earned: ${stats.badges.length}
 
     Recent Task Completions:
     ${stats.recentCompletions
@@ -288,6 +370,21 @@ async function chatWithAI(req, res) {
       )
       .join('\n')}
 
+    Competitive & Community Insights:
+    ${
+      stats.leaderboard.isOptedIn
+        ? `- Leaderboard rank: ${stats.leaderboard.userRank} of ${stats.leaderboard.totalPlayers}
+    - XP difference from #1: ${stats.leaderboard.xpDifferenceFromTop > 0 ? '+' : ''}${stats.leaderboard.xpDifferenceFromTop} XP ${stats.leaderboard.topPlayer ? `(${stats.leaderboard.topPlayer.name}: ${stats.leaderboard.topPlayer.xp} XP)` : ''}
+    - XP difference from average: ${stats.leaderboard.xpDifferenceFromAvg > 0 ? '+' : ''}${Math.round(stats.leaderboard.xpDifferenceFromAvg)} XP`
+        : '- Not opted into leaderboard (user can opt in to see rankings)'
+    }
+    - Community average XP: ${stats.community.avgXP}
+    - Community average level: ${stats.community.avgLevel}
+    - User is ${stats.community.userVsAvgXP} average in XP
+    - User is ${stats.community.userVsAvgLevel} average in level
+    - Total community users: ${stats.community.totalUsers}
+    - Total community XP: ${stats.community.totalCommunityXP}
+
     Conversation State:
     - Is first message: ${isFirstMessage}
     - Previous responses: ${JSON.stringify(previousResponses.slice(-2))}
@@ -296,10 +393,11 @@ async function chatWithAI(req, res) {
 
     ${isFirstMessage ? 'Start with a brief greeting.' : 'Skip greeting, respond directly to the question/topic.'}
     Focus on:
-    1. Their recent task completions
-    2. Current performance level
-    3. Specific encouragement based on actual completed tasks
-    4. Actionable next steps`;
+    1. Their recent task completions and personal progress
+    2. Current performance level (personal and relative to community)
+    3. Competitive insights (when relevant to the question)
+    4. Specific encouragement based on actual data
+    5. Actionable next steps to improve`;
 
     // Generate cache key from message + basic stats
     const cacheKey = generateCacheKey(
