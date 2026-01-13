@@ -25,7 +25,7 @@ const model = genAI.getGenerativeModel({
     }
   ]
 });
-console.log('Gemini AI model initialized with gemini-2.0-flash-exp');
+console.log('Gemini AI model initialized');
 
 const SYSTEM_PROMPT = `You are a friendly and dynamic productivity assistant. Your responses should be:
 - Natural and contextual (adapt based on conversation flow)
