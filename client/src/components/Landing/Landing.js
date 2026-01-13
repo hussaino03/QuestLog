@@ -174,10 +174,10 @@ const Landing = ({ isDark, onToggle }) => {
             {/* Secondary Content - Stats */}
             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               {[
-                { label: 'Active Users', value: '450+' },
-                { label: 'Tasks Completed', value: '800+' },
-                { label: 'Total XP Earned', value: '550K+' },
-                { label: 'Badges Earned', value: '90+' }
+                { label: 'Active Users', value: '700+' },
+                { label: 'Tasks Completed', value: '1,100+' },
+                { label: 'Total XP Earned', value: '765K+' },
+                { label: 'Badges Earned', value: '280+' }
               ].map((stat, index) => (
                 <div
                   key={index}
