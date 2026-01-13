@@ -43,7 +43,7 @@
   },
   "jest": {
     "transformIgnorePatterns": [
-      "node_modules/(?!(react-markdown|remark-gfm|micromark|unist-.*|unified|bail|is-plain-obj|trough|vfile|mdast-.*|escape-string-regexp|markdown-table|ccount|decode-named-character-reference|character-entities|zwitch|longest-streak|comma-separated-tokens|hast-.*|space-separated-tokens|property-information|trim-lines|devlop)/)"
+      "node_modules/(?!(react-markdown|remark-.*|micromark.*|unist-.*|unified|bail|is-plain-obj|trough|vfile.*|mdast-.*|escape-string-regexp|markdown-table|ccount|decode-named-character-reference|character-entities|zwitch|longest-streak|comma-separated-tokens|hast-.*|space-separated-tokens|property-information|trim-lines|devlop|estree-.*)/)"
     ]
   },
   "browserslist": {
