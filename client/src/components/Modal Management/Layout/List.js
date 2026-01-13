@@ -23,6 +23,7 @@ const TaskList = ({
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks');
   const [sortMethod, setSortMethod] = useState('date');
+  const [completedSortOrder, setCompletedSortOrder] = useState('group');
 
   const handleQuickAdd = (e) => {
     if (e.key === 'Enter' && quickTaskInput.trim()) {
@@ -80,56 +81,76 @@ const TaskList = ({
     : activeTab === 'tasks'
       ? regularTasks
       : projects;
-  const sortedTasks = getSortedTasks(itemsToDisplay);
+
+  // For completed tasks with custom sort, sort by completion date
+  const sortedTasks =
+    isCompleted && completedSortOrder !== 'group'
+      ? [...itemsToDisplay].sort((a, b) => {
+          const dateA = a.completedAt ? new Date(a.completedAt) : new Date(0);
+          const dateB = b.completedAt ? new Date(b.completedAt) : new Date(0);
+          return completedSortOrder === 'recent'
+            ? dateB - dateA // Newest first
+            : dateA - dateB; // Oldest first
+        })
+      : getSortedTasks(itemsToDisplay);
 
   // Group tasks by date OR label depending on sort method
-  const groupedTasks = sortedTasks.reduce((groups, task) => {
-    if (sortMethod === 'label') {
-      if (task.label) {
-        // Group labeled tasks by their label
-        const groupKey = task.label;
-        if (!groups[groupKey]) groups[groupKey] = [];
-        groups[groupKey].push(task);
-      } else {
-        // For unlabeled tasks, use "Unlabeled" as group key
-        if (!groups['Unlabeled']) groups['Unlabeled'] = [];
-        groups['Unlabeled'].push(task);
-      }
-    } else {
-      if (!task.deadline) {
-        if (!groups['No due date']) groups['No due date'] = [];
-        groups['No due date'].push(task);
-      } else {
-        const dateObj = new Date(task.deadline);
-        const userTimezoneOffset = dateObj.getTimezoneOffset() * 60000;
-        const adjustedDate = new Date(dateObj.getTime() + userTimezoneOffset);
+  // Skip grouping for completed tasks when sorted by completion date
+  const groupedTasks =
+    isCompleted && completedSortOrder !== 'group'
+      ? { 'All Completed': sortedTasks }
+      : sortedTasks.reduce((groups, task) => {
+          if (sortMethod === 'label') {
+            if (task.label) {
+              // Group labeled tasks by their label
+              const groupKey = task.label;
+              if (!groups[groupKey]) groups[groupKey] = [];
+              groups[groupKey].push(task);
+            } else {
+              // For unlabeled tasks, use "Unlabeled" as group key
+              if (!groups['Unlabeled']) groups['Unlabeled'] = [];
+              groups['Unlabeled'].push(task);
+            }
+          } else {
+            if (!task.deadline) {
+              if (!groups['No due date']) groups['No due date'] = [];
+              groups['No due date'].push(task);
+            } else {
+              const dateObj = new Date(task.deadline);
+              const userTimezoneOffset = dateObj.getTimezoneOffset() * 60000;
+              const adjustedDate = new Date(
+                dateObj.getTime() + userTimezoneOffset
+              );
 
-        const date = adjustedDate.toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
+              const date = adjustedDate.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              });
+              if (!groups[date]) groups[date] = [];
+              groups[date].push(task);
+            }
+          }
+          return groups;
+        }, {});
+
+  const sortedGroups =
+    isCompleted && completedSortOrder !== 'group'
+      ? Object.entries(groupedTasks) // Don't sort when showing all completed tasks together
+      : Object.entries(groupedTasks).sort(([keyA], [keyB]) => {
+          if (sortMethod === 'label') {
+            // Put "Unlabeled" group last, sort other labels alphabetically
+            if (keyA === 'Unlabeled') return 1;
+            if (keyB === 'Unlabeled') return -1;
+            return keyA.localeCompare(keyB);
+          } else {
+            // Original date sorting logic
+            if (keyA === 'No due date') return 1;
+            if (keyB === 'No due date') return -1;
+            return new Date(keyA) - new Date(keyB);
+          }
         });
-        if (!groups[date]) groups[date] = [];
-        groups[date].push(task);
-      }
-    }
-    return groups;
-  }, {});
-
-  const sortedGroups = Object.entries(groupedTasks).sort(([keyA], [keyB]) => {
-    if (sortMethod === 'label') {
-      // Put "Unlabeled" group last, sort other labels alphabetically
-      if (keyA === 'Unlabeled') return 1;
-      if (keyB === 'Unlabeled') return -1;
-      return keyA.localeCompare(keyB);
-    } else {
-      // Original date sorting logic
-      if (keyA === 'No due date') return 1;
-      if (keyB === 'No due date') return -1;
-      return new Date(keyA) - new Date(keyB);
-    }
-  });
 
   return (
     <>
@@ -257,7 +278,7 @@ const TaskList = ({
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 w-full text-center mb-3">
               Completed
             </h2>
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center items-center gap-3 mb-6">
               <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5">
                 <div
                   className="px-3 py-1.5 text-xs rounded-md
@@ -271,6 +292,23 @@ const TaskList = ({
                   projects
                 </div>
               </div>
+
+              {/* Sort dropdown for completed tasks */}
+              <select
+                value={completedSortOrder}
+                onChange={(e) => setCompletedSortOrder(e.target.value)}
+                className="px-3 py-1.5 text-xs rounded-md
+                           bg-gray-100 dark:bg-gray-700
+                           text-gray-700 dark:text-gray-300
+                           border border-gray-200 dark:border-gray-600
+                           hover:bg-gray-200 dark:hover:bg-gray-600
+                           focus:outline-none focus:ring-2 focus:ring-blue-500/20
+                           transition-all duration-200 cursor-pointer"
+              >
+                <option value="group">Sort by Deadline</option>
+                <option value="recent">Recently Completed</option>
+                <option value="oldest">Oldest First</option>
+              </select>
             </div>
           </div>
         )}
@@ -287,9 +325,12 @@ const TaskList = ({
                   key={date}
                   className="w-full flex flex-col items-center space-y-2"
                 >
-                  <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                    {date}
-                  </div>
+                  {/* Hide group header for completed tasks when sorted by completion date */}
+                  {!(isCompleted && completedSortOrder !== 'group') && (
+                    <div className="w-11/12 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                      {date}
+                    </div>
+                  )}
                   <ul className="w-full flex flex-col items-center">
                     {dateTasks.map((task) => (
                       <View
