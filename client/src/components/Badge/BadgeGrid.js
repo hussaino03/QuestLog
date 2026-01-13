@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import BadgesModal from './BadgesModal';
+import Badge from './Badge';
 import { Trophy } from 'lucide-react';
+import { calculateBadgeProgress } from '../../utils/badges/badgeUtils';
 
 export const BADGES = {
   NOVICE: {
@@ -166,10 +168,18 @@ export const BADGES = {
   }
 };
 
-const BadgeGrid = ({ unlockedBadges }) => {
+const BadgeGrid = ({
+  unlockedBadges,
+  level = 0,
+  currentStreak = 0,
+  completedTasks = []
+}) => {
   const [showModal, setShowModal] = useState(false);
   const totalBadges = Object.keys(BADGES).length;
   const progress = (unlockedBadges.length / totalBadges) * 100;
+
+  // Get first 6 badges to display in preview
+  const previewBadges = Object.values(BADGES).slice(0, 6);
 
   return (
     <>
@@ -197,7 +207,7 @@ const BadgeGrid = ({ unlockedBadges }) => {
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-2">
+        <div className="mt-2 mb-4">
           <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 
@@ -206,6 +216,29 @@ const BadgeGrid = ({ unlockedBadges }) => {
             />
           </div>
         </div>
+
+        {/* Badge Preview Grid */}
+        <div className="grid grid-cols-3 gap-4">
+          {previewBadges.map((badge) => {
+            const isUnlocked = unlockedBadges.includes(badge.id);
+            const badgeProgress = calculateBadgeProgress(
+              badge,
+              level,
+              currentStreak,
+              completedTasks.length,
+              completedTasks
+            );
+            return (
+              <Badge
+                key={badge.id}
+                badge={badge}
+                isUnlocked={isUnlocked}
+                progress={badgeProgress}
+                showProgress={false}
+              />
+            );
+          })}
+        </div>
       </div>
 
       <BadgesModal
@@ -213,6 +246,9 @@ const BadgeGrid = ({ unlockedBadges }) => {
         onClose={() => setShowModal(false)}
         badges={BADGES}
         unlockedBadges={unlockedBadges}
+        level={level}
+        currentStreak={currentStreak}
+        completedTasks={completedTasks}
       />
     </>
   );
