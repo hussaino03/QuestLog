@@ -41,11 +41,6 @@
       "react-app/jest"
     ]
   },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!(react-markdown|remark-.*|micromark.*|unist-.*|unified|bail|is-plain-obj|trough|vfile.*|mdast-.*|escape-string-regexp|markdown-table|ccount|decode-named-character-reference|character-entities|zwitch|longest-streak|comma-separated-tokens|hast-.*|space-separated-tokens|property-information|trim-lines|devlop|estree-.*)/)"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",
