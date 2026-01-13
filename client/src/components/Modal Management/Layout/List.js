@@ -301,7 +301,6 @@ const TaskList = ({
                            bg-gray-100 dark:bg-gray-700
                            text-gray-700 dark:text-gray-300
                            border border-gray-200 dark:border-gray-600
-                           hover:bg-gray-200 dark:hover:bg-gray-600
                            focus:outline-none focus:ring-2 focus:ring-blue-500/20
                            transition-all duration-200 cursor-pointer"
               >
