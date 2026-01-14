@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { importFromTodoist } from './todoist/todoist';
 import { importFromTickTick } from './ticktick/ticktick';
+import { useNotification } from '../contexts/NotificationContext';
 
 const Integrations = ({ addTask }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { addNotification } = useNotification();
 
   return (
     <div className="space-y-2">
       <button
-        onClick={() => importFromTodoist(addTask, setIsLoading)}
+        onClick={() =>
+          importFromTodoist(addTask, setIsLoading, addNotification)
+        }
         disabled={isLoading}
         className="w-full flex items-center justify-between px-4 py-3 rounded-lg
                  bg-white dark:bg-gray-800 hover:bg-gray-50 
@@ -31,7 +35,9 @@ const Integrations = ({ addTask }) => {
       </button>
 
       <button
-        onClick={() => importFromTickTick(addTask, setIsLoading)}
+        onClick={() =>
+          importFromTickTick(addTask, setIsLoading, addNotification)
+        }
         disabled={isLoading}
         className="w-full flex items-center justify-between px-4 py-3 rounded-lg
                  bg-white dark:bg-gray-800 hover:bg-gray-50 

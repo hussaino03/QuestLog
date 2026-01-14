@@ -1,11 +1,16 @@
 const API_BASE_URL = process.env.REACT_APP_PROD || 'http://localhost:3001/api';
 
-export const importFromTodoist = async (addTask, setIsLoading) => {
+export const importFromTodoist = async (
+  addTask,
+  setIsLoading,
+  addNotification
+) => {
   setIsLoading(true);
   try {
     const messageHandler = async (event) => {
       if (event.data.type === 'todoist-auth-success') {
         window.removeEventListener('message', messageHandler);
+        clearInterval(popupCheckInterval);
         if (event.data.tasks && Array.isArray(event.data.tasks)) {
           const tasksToAdd = event.data.tasks.map((taskName) => ({
             name: taskName,
@@ -17,10 +22,21 @@ export const importFromTodoist = async (addTask, setIsLoading) => {
             experience: 150
           }));
           addTask(tasksToAdd);
+
+          // Show success notification
+          if (addNotification) {
+            const taskCount = tasksToAdd.length;
+            addNotification(
+              `✅ Successfully imported ${taskCount} task${taskCount !== 1 ? 's' : ''} from Todoist`,
+              'success',
+              `todoist-import-${Date.now()}`
+            );
+          }
         }
         setIsLoading(false);
       } else if (event.data.type === 'todoist-auth-error') {
         window.removeEventListener('message', messageHandler);
+        clearInterval(popupCheckInterval);
         setIsLoading(false);
       }
     };
@@ -41,6 +57,14 @@ export const importFromTodoist = async (addTask, setIsLoading) => {
     if (!popup || popup.closed) {
       throw new Error('Popup blocked! Please allow popups for this site.');
     }
+
+    const popupCheckInterval = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(popupCheckInterval);
+        window.removeEventListener('message', messageHandler);
+        setIsLoading(false);
+      }
+    }, 500);
   } catch (error) {
     console.error('Todoist import failed:', error);
     setIsLoading(false);
