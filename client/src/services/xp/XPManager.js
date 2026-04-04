@@ -71,7 +71,7 @@ const useXPManager = () => {
   const calculateXP = (taskExperience, deadline = null) => {
     const earlyBonus = calculateEarlyBonus(deadline);
     const overduePenalty = calculateOverduePenalty(deadline);
-    const totalTaskXP = taskExperience + earlyBonus + overduePenalty;
+    const totalTaskXP = Math.max(0, taskExperience + earlyBonus + overduePenalty);
     const newTotalXP = Math.max(0, totalExperience + totalTaskXP);
 
     const currentStats = calculateLevelAndExperience(totalExperience);
